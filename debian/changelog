@@ -1,3 +1,9 @@
+php5.6 (5.6.30-11) experimental; urgency=medium
+
+  * Change Vcs-* URLs to gitlab.sury.org
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 19 Apr 2017 14:59:30 +0200
+
 php5.6 (5.6.30-10) experimental; urgency=medium
 
   * [CVE-2017-7272]: Fix detect invalid port in xp_socket parse ip address
