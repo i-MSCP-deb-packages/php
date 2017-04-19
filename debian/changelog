@@ -1,3 +1,9 @@
+php5.5 (5.5.38-5) experimental; urgency=medium
+
+  * Change Vcs-* URLs to gitlab.sury.org
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 19 Apr 2017 15:03:28 +0200
+
 php5.5 (5.5.38-4) experimental; urgency=medium
 
   * Ignore .list files from timezone database (Closes: #805591)
