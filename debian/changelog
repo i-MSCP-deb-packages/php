@@ -1,3 +1,9 @@
+php7.0 (7.0.18-2) unstable; urgency=medium
+
+  * Change Vcs-* URLs to gitlab.sury.org
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 19 Apr 2017 14:53:19 +0200
+
 php7.0 (7.0.18-1) unstable; urgency=medium
 
   * New upstream version 7.0.18
