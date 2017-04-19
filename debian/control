@@ -74,8 +74,8 @@ Build-Depends: apache2-dev (>= 2.4),
 Build-Conflicts: bind-dev,
                  libxmlrpc-core-c3-dev
 Standards-Version: 3.9.7
-Vcs-Git: https://anonscm.debian.org/git/pkg-php/php.git
-Vcs-Browser: https://anonscm.debian.org/cgit/pkg-php/php.git
+Vcs-Git: https://gitlab.sury.org/pkg-php/php.git
+Vcs-Browser: https://gitlab.sury.org/pkg-php/php
 Homepage: http://www.php.net/
 
 Package: libapache2-mod-php7.1
@@ -293,6 +293,29 @@ Depends: php7.1-common,
 Description: XSL module for PHP (dummy)
  This package is a transitional dummy package and can be safely
  removed.
+
+Package: php7.1-intl
+Architecture: any
+Depends: php-common (>= 1:35),
+         ucf,
+         ${misc:Depends},
+         ${php:Depends},
+	 ${php-intl:Depends},
+         ${shlibs:Depends}
+Pre-Depends: ${misc:Pre-Depends},
+	     ${php-intl:Pre-Depends}
+Built-Using: ${php:Built-Using}
+Replaces: ${php-intl:Replaces}
+Breaks: ${php-intl:Breaks}
+Conflicts: ${php-intl:Conflicts}
+Provides: ${php-intl:Provides}
+Recommends: ${php-intl:Recommends}
+Description: Internationalisation module for PHP
+ This package provides the Internationalisation module(s) for PHP.
+ .
+ PHP (recursive acronym for PHP: Hypertext Preprocessor) is a widely-used
+ open source general-purpose scripting language that is especially suited
+ for web development and can be embedded into HTML.
 
 Package: php7.1-odbc
 Architecture: any
@@ -547,24 +570,24 @@ Description: documentation, examples and common module for PHP
  open source general-purpose scripting language that is especially suited
  for web development and can be embedded into HTML.
 
-Package: php7.1-intl
+Package: php7.1-tidy
 Architecture: any
 Depends: php-common (>= 1:35),
          ucf,
          ${misc:Depends},
          ${php:Depends},
-	 ${php-intl:Depends},
+	 ${php-tidy:Depends},
          ${shlibs:Depends}
 Pre-Depends: ${misc:Pre-Depends},
-	     ${php-intl:Pre-Depends}
+	     ${php-tidy:Pre-Depends}
 Built-Using: ${php:Built-Using}
-Replaces: ${php-intl:Replaces}
-Breaks: ${php-intl:Breaks}
-Conflicts: ${php-intl:Conflicts}
-Provides: ${php-intl:Provides}
-Recommends: ${php-intl:Recommends}
-Description: Internationalisation module for PHP
- This package provides the Internationalisation module(s) for PHP.
+Replaces: ${php-tidy:Replaces}
+Breaks: ${php-tidy:Breaks}
+Conflicts: ${php-tidy:Conflicts}
+Provides: ${php-tidy:Provides}
+Recommends: ${php-tidy:Recommends}
+Description: tidy module for PHP
+ This package provides the tidy module(s) for PHP.
  .
  PHP (recursive acronym for PHP: Hypertext Preprocessor) is a widely-used
  open source general-purpose scripting language that is especially suited
@@ -634,29 +657,6 @@ Provides: ${php-snmp:Provides}
 Recommends: ${php-snmp:Recommends}
 Description: SNMP module for PHP
  This package provides the SNMP module(s) for PHP.
- .
- PHP (recursive acronym for PHP: Hypertext Preprocessor) is a widely-used
- open source general-purpose scripting language that is especially suited
- for web development and can be embedded into HTML.
-
-Package: php7.1-curl
-Architecture: any
-Depends: php-common (>= 1:35),
-         ucf,
-         ${misc:Depends},
-         ${php:Depends},
-	 ${php-curl:Depends},
-         ${shlibs:Depends}
-Pre-Depends: ${misc:Pre-Depends},
-	     ${php-curl:Pre-Depends}
-Built-Using: ${php:Built-Using}
-Replaces: ${php-curl:Replaces}
-Breaks: ${php-curl:Breaks}
-Conflicts: ${php-curl:Conflicts}
-Provides: ${php-curl:Provides}
-Recommends: ${php-curl:Recommends}
-Description: CURL module for PHP
- This package provides the CURL module(s) for PHP.
  .
  PHP (recursive acronym for PHP: Hypertext Preprocessor) is a widely-used
  open source general-purpose scripting language that is especially suited
@@ -800,6 +800,29 @@ Description: IMAP module for PHP
  open source general-purpose scripting language that is especially suited
  for web development and can be embedded into HTML.
 
+Package: php7.1-bz2
+Architecture: any
+Depends: php-common (>= 1:35),
+         ucf,
+         ${misc:Depends},
+         ${php:Depends},
+	 ${php-bz2:Depends},
+         ${shlibs:Depends}
+Pre-Depends: ${misc:Pre-Depends},
+	     ${php-bz2:Pre-Depends}
+Built-Using: ${php:Built-Using}
+Replaces: ${php-bz2:Replaces}
+Breaks: ${php-bz2:Breaks}
+Conflicts: ${php-bz2:Conflicts}
+Provides: ${php-bz2:Provides}
+Recommends: ${php-bz2:Recommends}
+Description: bzip2 module for PHP
+ This package provides the bzip2 module(s) for PHP.
+ .
+ PHP (recursive acronym for PHP: Hypertext Preprocessor) is a widely-used
+ open source general-purpose scripting language that is especially suited
+ for web development and can be embedded into HTML.
+
 Package: php7.1-bcmath
 Architecture: any
 Depends: php-common (>= 1:35),
@@ -818,29 +841,6 @@ Provides: ${php-bcmath:Provides}
 Recommends: ${php-bcmath:Recommends}
 Description: Bcmath module for PHP
  This package provides the Bcmath module(s) for PHP.
- .
- PHP (recursive acronym for PHP: Hypertext Preprocessor) is a widely-used
- open source general-purpose scripting language that is especially suited
- for web development and can be embedded into HTML.
-
-Package: php7.1-tidy
-Architecture: any
-Depends: php-common (>= 1:35),
-         ucf,
-         ${misc:Depends},
-         ${php:Depends},
-	 ${php-tidy:Depends},
-         ${shlibs:Depends}
-Pre-Depends: ${misc:Pre-Depends},
-	     ${php-tidy:Pre-Depends}
-Built-Using: ${php:Built-Using}
-Replaces: ${php-tidy:Replaces}
-Breaks: ${php-tidy:Breaks}
-Conflicts: ${php-tidy:Conflicts}
-Provides: ${php-tidy:Provides}
-Recommends: ${php-tidy:Recommends}
-Description: tidy module for PHP
- This package provides the tidy module(s) for PHP.
  .
  PHP (recursive acronym for PHP: Hypertext Preprocessor) is a widely-used
  open source general-purpose scripting language that is especially suited
@@ -961,24 +961,24 @@ Description: pspell module for PHP
  open source general-purpose scripting language that is especially suited
  for web development and can be embedded into HTML.
 
-Package: php7.1-bz2
+Package: php7.1-curl
 Architecture: any
 Depends: php-common (>= 1:35),
          ucf,
          ${misc:Depends},
          ${php:Depends},
-	 ${php-bz2:Depends},
+	 ${php-curl:Depends},
          ${shlibs:Depends}
 Pre-Depends: ${misc:Pre-Depends},
-	     ${php-bz2:Pre-Depends}
+	     ${php-curl:Pre-Depends}
 Built-Using: ${php:Built-Using}
-Replaces: ${php-bz2:Replaces}
-Breaks: ${php-bz2:Breaks}
-Conflicts: ${php-bz2:Conflicts}
-Provides: ${php-bz2:Provides}
-Recommends: ${php-bz2:Recommends}
-Description: bzip2 module for PHP
- This package provides the bzip2 module(s) for PHP.
+Replaces: ${php-curl:Replaces}
+Breaks: ${php-curl:Breaks}
+Conflicts: ${php-curl:Conflicts}
+Provides: ${php-curl:Provides}
+Recommends: ${php-curl:Recommends}
+Description: CURL module for PHP
+ This package provides the CURL module(s) for PHP.
  .
  PHP (recursive acronym for PHP: Hypertext Preprocessor) is a widely-used
  open source general-purpose scripting language that is especially suited
