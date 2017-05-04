@@ -26,3 +26,6 @@ php@PHP_VERSION@.load
 php@PHP_VERSION@-xml.substvars.extra
 php@PHP_VERSION@-xml.postinst.extra
 php@PHP_VERSION@-snmp.substvars.extra
+php@PHP_VERSION@-cgi.NEWS
+php@PHP_VERSION@-fpm.NEWS
+libapache2-mod-php@PHP_VERSION@.NEWS
