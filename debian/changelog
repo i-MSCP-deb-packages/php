@@ -1,3 +1,12 @@
+php7.0 (7.0.18-3) unstable; urgency=medium
+
+  * php-fpm has to depend on procps due kill usage in systemd service file
+    (Closes: #861855)
+  * Regenerate d/control
+  * Do a fresh rewrap of debian/ directory
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 08 May 2017 10:25:18 +0200
+
 php7.0 (7.0.18-2) unstable; urgency=medium
 
   * Change Vcs-* URLs to gitlab.sury.org
