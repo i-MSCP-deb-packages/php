@@ -29,7 +29,7 @@ index b816670..61b12a1 100644
  /*
     +----------------------------------------------------------------------+
 diff --git a/configure.in b/configure.in
-index 6861921..9f9c5c0 100644
+index bde7f3f..edf08ad 100644
 --- a/configure.in
 +++ b/configure.in
 @@ -136,6 +136,8 @@ AC_DEFUN([PHP_EXT_DIR],[$config_m4_dir])dnl
@@ -93,7 +93,7 @@ index 01539ae..25ef83e 100644
  #include "php_zlib.h"
  #include "fopen_wrappers.h"
 diff --git a/main/php.h b/main/php.h
-index 1da67b2..435aca3 100644
+index 9b1c8b9..c8f07f4 100644
 --- a/main/php.h
 +++ b/main/php.h
 @@ -31,6 +31,7 @@
@@ -117,7 +117,7 @@ index fe56c9b..2bf1692 100644
  #include "php_globals.h"
  #include "php_network.h"
 diff --git a/main/streams/memory.c b/main/streams/memory.c
-index b1483e0..5af09e8 100644
+index 39578dc..cd78411 100644
 --- a/main/streams/memory.c
 +++ b/main/streams/memory.c
 @@ -18,7 +18,6 @@
