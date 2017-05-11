@@ -3662,7 +3662,7 @@ ac_config_headers="$ac_config_headers main/php_config.h"
 
 PHP_MAJOR_VERSION=7
 PHP_MINOR_VERSION=1
-PHP_RELEASE_VERSION=4
+PHP_RELEASE_VERSION=5
 PHP_EXTRA_VERSION=""
 PHP_VERSION="$PHP_MAJOR_VERSION.$PHP_MINOR_VERSION.$PHP_RELEASE_VERSION$PHP_EXTRA_VERSION"
 PHP_VERSION_ID=`expr $PHP_MAJOR_VERSION \* 10000 + $PHP_MINOR_VERSION \* 100 + $PHP_RELEASE_VERSION`
@@ -35826,7 +35826,7 @@ $as_echo "If configure fails try --with-freetype-dir=<DIR>" >&6; }
   fi
 
 
-  for i in include/gd include gd ""; do
+  for i in include/gd include/gd2 include gd ""; do
     test -f "$PHP_GD/$i/gd.h" && GD_INCLUDE="$PHP_GD/$i"
   done
 
@@ -37698,7 +37698,6 @@ fi
 
 fi
 
-  LDFLAGS=$O_LDFLAGS
 
 
 $as_echo "#define HAVE_LIBINTL 1" >>confdefs.h
@@ -38309,6 +38308,7 @@ $as_echo "#define HAVE_BIND_TEXTDOMAIN_CODESET 1" >>confdefs.h
 
 fi
 
+  LDFLAGS=$O_LDFLAGS
 
 fi
 
