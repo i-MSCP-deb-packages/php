@@ -1,3 +1,11 @@
+php7.0 (7.0.19-1) unstable; urgency=medium
+
+  * New upstream version 7.0.19
+  * Remove OpenSSL 1.1.0 support patch; it was merged upstream
+  * Rebase patches on top of PHP 7.0.19
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 11 May 2017 16:04:47 +0200
+
 php7.0 (7.0.18-3) unstable; urgency=medium
 
   * php-fpm has to depend on procps due kill usage in systemd service file
