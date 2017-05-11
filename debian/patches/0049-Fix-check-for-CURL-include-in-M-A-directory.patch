@@ -27,11 +27,11 @@ index 2f82c34..f785770 100644
          AC_MSG_RESULT(found in $i)
          break
 diff --git a/ext/openssl/config.w32 b/ext/openssl/config.w32
-index 066d7bc..1f5fa39 100644
+index c960853..ade17d4 100644
 --- a/ext/openssl/config.w32
 +++ b/ext/openssl/config.w32
 @@ -4,15 +4,22 @@
- ARG_WITH("openssl", "OpenSSL support", "no");
+ ARG_WITH("openssl", "OpenSSL support", "no,shared");
  
  if (PHP_OPENSSL != "no") {
 -	if (CHECK_LIB("ssleay32.lib", "openssl", PHP_OPENSSL) &&
