@@ -14,10 +14,10 @@ Subject: debian_quirks
  8 files changed, 22 insertions(+), 17 deletions(-)
 
 diff --git a/configure.in b/configure.in
-index 20c14b3..ec2f974 100644
+index f8c5d3c..d7c9645 100644
 --- a/configure.in
 +++ b/configure.in
-@@ -1094,7 +1094,7 @@ if test "$PHP_CLI" = "no"; then
+@@ -1095,7 +1095,7 @@ if test "$PHP_CLI" = "no"; then
  fi
  
  PHP_ARG_WITH(pear, [whether to install PEAR],
@@ -26,7 +26,7 @@ index 20c14b3..ec2f974 100644
    --without-pear          Do not install PEAR], DEFAULT, yes)
  
  if test "$PHP_PEAR" != "no"; then
-@@ -1131,6 +1131,7 @@ dnl
+@@ -1132,6 +1132,7 @@ dnl
    PHP_ADD_MAKEFILE_FRAGMENT($abs_srcdir/pear/Makefile.frag,$abs_srcdir/pear,pear)
  fi
  
@@ -34,7 +34,7 @@ index 20c14b3..ec2f974 100644
  
  dnl Configuring Zend and TSRM.
  dnl -------------------------------------------------------------------------
-@@ -1203,6 +1204,8 @@ dnl Build extension directory path
+@@ -1204,6 +1205,8 @@ dnl Build extension directory path
  
  ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modules.h|$SED 's/#define ZEND_MODULE_API_NO //'`
  
@@ -43,7 +43,7 @@ index 20c14b3..ec2f974 100644
  if test -z "$EXTENSION_DIR"; then
    extbasedir=$ZEND_MODULE_API_NO
    if test "$oldstyleextdir" = "yes"; then
-@@ -1532,6 +1535,7 @@ $php_shtool mkdir -p scripts/man1
+@@ -1533,6 +1536,7 @@ $php_shtool mkdir -p scripts/man1
  ALL_OUTPUT_FILES="php7.spec main/build-defs.h \
  scripts/phpize scripts/man1/phpize.1 \
  scripts/php-config scripts/man1/php-config.1 \
