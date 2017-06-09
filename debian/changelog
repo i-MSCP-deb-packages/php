@@ -1,3 +1,13 @@
+php7.0 (7.0.20-1) unstable; urgency=medium
+
+  * Kill extra TAB character in the ini file that was causing insserv
+    troubles
+  * Add signature support to d/watch
+  * New upstream version 7.0.20
+  * Refresh patches on top of PHP 7.0.20 release
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 09 Jun 2017 10:04:20 +0200
+
 php7.0 (7.0.19-1) unstable; urgency=medium
 
   * New upstream version 7.0.19
