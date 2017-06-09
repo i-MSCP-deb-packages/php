@@ -1,3 +1,14 @@
+php7.1 (7.1.6-1) unstable; urgency=medium
+
+  * Kill extra TAB character in the ini file that was causing insserv
+    troubles
+  * Add signature support to d/watch
+  * New upstream version 7.1.6
+  * Add Davey Shafik PGP key to upstream keyring
+  * Rebase patches on top of PHP 7.1.6 release
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 09 Jun 2017 10:23:49 +0200
+
 php7.1 (7.1.5-1) unstable; urgency=medium
 
   * The default file extension configuration has been changed to add .phar
