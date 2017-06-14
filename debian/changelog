@@ -1,3 +1,9 @@
+php7.1 (7.1.6-2) unstable; urgency=medium
+
+  * Add upstream patch to fix broken support for HOST/PATH ini sections
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 14 Jun 2017 07:31:31 +0200
+
 php7.1 (7.1.6-1) unstable; urgency=medium
 
   * Kill extra TAB character in the ini file that was causing insserv
