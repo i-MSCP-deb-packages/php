@@ -4,5 +4,6 @@ php7.2 (7.2.0~alpha3-1) experimental; urgency=medium
   * Rebase patches on top of PHP 7.2.0~alpha3
   * Update d/rules with configure.in -> configure.ac rename
   * Remove mcrypt extension that has been removed upstream
+  * Update phpapi to 20160731
 
- -- Ondřej Surý <ondrej@debian.org>  Thu, 06 Jul 2017 13:21:16 +0200
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 06 Jul 2017 13:50:44 +0200
