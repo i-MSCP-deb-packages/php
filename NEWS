@@ -1,5 +1,46 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+06 Jul 2017, PHP 7.2.0alpha3
+
+- Core:
+  . Fixed bug #74780 (parse_url() broken when query string contains colon). 
+    (jhdxr)
+  . Fixed bug #74761 (Unary operator expected error on some systems). (petk)
+  . Allow loading PHP/Zend extensions by name in ini files (extension=<name>).
+    (francois at tekwire dot net)
+  . Added object type annotation. (brzuchal)
+  . Fixed bug #74815 (crash with a combination of INI entries at startup).
+    (Anatol)
+  . Fixed bug #74836 (isset on zero-prefixed numeric indexes in array broken).
+    (Dmitry)
+
+- CLI:
+  . Fixed bug #74849 (Process is started as interactive shell in PhpStorm).
+    (Anatol)
+
+- OpenSSL:
+  . Fixed bug #74798 (pkcs7_en/decrypt does not work if \x0a is used in content).
+    (Anatol)
+
+- SPL:
+  . Fixed bug #73471 (PHP freezes with AppendIterator). (jhdxr)
+  . Fixed bug #71412 (Incorrect arginfo for ArrayIterator::__construct).
+    (tysonandre775 at hotmail dot com)
+
+- Session:
+  . Fixed bug #74514 (5 session functions incorrectly warn when calling in
+    read-only/getter mode). (Yasuo)
+
+- Standard:
+  . Add support for extension name as argument to dl().
+    (francois at tekwire dot net)
+
+- zlib:
+  . Fixed bug #73944 (dictionary option of inflate_init() does not work).
+    (wapmorgan)
+  . Expose inflate_get_status() and inflate_get_read_len() functions.
+    (Matthew Trescott)
+
 22 Jun 2017, PHP 7.2.0alpha2
 
 - Core:
@@ -11,18 +52,18 @@ PHP                                                                        NEWS
 
 - OCI8:
   . Add TAF callback (PR #2459). (KoenigsKind)
+  . Fixed bug #74625 (Integer overflow in oci_bind_array_by_name). (Ingmar Runge)
 
 - OpenSSL:
   . Fixed bug #74720 (pkcs7_en/decrypt does not work if \x1a is used in
     content). (Anatol)
-  . Use TLS_ANY for default ssl:// and tls:// negotiation.
-    (Niklas Keller, me at kelunik dot com)
+  . Use TLS_ANY for default ssl:// and tls:// negotiation. (kelunik)
   . Fix leak in openssl_spki_new(). (jelle at vdwaa dot nl)
+  . Added openssl_pkcs7_read() and pk7 parameter to openssl_pkcs7_verify().
+    (jelle at vdwaa dot nl)
 
 - PDO_OCI:
   . Fixed Bug #74537 (Align --with-pdo-oci configure option with --with-oci8 syntax).
-    (Tianfang Yang)
-  . Support Instant Client 12.2 in --with-pdo-oci configure option.
     (Tianfang Yang)
 
 - Standard:
@@ -32,8 +73,7 @@ PHP                                                                        NEWS
     (mhagstrand at gmail dot com)
 
 - Streams:
-  . Default ssl/single_dh_use and ssl/honor_cipher_order to true.
-    (me at kelunik dot com)
+  . Default ssl/single_dh_use and ssl/honor_cipher_order to true. (kelunik)
 
 - SQLite3:
   . Update to Sqlite 3.19.3. (cmb)

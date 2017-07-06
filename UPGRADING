@@ -41,6 +41,7 @@ PHP 7.2 UPGRADE NOTES
   . Minimum supported Windows versions are Windows 7/Server 2008 R2.
   . Initial trait property value compatibility check will no longer perform
     any casts. (Bug #74269)
+  . "object" (in any case) can no longer be used as a class name.
 
 - BCMath:
   . The bcmod() function no longer truncates fractional numbers to integers. As
@@ -85,6 +86,13 @@ PHP 7.2 UPGRADE NOTES
         session_start()
     . Session no longer initialize $_SESSION for invalid and useless session.
         session_start()
+    . When headers are already sent and try to set new INI values, session_name(),
+      session_module_name(), session_save_path(), session_cache_limiter() and
+      session_cache_expire() are no longer works. Older PHPs accepts new values even
+      if new values will not be effective.
+      This new corrected behavior may affect command line mode CLI scripts that manage
+      sessions. Use output buffer just like web applications to resolve problems on
+      CLI scripts.
 
 
 ========================================
@@ -101,6 +109,8 @@ PHP 7.2 UPGRADE NOTES
     (https://wiki.php.net/rfc/allow-abstract-function-override)
   . A trailing comma in group use statements is now allowed.
     (https://wiki.php.net/rfc/list-syntax-trailing-commas)
+  . The "object" type annotation is now supported.
+    (https://wiki.php.net/rfc/object-typehint)
 
 - DBA:
   . Implemented support for the LMDB backend.
