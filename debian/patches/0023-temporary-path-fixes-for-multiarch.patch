@@ -12,10 +12,10 @@ Subject: temporary-path-fixes-for-multiarch
  6 files changed, 8 insertions(+), 6 deletions(-)
 
 diff --git a/acinclude.m4 b/acinclude.m4
-index 41b020c..1483973 100644
+index f64fb24..96a6e7f 100644
 --- a/acinclude.m4
 +++ b/acinclude.m4
-@@ -2286,7 +2286,7 @@ AC_DEFUN([PHP_SETUP_KERBEROS],[
+@@ -2275,7 +2275,7 @@ AC_DEFUN([PHP_SETUP_KERBEROS],[
      fi
  
      for i in $PHP_KERBEROS; do
@@ -24,7 +24,7 @@ index 41b020c..1483973 100644
          PHP_KERBEROS_DIR=$i
          break
        fi
-@@ -2365,7 +2365,7 @@ AC_DEFUN([PHP_SETUP_OPENSSL],[
+@@ -2354,7 +2354,7 @@ AC_DEFUN([PHP_SETUP_OPENSSL],[
        if test -r $i/include/openssl/evp.h; then
          OPENSSL_INCDIR=$i/include
        fi
@@ -34,10 +34,10 @@ index 41b020c..1483973 100644
        fi
        test -n "$OPENSSL_INCDIR" && test -n "$OPENSSL_LIBDIR" && break
 diff --git a/ext/dba/config.m4 b/ext/dba/config.m4
-index d2e6fd9..f3aec83 100644
+index 4ced7d5..a239855 100644
 --- a/ext/dba/config.m4
 +++ b/ext/dba/config.m4
-@@ -239,7 +239,7 @@ AC_DEFUN([PHP_DBA_DB_CHECK],[
+@@ -273,7 +273,7 @@ AC_DEFUN([PHP_DBA_DB_CHECK],[
      AC_MSG_ERROR([DBA: Could not find necessary header file(s).])
    fi
    for LIB in $2; do

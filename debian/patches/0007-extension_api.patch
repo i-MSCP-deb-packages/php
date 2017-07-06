@@ -3,15 +3,15 @@ Date: Sat, 2 May 2015 10:26:51 +0200
 Subject: extension_api
 
 ---
- configure.in          | 5 ++++-
+ configure.ac          | 5 ++++-
  scripts/php-config.in | 4 ++++
  2 files changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/configure.in b/configure.in
-index 49a2f38..d2eac81 100644
---- a/configure.in
-+++ b/configure.in
-@@ -1207,8 +1207,10 @@ ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modul
+diff --git a/configure.ac b/configure.ac
+index 0f7fae1..ebd2326 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1190,8 +1190,10 @@ ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modul
  
  AC_SUBST(ZEND_MODULE_API_NO)
  
@@ -23,7 +23,7 @@ index 49a2f38..d2eac81 100644
    if test "$oldstyleextdir" = "yes"; then
      if test "$PHP_DEBUG" = "1"; then
        part1=debug
-@@ -1352,6 +1354,7 @@ PHP_SUBST(CXX)
+@@ -1325,6 +1327,7 @@ PHP_SUBST(CXX)
  PHP_SUBST(CXXFLAGS)
  PHP_SUBST(CXXFLAGS_CLEAN)
  PHP_SUBST_OLD(DEBUG_CFLAGS)

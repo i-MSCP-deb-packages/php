@@ -3,14 +3,14 @@ Date: Sat, 2 May 2015 10:26:50 +0200
 Subject: libtool_fixes
 
 ---
- TSRM/configure.in | 3 ---
- configure.in      | 2 --
+ TSRM/configure.ac | 3 ---
+ configure.ac      | 2 --
  2 files changed, 5 deletions(-)
 
-diff --git a/TSRM/configure.in b/TSRM/configure.in
-index 6f10f5a..2bcff8d 100644
---- a/TSRM/configure.in
-+++ b/TSRM/configure.in
+diff --git a/TSRM/configure.ac b/TSRM/configure.ac
+index 8bf35d3..7c7ee66 100644
+--- a/TSRM/configure.ac
++++ b/TSRM/configure.ac
 @@ -17,9 +17,6 @@ TSRM_BASIC_CHECKS
  TSRM_THREADS_CHECKS
  	
@@ -21,11 +21,11 @@ index 6f10f5a..2bcff8d 100644
  
  dnl TSRM_PTHREAD
  
-diff --git a/configure.in b/configure.in
-index 52c26cf..46bc4ac 100644
---- a/configure.in
-+++ b/configure.in
-@@ -1427,8 +1427,6 @@ AC_PROVIDE_IFELSE([PHP_REQUIRE_CXX], [], [
+diff --git a/configure.ac b/configure.ac
+index 7b6f675..698ee20 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1400,8 +1400,6 @@ AC_PROVIDE_IFELSE([PHP_REQUIRE_CXX], [], [
  ])
  AC_PROG_LIBTOOL
  

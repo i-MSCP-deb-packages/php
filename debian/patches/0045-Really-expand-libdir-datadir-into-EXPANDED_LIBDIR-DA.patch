@@ -3,14 +3,14 @@ Date: Mon, 14 Mar 2016 16:09:34 +0100
 Subject: Really expand $libdir/$datadir into @EXPANDED_LIBDIR/DATADIR@
 
 ---
- configure.in | 4 ++--
+ configure.ac | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/configure.in b/configure.in
-index d004048..2211371 100644
---- a/configure.in
-+++ b/configure.in
-@@ -1254,9 +1254,9 @@ EXPANDED_LOCALSTATEDIR=`eval echo $localstatedir`
+diff --git a/configure.ac b/configure.ac
+index ca1e2dc..5089f59 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1237,9 +1237,9 @@ EXPANDED_LOCALSTATEDIR=`eval echo $localstatedir`
  EXPANDED_BINDIR=`eval echo $bindir`
  EXPANDED_SBINDIR=`eval echo $sbindir`
  EXPANDED_MANDIR=`eval echo $mandir`
