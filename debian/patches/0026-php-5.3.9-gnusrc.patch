@@ -29,7 +29,7 @@ index bafdb3f..460bda2 100644
  /*
     +----------------------------------------------------------------------+
 diff --git a/configure.ac b/configure.ac
-index ebd2326..e82e69b 100644
+index a8be863..a77e831 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -124,6 +124,8 @@ AC_DEFUN([PHP_EXT_DIR],[$config_m4_dir])dnl
@@ -93,7 +93,7 @@ index 01539ae..25ef83e 100644
  #include "php_zlib.h"
  #include "fopen_wrappers.h"
 diff --git a/main/php.h b/main/php.h
-index 116485a..f147f39 100644
+index 53926d2..d58c4a8 100644
 --- a/main/php.h
 +++ b/main/php.h
 @@ -31,6 +31,7 @@
@@ -129,7 +129,7 @@ index d41b2f5..7a7f377 100644
  #include "ext/standard/base64.h"
  
 diff --git a/main/streams/streams.c b/main/streams/streams.c
-index 25898cd..3ef14d1 100644
+index 23d4645..df8a89e 100644
 --- a/main/streams/streams.c
 +++ b/main/streams/streams.c
 @@ -21,7 +21,6 @@
