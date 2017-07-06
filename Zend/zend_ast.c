@@ -277,7 +277,7 @@ ZEND_API int zend_ast_evaluate(zval *result, zend_ast *ast, zend_class_entry *sc
 			zval *zv = zend_ast_get_zval(ast);
 
 			if (Z_OPT_CONSTANT_P(zv)) {
-				if (!(Z_TYPE_FLAGS_P(zv) & IS_TYPE_IMMUTABLE)) {
+				if (Z_TYPE_FLAGS_P(zv) & IS_TYPE_REFCOUNTED) {
 					if (UNEXPECTED(zval_update_constant_ex(zv, scope) != SUCCESS)) {
 						ret = FAILURE;
 						break;
@@ -432,11 +432,7 @@ ZEND_API int zend_ast_evaluate(zval *result, zend_ast *ast, zend_class_entry *sc
 			} else {
 				zval tmp;
 
-				if (ast->attr == ZEND_DIM_IS) {
-					zend_fetch_dimension_by_zval_is(&tmp, &op1, &op2, IS_CONST);
-				} else {
-					zend_fetch_dimension_by_zval(&tmp, &op1, &op2);
-				}
+				zend_fetch_dimension_const(&tmp, &op1, &op2, (ast->attr == ZEND_DIM_IS) ? BP_VAR_IS : BP_VAR_R);
 
 				if (UNEXPECTED(Z_ISREF(tmp))) {
 					ZVAL_DUP(result, Z_REFVAL(tmp));
