@@ -107,33 +107,30 @@ TSRM_API void tsrm_win32_shutdown(void)
 #endif
 }
 
-char * tsrm_win32_get_path_sid_key(const char *pathname)
+char * tsrm_win32_get_path_sid_key(const char *pathname, size_t pathname_len, size_t *key_len)
 {
 	PSID pSid = TWG(impersonation_token_sid);
-	TCHAR *ptcSid = NULL;
+	char *ptcSid = NULL;
 	char *bucket_key = NULL;
-	size_t ptc_sid_len, pathname_len;
-
-	pathname_len = strlen(pathname);
+	size_t ptc_sid_len;
 
 	if (!pSid) {
-		bucket_key = (char *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, pathname_len + 1);
-		if (!bucket_key) {
-			return NULL;
-		}
-		memcpy(bucket_key, pathname, pathname_len);
-		return bucket_key;
+		*key_len = pathname_len;
+		return pathname;
 	}
 
 	if (!ConvertSidToStringSid(pSid, &ptcSid)) {
+		*key_len = 0;
 		return NULL;
 	}
 
 
 	ptc_sid_len = strlen(ptcSid);
-	bucket_key = (char *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, pathname_len + ptc_sid_len + 1);
+	*key_len = pathname_len + ptc_sid_len;
+	bucket_key = (char *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, *key_len + 1);
 	if (!bucket_key) {
 		LocalFree(ptcSid);
+		*key_len = 0;
 		return NULL;
 	}
 
@@ -208,6 +205,7 @@ TSRM_API int tsrm_win32_access(const char *pathname, int mode)
 	DWORD sec_desc_length = 0, desired_access = 0, granted_access = 0;
 	BYTE * psec_desc = NULL;
 	BOOL fAccess = FALSE;
+
 	realpath_cache_bucket * bucket = NULL;
 	char * real_path = NULL;
 
@@ -295,14 +293,14 @@ TSRM_API int tsrm_win32_access(const char *pathname, int mode)
 
 		if (CWDG(realpath_cache_size_limit)) {
 			t = time(0);
-			bucket = realpath_cache_lookup(pathname, (int)strlen(pathname), t);
+			bucket = realpath_cache_lookup(pathname, strlen(pathname), t);
 			if(bucket == NULL && real_path == NULL) {
 				/* We used the pathname directly. Call tsrm_realpath */
 				/* so that entry is created in realpath cache */
 				real_path = (char *)malloc(MAXPATHLEN);
 				if(tsrm_realpath(pathname, real_path) != NULL) {
 					pathname = real_path;
-					bucket = realpath_cache_lookup(pathname, (int)strlen(pathname), t);
+					bucket = realpath_cache_lookup(pathname, strlen(pathname), t);
 					PHP_WIN32_IOUTIL_REINIT_W(pathname);
 				}
 			}
@@ -425,7 +423,7 @@ static process_pair *process_get(FILE *stream)
 	return ptr;
 }
 
-static shm_pair *shm_get(int key, void *addr)
+static shm_pair *shm_get(key_t key, void *addr)
 {
 	shm_pair *ptr;
 	shm_pair *newptr;
@@ -638,16 +636,12 @@ TSRM_API int pclose(FILE *stream)
 	return termstat;
 }
 
-TSRM_API int shmget(int key, int size, int flags)
+TSRM_API int shmget(key_t key, size_t size, int flags)
 {
 	shm_pair *shm;
 	char shm_segment[26], shm_info[29];
 	HANDLE shm_handle, info_handle;
 	BOOL created = FALSE;
-
-	if (size < 0) {
-		return -1;
-	}
 
 	snprintf(shm_segment, sizeof(shm_segment), "TSRM_SHM_SEGMENT:%d", key);
 	snprintf(shm_info, sizeof(shm_info), "TSRM_SHM_DESCRIPTOR:%d", key);
@@ -657,7 +651,14 @@ TSRM_API int shmget(int key, int size, int flags)
 
 	if (!shm_handle && !info_handle) {
 		if (flags & IPC_CREAT) {
-			shm_handle	= CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, size, shm_segment);
+#if SIZEOF_SIZE_T == 8
+			DWORD high = size >> 32;
+			DWORD low = (DWORD)size;
+#else
+			DWORD high = 0;
+			DWORD low = size;
+#endif
+			shm_handle	= CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, high, low, shm_segment);
 			info_handle	= CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(shm->descriptor), shm_info);
 			created		= TRUE;
 		}

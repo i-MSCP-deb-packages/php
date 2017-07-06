@@ -52,10 +52,6 @@
 #undef X509_EXTENSIONS
 #endif
 
-#ifdef NETWARE
-#include <sys/select.h>
-#endif
-
 #ifndef OPENSSL_NO_SSL3
 #define HAVE_SSL3 1
 #endif
@@ -145,7 +141,7 @@ typedef struct _php_openssl_netstream_data_t {
 	php_openssl_sni_cert_t *sni_certs;
 	unsigned sni_cert_count;
 #ifdef HAVE_TLS_ALPN
-	php_openssl_alpn_ctx *alpn_ctx;
+	php_openssl_alpn_ctx alpn_ctx;
 #endif
 	char *url_name;
 	unsigned state_set:1;
@@ -1256,12 +1252,12 @@ static int set_server_specific_opts(php_stream *stream, SSL_CTX *ctx) /* {{{ */
 
 	set_server_dh_param(stream, ctx);
 	zv = php_stream_context_get_option(PHP_STREAM_CONTEXT(stream), "ssl", "single_dh_use");
-	if (zv != NULL && zend_is_true(zv)) {
+	if (zv == NULL || zend_is_true(zv)) {
 		ssl_ctx_options |= SSL_OP_SINGLE_DH_USE;
 	}
 
 	zv = php_stream_context_get_option(PHP_STREAM_CONTEXT(stream), "ssl", "honor_cipher_order");
-	if (zv != NULL && zend_is_true(zv)) {
+	if (zv == NULL || zend_is_true(zv)) {
 		ssl_ctx_options |= SSL_OP_CIPHER_SERVER_PREFERENCE;
 	}
 
@@ -1435,9 +1431,6 @@ static unsigned char *alpn_protos_parse(unsigned short *outlen, const char *in)
 	}
 
 	out = emalloc(strlen(in) + 1);
-	if (!out) {
-		return NULL;
-	}
 
 	for (i = 0; i <= len; ++i) {
 		if (i == len || in[i] == ',') {
@@ -1462,9 +1455,7 @@ static int server_alpn_callback(SSL *ssl_handle, const unsigned char **out, unsi
 {
 	php_openssl_netstream_data_t *sslsock = arg;
 
-	if (SSL_select_next_proto
-		((unsigned char **)out, outlen, sslsock->alpn_ctx->data, sslsock->alpn_ctx->len, in,
-			inlen) != OPENSSL_NPN_NEGOTIATED) {
+	if (SSL_select_next_proto((unsigned char **)out, outlen, sslsock->alpn_ctx.data, sslsock->alpn_ctx.len, in, inlen) != OPENSSL_NPN_NEGOTIATED) {
 		return SSL_TLSEXT_ERR_NOACK;
 	}
 
@@ -1573,9 +1564,8 @@ int php_openssl_setup_crypto(php_stream *stream,
 			if (sslsock->is_client) {
 				SSL_CTX_set_alpn_protos(sslsock->ctx, alpn, alpn_len);
 			} else {
-				sslsock->alpn_ctx = (php_openssl_alpn_ctx *) pemalloc(sizeof(php_openssl_alpn_ctx), php_stream_is_persistent(stream));
-				sslsock->alpn_ctx->data = (unsigned char *) pestrndup((const char*)alpn, alpn_len, php_stream_is_persistent(stream));
-				sslsock->alpn_ctx->len = alpn_len;
+				sslsock->alpn_ctx.data = (unsigned char *) pestrndup((const char*)alpn, alpn_len, php_stream_is_persistent(stream));
+				sslsock->alpn_ctx.len = alpn_len;
 				SSL_CTX_set_alpn_select_cb(sslsock->ctx, server_alpn_callback, sslsock);
 			}
 
@@ -1607,10 +1597,9 @@ int php_openssl_setup_crypto(php_stream *stream,
 		SSL_CTX_free(sslsock->ctx);
 		sslsock->ctx = NULL;
 #ifdef HAVE_TLS_ALPN
-		if (sslsock->alpn_ctx) {
-			pefree(sslsock->alpn_ctx->data, php_stream_is_persistent(stream));
-			pefree(sslsock->alpn_ctx, php_stream_is_persistent(stream));
-			sslsock->alpn_ctx = NULL;
+		if (sslsock->alpn_ctx.data) {
+			pefree(sslsock->alpn_ctx.data, php_stream_is_persistent(stream));
+			sslsock->alpn_ctx.data = NULL;
 		}
 #endif
 		return FAILURE;
@@ -2122,9 +2111,8 @@ static int php_openssl_sockop_close(php_stream *stream, int close_handle) /* {{{
 			sslsock->ctx = NULL;
 		}
 #ifdef HAVE_TLS_ALPN
-		if (sslsock->alpn_ctx) {
-			pefree(sslsock->alpn_ctx->data, php_stream_is_persistent(stream));
-			pefree(sslsock->alpn_ctx, php_stream_is_persistent(stream));
+		if (sslsock->alpn_ctx.data) {
+			pefree(sslsock->alpn_ctx.data, php_stream_is_persistent(stream));
 		}
 #endif
 #ifdef PHP_WIN32
@@ -2569,7 +2557,7 @@ php_stream *php_openssl_ssl_socket_factory(const char *proto, size_t protolen,
 
 	if (strncmp(proto, "ssl", protolen) == 0) {
 		sslsock->enable_on_connect = 1;
-		sslsock->method = get_crypto_method(context, STREAM_CRYPTO_METHOD_ANY_CLIENT);
+		sslsock->method = get_crypto_method(context, STREAM_CRYPTO_METHOD_TLS_ANY_CLIENT);
 	} else if (strncmp(proto, "sslv2", protolen) == 0) {
 		php_error_docref(NULL, E_WARNING, "SSLv2 unavailable in this PHP version");
 		php_stream_close(stream);
@@ -2585,7 +2573,7 @@ php_stream *php_openssl_ssl_socket_factory(const char *proto, size_t protolen,
 #endif
 	} else if (strncmp(proto, "tls", protolen) == 0) {
 		sslsock->enable_on_connect = 1;
-		sslsock->method = get_crypto_method(context, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+		sslsock->method = get_crypto_method(context, STREAM_CRYPTO_METHOD_TLS_ANY_CLIENT);
 	} else if (strncmp(proto, "tlsv1.0", protolen) == 0) {
 		sslsock->enable_on_connect = 1;
 		sslsock->method = STREAM_CRYPTO_METHOD_TLSv1_0_CLIENT;
