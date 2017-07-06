@@ -1,3 +1,10 @@
+php5.6 (5.6.31-1) experimental; urgency=medium
+
+  * New upstream version 5.6.31
+  * Rebase patches on top of PHP 5.6.31
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 06 Jul 2017 10:59:42 +0200
+
 php5.6 (5.6.30-12) experimental; urgency=medium
 
   * Kill extra TAB character in the ini file that was causing insserv
