@@ -2,5 +2,7 @@ php7.2 (7.2.0~alpha2-1) experimental; urgency=medium
 
   * New upstream version 7.2.0~alpha2
   * Rebase patches on top of PHP 7.2.0~alpha2
+  * Update d/rules with configure.in -> configure.ac rename
+  * Remove mcrypt extension that has been removed upstream
 
- -- Ondřej Surý <ondrej@debian.org>  Thu, 06 Jul 2017 11:21:29 +0200
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 06 Jul 2017 12:42:36 +0200
