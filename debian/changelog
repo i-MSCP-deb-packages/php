@@ -1,3 +1,10 @@
+php7.0 (7.0.21-1) unstable; urgency=medium
+
+  * New upstream version 7.0.21
+  * Rebase patches on top of PHP 7.0.21
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 06 Jul 2017 11:01:45 +0200
+
 php7.0 (7.0.20-2) unstable; urgency=medium
 
   * Add Ferenc Kovacs signing key to upstream GPG keyring
