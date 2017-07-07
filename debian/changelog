@@ -1,3 +1,9 @@
+php7.1 (7.1.7.retag-1) unstable; urgency=medium
+
+  * New upstream version 7.1.7 (retagged)
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 07 Jul 2017 11:37:12 +0200
+
 php7.1 (7.1.7-1) unstable; urgency=medium
 
   * New upstream version 7.1.7
