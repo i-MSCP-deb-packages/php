@@ -186,6 +186,7 @@ COMMON_CONFIG := \
 		  --with-mhash=/usr \
 		--enable-libxml \
 		--enable-session \
+		--with-sodium \
 		--with-system-tzdata \
 		--with-zlib=/usr \
 		  --with-zlib-dir=/usr \
