@@ -1,5 +1,88 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+20 Jul 2017, PHP 7.2.0beta1
+
+- Core:
+  . Added new VM instuctions ISSET_ISEMPTY_CV and UNSET_CV. Previously they
+    were implemented as ISSET_ISEMPTY_VAR and UNSET_VAR variants with
+    ZEND_QUICK_SET flag. (Nikita, Dmitry)
+  . Fixed bug #74603 (PHP INI Parsing Stack Buffer Overflow Vulnerability).
+    (Stas)
+  . Fixed bug #74111 (Heap buffer overread (READ: 1) finish_nested_data from
+    unserialize). (Nikita)
+  . Fixed bug #74819 (wddx_deserialize() heap out-of-bound read via
+    php_parse_date()). (Derick)
+  . Fixed bug #49649 (unserialize() doesn't handle changes in property 
+    visibility). (pmmaga)
+  . Fixed #74866 (extension_dir = "./ext" now use current directory for base).
+    (Francois Laupretre)
+  . Fixed bug #74923 (Crash when crawling through network share). (Anatol)
+  . Fixed bug #74913 (fixed incorrect poll.h include). (petk)
+  . Fixed bug #74906 (fixed incorrect errno.h include). (petk)
+
+- Date:
+  . Fixed bug #74852 (property_exists returns true on unknown DateInterval 
+    property). (jhdxr)	
+
+- DOM:
+  . Implement #74837 (Implement Countable for DomNodeList and DOMNamedNodeMap).
+    (Andreas Treichel)
+
+- EXIF:
+  . Implemented #65187 (exif_read_data/thumbnail: add support for stream 
+    resource). (Kalle)
+  . Deprecated the read_exif_data() alias. (Kalle)
+  . Fixed bug #74428 (exif_read_data(): "Illegal IFD size" warning occurs with 
+    correct exif format). (bradpiccho at gmail dot com, Kalle)
+  . Fixed bug #72819 (EXIF thumbnails not read anymore). (Kalle)
+  . Fixed bug #62523 (php crashes with segfault when exif_read_data called). 
+    (Kalle)
+  . Fixed bug #50660 (exif_read_data(): Illegal IFD offset (works fine with 
+    other exif readers). (skinny dot bravo at gmail dot com, Kalle)
+
+- GD:
+  . Fixed bug #74435 (Buffer over-read into uninitialized memory). (cmb)
+
+- IMAP:
+  . Fixed bug #72324 (imap_mailboxmsginfo() return wrong size). 
+    (ronaldpoon at udomain dot com dot hk, Kalle)
+
+- JSON:
+  . Add JSON_INVALID_UTF8_IGNORE and JSON_INVALID_UTF8_SUBSTITUTE options for
+    json_encode and json_decode to ignore or replace invalid UTF-8 byte
+    sequences - it addresses request #65082. (Jakub Zelenka)
+
+- LDAP:
+  . Fixed passing an empty array to ldap_set_option for client or server controls.
+
+- Opcache:
+  . Added global optimisation passes based on data flow analysis using Single
+    Static Assignment (SSA) form: Sparse Conditional Constant Propagation (SCCP),
+    Dead Code Elimination (DCE), and removal of unused local variables
+    (Nikita, Dmitry)
+
+- OpenSSL:
+  . Add ssl security_level stream option to support OpenSSL security levels.
+    (Jakub Zelenka).
+  . Allow setting SNI cert and private key in separate files. (Jakub Zelenka)
+  . Fixed bug #74651 (negative-size-param (-1) in memcpy in zif_openssl_seal()).
+    (Stas)
+
+- PCRE:
+  . Fixed bug #74873 (Minor BC break: PCRE_JIT changes output of preg_match()).
+    (Dmitry)
+
+- Sodium:
+  . New cryptographic extension
+
+- SQLite3:
+  . Fixed bug #74883 (SQLite3::__construct() produces "out of memory" exception
+    with invalid flags). (Anatol)
+
+- ZIP:
+  . ZipArchive implements countable, added ZipArchive::count() method. (Remi)
+  . Fix segfault in php_stream_context_get_option call. (Remi)
+
 06 Jul 2017, PHP 7.2.0alpha3
 
 - Core:
@@ -13,10 +96,16 @@ PHP                                                                        NEWS
     (Anatol)
   . Fixed bug #74836 (isset on zero-prefixed numeric indexes in array broken).
     (Dmitry)
+  . Fixed bug #74101, bug #74614 (Unserialize Heap Use-After-Free (READ: 1) in
+    zval_get_type). (Nikita)
 
 - CLI:
   . Fixed bug #74849 (Process is started as interactive shell in PhpStorm).
     (Anatol)
+
+- LDAP:
+  . Implemented FR #69445 (Support for LDAP EXOP operations)
+  . Fixed support for LDAP_OPT_SERVER_CONTROLS and LDAP_OPT_CLIENT_CONTROLS in ldap_get_option
 
 - OpenSSL:
   . Fixed bug #74798 (pkcs7_en/decrypt does not work if \x0a is used in content).
@@ -44,7 +133,7 @@ PHP                                                                        NEWS
 22 Jun 2017, PHP 7.2.0alpha2
 
 - Core:
-  . Change PHP_OS_FAMILY value from "OSX" to "Darwin". (sb, kalle)
+  . Change PHP_OS_FAMILY value from "OSX" to "Darwin". (Sebastian, Kalle)
 
 - GD:
   . Fixed bug #74744 (gd.h: stdarg.h include missing for va_list use in
@@ -202,6 +291,8 @@ PHP                                                                        NEWS
   . Fixed bug #73961 (environmental build dependency in hash sha3 source).
     (krakjoe)
   . Changed HashContext from resource to object. (Rouven Weßling, Sara)
+  . Disallowed usage of non-cryptographic hash functions with HMAC and PBKDF2.
+    (Andrey Andreev, Nikita)
 
 - intl:
   . Fixed bug #74433 (wrong reflection for Normalizer methods). (villfa)
