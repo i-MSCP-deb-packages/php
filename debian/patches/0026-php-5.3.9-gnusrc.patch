@@ -16,7 +16,7 @@ Subject: php-5.3.9-gnusrc
  10 files changed, 5 insertions(+), 10 deletions(-)
 
 diff --git a/Zend/zend_language_parser.c b/Zend/zend_language_parser.c
-index bafdb3f..460bda2 100644
+index 682a617..5f5873f 100644
 --- a/Zend/zend_language_parser.c
 +++ b/Zend/zend_language_parser.c
 @@ -69,6 +69,8 @@
@@ -29,7 +29,7 @@ index bafdb3f..460bda2 100644
  /*
     +----------------------------------------------------------------------+
 diff --git a/configure.ac b/configure.ac
-index a8be863..a77e831 100644
+index 50cffcf..f5c2c6a 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -124,6 +124,8 @@ AC_DEFUN([PHP_EXT_DIR],[$config_m4_dir])dnl
@@ -93,7 +93,7 @@ index 01539ae..25ef83e 100644
  #include "php_zlib.h"
  #include "fopen_wrappers.h"
 diff --git a/main/php.h b/main/php.h
-index 53926d2..d58c4a8 100644
+index 388317d..9fcabbe 100644
 --- a/main/php.h
 +++ b/main/php.h
 @@ -31,6 +31,7 @@
@@ -117,7 +117,7 @@ index fe56c9b..2bf1692 100644
  #include "php_globals.h"
  #include "php_network.h"
 diff --git a/main/streams/memory.c b/main/streams/memory.c
-index d41b2f5..7a7f377 100644
+index 7af87c7..9a3cca9 100644
 --- a/main/streams/memory.c
 +++ b/main/streams/memory.c
 @@ -18,7 +18,6 @@

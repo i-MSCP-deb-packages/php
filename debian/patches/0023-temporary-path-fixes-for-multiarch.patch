@@ -67,7 +67,7 @@ index 22cca7e..0047402 100644
    PHP_NEW_EXTENSION(gmp, gmp.c, $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
    PHP_SUBST(GMP_SHARED_LIBADD)
 diff --git a/ext/ldap/config.m4 b/ext/ldap/config.m4
-index 947cebc..b2da7b4 100644
+index 7ea238f..e0c71a6 100644
 --- a/ext/ldap/config.m4
 +++ b/ext/ldap/config.m4
 @@ -117,7 +117,7 @@ if test "$PHP_LDAP" != "no"; then
@@ -80,7 +80,7 @@ index 947cebc..b2da7b4 100644
      PHP_ADD_LIBRARY_WITH_PATH(ldap, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
  
 diff --git a/ext/pcre/config0.m4 b/ext/pcre/config0.m4
-index 35fc585..b34c9a8 100644
+index cc9f1b2..ae36e98 100644
 --- a/ext/pcre/config0.m4
 +++ b/ext/pcre/config0.m4
 @@ -21,7 +21,7 @@ PHP_ARG_WITH(pcre-regex,,
