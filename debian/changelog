@@ -3,8 +3,9 @@ php7.2 (7.2.0~beta1-1) experimental; urgency=medium
   * New upstream version 7.2.0~beta1
   * Enable support for libsodium crypto
   * Rebase patches on top of PHP 7.2.0~beta1
+  * Update phpapi for PHP 7.2 to 20170718
 
- -- Ondřej Surý <ondrej@debian.org>  Thu, 27 Jul 2017 12:41:19 +0200
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 27 Jul 2017 13:29:34 +0200
 
 php7.2 (7.2.0~alpha3-1) experimental; urgency=medium
 
