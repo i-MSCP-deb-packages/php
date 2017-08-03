@@ -1,6 +1,13 @@
+php5.6 (5.6.31-3) experimental; urgency=medium
+
+  * Update OpenSSL 1.1 patch from @zsalab
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 03 Aug 2017 20:47:46 +0200
+
 php5.6 (5.6.31-2) experimental; urgency=medium
 
-  * Modify the OpenSSL 1.1 patch to correct check for return value of EVP_SealInit
+  * Modify the OpenSSL 1.1 patch to correct check for return value of
+    EVP_SealInit
 
  -- Ondřej Surý <ondrej@debian.org>  Thu, 27 Jul 2017 10:51:05 +0200
 
