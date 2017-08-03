@@ -1,5 +1,55 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+03 Aug 2017, PHP 7.1.8
+
+- Core:
+  . Fixed bug #74832 (Loading PHP extension with already registered function 
+    name leads to a crash). (jpauli)
+  . Fixed bug #74780 (parse_url() broken when query string contains colon). 
+    (jhdxr)
+  . Fixed bug #74761 (Unary operator expected error on some systems). (petk)
+  . Fixed bug #73900 (Use After Free in unserialize() SplFixedArray). (nikic)
+  . Fixed bug #74923 (Crash when crawling through network share). (Anatol)
+  . Fixed bug #74913 (fixed incorrect poll.h include). (petk)
+  . Fixed bug #74906 (fixed incorrect errno.h include). (petk)
+
+- Date:
+  . Fixed bug #74852 (property_exists returns true on unknown DateInterval 
+    property). (jhdxr)
+
+- OCI8:
+  . Fixed bug #74625 (Integer overflow in oci_bind_array_by_name). (Ingmar Runge)
+
+- Opcache:
+  . Fixed bug #74623 (Infinite loop in type inference when using HTMLPurifier).
+    (nikic)
+
+- OpenSSL:
+ . Fixed bug #74798 (pkcs7_en/decrypt does not work if \x0a is used in content).
+   (Anatol)
+ . Added OPENSSL_DONT_ZERO_PAD_KEY constant to prevent key padding and fix bug
+   #71917 (openssl_open() returns junk on envelope < 16 bytes) and bug #72362
+   (OpenSSL Blowfish encryption is incorrect for short keys). (Jakub Zelenka)
+
+- PDO:
+  . Fixed bug #69356 (PDOStatement::debugDumpParams() truncates query). (Adam
+    Baratz)
+
+- SPL:
+  . Fixed bug #73471 (PHP freezes with AppendIterator). (jhdxr)
+
+- SQLite3:
+  . Fixed bug #74883 (SQLite3::__construct() produces "out of memory" exception
+    with invalid flags). (Anatol)
+
+- Wddx:
+  . Fixed bug #73173 (huge memleak when wddx_unserialize).
+    (tloi at fortinet dot com)
+
+- zlib:
+  . Fixed bug #73944 (dictionary option of inflate_init() does not work).
+    (wapmorgan)
+
 06 Jul 2017, PHP 7.1.7
 
 - Core:
@@ -37,7 +87,7 @@ PHP                                                                        NEWS
     CVE-2017-9228, CVE-2017-9229) (Remi, Mamoru TASAKA)
 
 - OCI8:
- . Add TAF callback (PR #2459). (KoenigsKind)
+  . Add TAF callback (PR #2459). (KoenigsKind)
 
 - Opcache:
   . Fixed bug #74663 (Segfault with opcache.memory_protect and
