@@ -50,8 +50,8 @@ Interoperability Support" (ID 207303.1) for details.
  <time>12:00:00</time>
 
   <version>
-   <release>2.1.4</release>
-   <api>2.1.4</api>
+   <release>2.1.6</release>
+   <api>2.1.6</api>
   </version>
   <stability>
    <release>stable</release>
@@ -60,7 +60,7 @@ Interoperability Support" (ID 207303.1) for details.
   <license uri="http://www.php.net/license">PHP</license>
   <notes>
 This version is for PHP 7 only.
-Fixed uninitialized data causing random crash
+Fixed bug #74625 (Integer overflow in oci_bind_array_by_name). (Ingmar Runge)
   </notes>
  <contents>
   <dir name="/">
@@ -164,6 +164,7 @@ Fixed uninitialized data causing random crash
     <file name="bug71422.phpt" role="test" />
     <file name="bug71600.phpt" role="test" />
     <file name="bug72524.phpt" role="test" />
+    <file name="bug74625.phpt" role="test" />
     <file name="clientversion.phpt" role="test" />
     <file name="close.phpt" role="test" />
     <file name="coll_001.phpt" role="test" />
@@ -469,8 +470,8 @@ Fixed uninitialized data causing random crash
  </extsrcrelease>
  <changelog>
 
-<release>
-  <version>
+<release>   
+ <version>
    <release>2.1.5</release>
    <api>2.1.5</api>
   </version>
@@ -482,6 +483,22 @@ Fixed uninitialized data causing random crash
   <notes>
 This version is for PHP 7 only.
 Added TAF callback support (PR #2459, KoenigsKind) 
+  </notes>
+</release>   
+
+<release>
+  <version>
+   <release>2.1.4</release>
+   <api>2.1.4</api>
+  </version>
+  <stability>
+   <release>stable</release>
+   <api>stable</api>
+  </stability>
+  <license uri="http://www.php.net/license">PHP</license>
+  <notes>
+This version is for PHP 7 only.
+Fixed uninitialized data causing random crash
   </notes>
 </release>
 
