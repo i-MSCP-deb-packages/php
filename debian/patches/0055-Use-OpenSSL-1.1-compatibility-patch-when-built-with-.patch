@@ -1,19 +1,21 @@
-From: =?utf-8?q?Ond=C5=99ej_Sur=C3=BD?= <ondrej@sury.org>
-Date: Wed, 15 Mar 2017 23:23:45 +0100
-Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
- (Courtesy of @zsalab)
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Thu, 3 Aug 2017 20:45:55 +0200
+Subject: Use-OpenSSL-1.1-compatibility-patch-when-built-with-
 
 ---
- ext/openssl/openssl.c                             | 680 ++++++++++++++++------
+ ext/openssl/openssl.c                             | 683 ++++++++++++++++------
  ext/openssl/tests/bug41033.phpt                   |   4 +-
  ext/openssl/tests/bug66501.phpt                   |   2 +-
  ext/openssl/tests/openssl_error_string_basic.phpt |   2 +-
+ ext/openssl/tests/sni_server.phpt                 |   3 +
  ext/openssl/xp_ssl.c                              |  18 +-
  ext/phar/util.c                                   |  13 +-
- 6 files changed, 528 insertions(+), 191 deletions(-)
+ 7 files changed, 534 insertions(+), 191 deletions(-)
 
---- php5.6.orig/ext/openssl/openssl.c
-+++ php5.6/ext/openssl/openssl.c
+diff --git a/ext/openssl/openssl.c b/ext/openssl/openssl.c
+index a78a8fb..b53114c 100644
+--- a/ext/openssl/openssl.c
++++ b/ext/openssl/openssl.c
 @@ -42,6 +42,12 @@
  
  /* OpenSSL includes */
@@ -27,7 +29,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  #include <openssl/x509.h>
  #include <openssl/x509v3.h>
  #include <openssl/crypto.h>
-@@ -531,6 +537,131 @@ zend_module_entry openssl_module_entry =
+@@ -531,6 +537,133 @@ zend_module_entry openssl_module_entry = {
  ZEND_GET_MODULE(openssl)
  #endif
  
@@ -145,6 +147,8 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
 +}
 +
 +#if OPENSSL_VERSION_NUMBER < 0x10002000L || defined (LIBRESSL_VERSION_NUMBER)
++#define EVP_PKEY_id(_pkey) _pkey->type
++#define EVP_PKEY_base_id(_key) EVP_PKEY_type(_key->type)
 +
 +static int X509_get_signature_nid(const X509 *x)
 +{
@@ -159,7 +163,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  static int le_key;
  static int le_x509;
  static int le_csr;
-@@ -825,7 +956,7 @@ static int add_oid_section(struct php_x5
+@@ -825,7 +958,7 @@ static int add_oid_section(struct php_x509_request * req TSRMLS_DC) /* {{{ */
  	}
  	for (i = 0; i < sk_CONF_VALUE_num(sktmp); i++) {
  		cnf = sk_CONF_VALUE_value(sktmp, i);
@@ -168,7 +172,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  			php_error_docref(NULL TSRMLS_CC, E_WARNING, "problem creating object %s=%s", cnf->name, cnf->value);
  			return FAILURE;
  		}
-@@ -967,7 +1098,7 @@ static void php_openssl_dispose_config(s
+@@ -967,7 +1100,7 @@ static void php_openssl_dispose_config(struct php_x509_request * req TSRMLS_DC)
  }
  /* }}} */
  
@@ -177,7 +181,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  #define PHP_OPENSSL_RAND_ADD_TIME() ((void) 0)
  #else
  #define PHP_OPENSSL_RAND_ADD_TIME() php_openssl_rand_add_timeval()
-@@ -1053,9 +1184,11 @@ static EVP_MD * php_openssl_get_evp_md_f
+@@ -1053,9 +1186,11 @@ static EVP_MD * php_openssl_get_evp_md_from_algo(long algo) { /* {{{ */
  			mdtype = (EVP_MD *) EVP_md2();
  			break;
  #endif
@@ -189,7 +193,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  #if OPENSSL_VERSION_NUMBER >= 0x0090708fL
  		case OPENSSL_ALGO_SHA224:
  			mdtype = (EVP_MD *) EVP_sha224();
-@@ -1146,6 +1279,12 @@ PHP_MINIT_FUNCTION(openssl)
+@@ -1146,6 +1281,12 @@ PHP_MINIT_FUNCTION(openssl)
  	OpenSSL_add_all_digests();
  	OpenSSL_add_all_algorithms();
  
@@ -202,7 +206,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	SSL_load_error_strings();
  
  	/* register a resource id number with OpenSSL so that we can map SSL -> stream structures in
-@@ -1173,7 +1312,9 @@ PHP_MINIT_FUNCTION(openssl)
+@@ -1173,7 +1314,9 @@ PHP_MINIT_FUNCTION(openssl)
  #ifdef HAVE_OPENSSL_MD2_H
  	REGISTER_LONG_CONSTANT("OPENSSL_ALGO_MD2", OPENSSL_ALGO_MD2, CONST_CS|CONST_PERSISTENT);
  #endif
@@ -212,7 +216,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  #if OPENSSL_VERSION_NUMBER >= 0x0090708fL
  	REGISTER_LONG_CONSTANT("OPENSSL_ALGO_SHA224", OPENSSL_ALGO_SHA224, CONST_CS|CONST_PERSISTENT);
  	REGISTER_LONG_CONSTANT("OPENSSL_ALGO_SHA256", OPENSSL_ALGO_SHA256, CONST_CS|CONST_PERSISTENT);
-@@ -1251,7 +1392,9 @@ PHP_MINIT_FUNCTION(openssl)
+@@ -1251,7 +1394,9 @@ PHP_MINIT_FUNCTION(openssl)
  	}
  
  	php_stream_xport_register("ssl", php_openssl_ssl_socket_factory TSRMLS_CC);
@@ -222,7 +226,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  #ifndef OPENSSL_NO_SSL2
  	php_stream_xport_register("sslv2", php_openssl_ssl_socket_factory TSRMLS_CC);
  #endif
-@@ -1308,7 +1451,9 @@ PHP_MSHUTDOWN_FUNCTION(openssl)
+@@ -1308,7 +1453,9 @@ PHP_MSHUTDOWN_FUNCTION(openssl)
  #ifndef OPENSSL_NO_SSL2
  	php_stream_xport_unregister("sslv2" TSRMLS_CC);
  #endif
@@ -232,7 +236,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	php_stream_xport_unregister("tls" TSRMLS_CC);
  	php_stream_xport_unregister("tlsv1.0" TSRMLS_CC);
  #if OPENSSL_VERSION_NUMBER >= 0x10001001L
-@@ -1893,6 +2038,7 @@ static int openssl_x509v3_subjectAltName
+@@ -1893,6 +2040,7 @@ static int openssl_x509v3_subjectAltName(BIO *bio, X509_EXTENSION *extension)
  {
  	GENERAL_NAMES *names;
  	const X509V3_EXT_METHOD *method = NULL;
@@ -240,7 +244,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	long i, length, num;
  	const unsigned char *p;
  
-@@ -1901,8 +2047,9 @@ static int openssl_x509v3_subjectAltName
+@@ -1901,8 +2049,9 @@ static int openssl_x509v3_subjectAltName(BIO *bio, X509_EXTENSION *extension)
  		return -1;
  	}
  
@@ -252,7 +256,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	if (method->it) {
  		names = (GENERAL_NAMES*)(ASN1_item_d2i(NULL, &p, length,
  						       ASN1_ITEM_ptr(method->it)));
-@@ -1965,6 +2112,8 @@ PHP_FUNCTION(openssl_x509_parse)
+@@ -1965,6 +2114,8 @@ PHP_FUNCTION(openssl_x509_parse)
  	char * tmpstr;
  	zval * subitem;
  	X509_EXTENSION *extension;
@@ -261,7 +265,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	char *extname;
  	BIO  *bio_out;
  	BUF_MEM *bio_buf;
-@@ -1979,10 +2128,10 @@ PHP_FUNCTION(openssl_x509_parse)
+@@ -1979,10 +2130,10 @@ PHP_FUNCTION(openssl_x509_parse)
  	}
  	array_init(return_value);
  
@@ -276,7 +280,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  
  	add_assoc_name_entry(return_value, "subject", 		X509_get_subject_name(cert), useshortnames TSRMLS_CC);
  	/* hash as used in CA directories to lookup cert by subject name */
-@@ -2008,7 +2157,7 @@ PHP_FUNCTION(openssl_x509_parse)
+@@ -2008,7 +2159,7 @@ PHP_FUNCTION(openssl_x509_parse)
  		add_assoc_string(return_value, "alias", tmpstr, 1);
  	}
  
@@ -285,7 +289,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	add_assoc_string(return_value, "signatureTypeSN", (char*)OBJ_nid2sn(sig_nid), 1);
  	add_assoc_string(return_value, "signatureTypeLN", (char*)OBJ_nid2ln(sig_nid), 1);
  	add_assoc_long(return_value, "signatureTypeNID", sig_nid);
-@@ -3217,7 +3366,21 @@ PHP_FUNCTION(openssl_csr_get_public_key)
+@@ -3217,7 +3368,21 @@ PHP_FUNCTION(openssl_csr_get_public_key)
  		RETURN_FALSE;
  	}
  
@@ -308,7 +312,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	RETVAL_RESOURCE(zend_list_insert(tpubkey, le_key TSRMLS_CC));
  	return;
  }
-@@ -3482,13 +3645,20 @@ static int php_openssl_is_private_key(EV
+@@ -3482,13 +3647,20 @@ static int php_openssl_is_private_key(EVP_PKEY* pkey TSRMLS_DC)
  {
  	assert(pkey != NULL);
  
@@ -333,7 +337,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  			}
  			break;
  #endif
-@@ -3498,28 +3668,51 @@ static int php_openssl_is_private_key(EV
+@@ -3498,28 +3670,51 @@ static int php_openssl_is_private_key(EVP_PKEY* pkey TSRMLS_DC)
  		case EVP_PKEY_DSA2:
  		case EVP_PKEY_DSA3:
  		case EVP_PKEY_DSA4:
@@ -397,7 +401,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  			}
  			break;
  #endif
-@@ -3531,34 +3724,80 @@ static int php_openssl_is_private_key(EV
+@@ -3531,34 +3726,80 @@ static int php_openssl_is_private_key(EVP_PKEY* pkey TSRMLS_DC)
  }
  /* }}} */
  
@@ -500,7 +504,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	}
  	PHP_OPENSSL_RAND_ADD_TIME();
  	if (!DSA_generate_key(dsa)) {
-@@ -3566,7 +3805,8 @@ zend_bool php_openssl_pkey_init_dsa(DSA
+@@ -3566,7 +3807,8 @@ zend_bool php_openssl_pkey_init_dsa(DSA *dsa)
  	}
  	/* if BN_mod_exp return -1, then DSA_generate_key succeed for failed key
  	 * so we need to double check that public key is created */
@@ -510,7 +514,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  		return 0;
  	}
  	/* all good */
-@@ -3574,14 +3814,66 @@ zend_bool php_openssl_pkey_init_dsa(DSA
+@@ -3574,14 +3816,66 @@ zend_bool php_openssl_pkey_init_dsa(DSA *dsa)
  }
  /* }}} */
  
@@ -581,7 +585,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	}
  	PHP_OPENSSL_RAND_ADD_TIME();
  	if (!DH_generate_key(dh)) {
-@@ -3614,18 +3906,8 @@ PHP_FUNCTION(openssl_pkey_new)
+@@ -3614,18 +3908,8 @@ PHP_FUNCTION(openssl_pkey_new)
  		    if (pkey) {
  				RSA *rsa = RSA_new();
  				if (rsa) {
@@ -602,7 +606,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  					}
  					RSA_free(rsa);
  				}
-@@ -3638,12 +3920,7 @@ PHP_FUNCTION(openssl_pkey_new)
+@@ -3638,12 +3922,7 @@ PHP_FUNCTION(openssl_pkey_new)
  		    if (pkey) {
  				DSA *dsa = DSA_new();
  				if (dsa) {
@@ -616,7 +620,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  						if (EVP_PKEY_assign_DSA(pkey, dsa)) {
  							RETURN_RESOURCE(zend_list_insert(pkey, le_key TSRMLS_CC));
  						}
-@@ -3659,11 +3936,7 @@ PHP_FUNCTION(openssl_pkey_new)
+@@ -3659,11 +3938,7 @@ PHP_FUNCTION(openssl_pkey_new)
  		    if (pkey) {
  				DH *dh = DH_new();
  				if (dh) {
@@ -629,7 +633,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  						if (EVP_PKEY_assign_DH(pkey, dh)) {
  							RETURN_RESOURCE(zend_list_insert(pkey, le_key TSRMLS_CC));
  						}
-@@ -3738,10 +4011,10 @@ PHP_FUNCTION(openssl_pkey_export_to_file
+@@ -3738,10 +4013,10 @@ PHP_FUNCTION(openssl_pkey_export_to_file)
  			cipher = NULL;
  		}
  
@@ -642,7 +646,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  				break;
  #endif
  			default:
-@@ -3807,7 +4080,7 @@ PHP_FUNCTION(openssl_pkey_export)
+@@ -3807,7 +4082,7 @@ PHP_FUNCTION(openssl_pkey_export)
  			cipher = NULL;
  		}
  
@@ -651,7 +655,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  #ifdef HAVE_EVP_PKEY_EC
  			case EVP_PKEY_EC:
  				pem_write = PEM_write_bio_ECPrivateKey(bio_out, EVP_PKEY_get1_EC_KEY(key), cipher, (unsigned char *)passphrase, passphrase_len, NULL, NULL);
-@@ -3928,25 +4201,33 @@ PHP_FUNCTION(openssl_pkey_get_details)
+@@ -3928,25 +4203,33 @@ PHP_FUNCTION(openssl_pkey_get_details)
  	/*TODO: Use the real values once the openssl constants are used 
  	 * See the enum at the top of this file
  	 */
@@ -702,7 +706,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  			}
  
  			break;	
-@@ -3954,42 +4235,55 @@ PHP_FUNCTION(openssl_pkey_get_details)
+@@ -3954,42 +4237,55 @@ PHP_FUNCTION(openssl_pkey_get_details)
  		case EVP_PKEY_DSA2:
  		case EVP_PKEY_DSA3:
  		case EVP_PKEY_DSA4:
@@ -785,7 +789,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  				zval *ec;
  				const EC_GROUP *ec_group;
  				int nid;
-@@ -4546,13 +4840,13 @@ PHP_FUNCTION(openssl_private_encrypt)
+@@ -4546,13 +4842,13 @@ PHP_FUNCTION(openssl_private_encrypt)
  	cryptedlen = EVP_PKEY_size(pkey);
  	cryptedbuf = emalloc(cryptedlen + 1);
  
@@ -801,7 +805,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  						padding) == cryptedlen);
  			break;
  		default:
-@@ -4604,13 +4898,13 @@ PHP_FUNCTION(openssl_private_decrypt)
+@@ -4604,13 +4900,13 @@ PHP_FUNCTION(openssl_private_decrypt)
  	cryptedlen = EVP_PKEY_size(pkey);
  	crypttemp = emalloc(cryptedlen + 1);
  
@@ -817,7 +821,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  					padding);
  			if (cryptedlen != -1) {
  				cryptedbuf = emalloc(cryptedlen + 1);
-@@ -4669,13 +4963,13 @@ PHP_FUNCTION(openssl_public_encrypt)
+@@ -4669,13 +4965,13 @@ PHP_FUNCTION(openssl_public_encrypt)
  	cryptedlen = EVP_PKEY_size(pkey);
  	cryptedbuf = emalloc(cryptedlen + 1);
  
@@ -833,7 +837,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  						padding) == cryptedlen);
  			break;
  		default:
-@@ -4728,13 +5022,13 @@ PHP_FUNCTION(openssl_public_decrypt)
+@@ -4728,13 +5024,13 @@ PHP_FUNCTION(openssl_public_decrypt)
  	cryptedlen = EVP_PKEY_size(pkey);
  	crypttemp = emalloc(cryptedlen + 1);
  
@@ -849,7 +853,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  					padding);
  			if (cryptedlen != -1) {
  				cryptedbuf = emalloc(cryptedlen + 1);
-@@ -4798,7 +5092,7 @@ PHP_FUNCTION(openssl_sign)
+@@ -4798,7 +5094,7 @@ PHP_FUNCTION(openssl_sign)
  	long keyresource = -1;
  	char * data;
  	int data_len;
@@ -858,7 +862,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	zval *method = NULL;
  	long signature_algo = OPENSSL_ALGO_SHA1;
  	const EVP_MD *mdtype;
-@@ -4831,9 +5125,10 @@ PHP_FUNCTION(openssl_sign)
+@@ -4831,9 +5127,10 @@ PHP_FUNCTION(openssl_sign)
  	siglen = EVP_PKEY_size(pkey);
  	sigbuf = emalloc(siglen + 1);
  
@@ -872,7 +876,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  		zval_dtor(signature);
  		sigbuf[siglen] = '\0';
  		ZVAL_STRINGL(signature, (char *)sigbuf, siglen, 0);
-@@ -4842,7 +5137,7 @@ PHP_FUNCTION(openssl_sign)
+@@ -4842,7 +5139,7 @@ PHP_FUNCTION(openssl_sign)
  		efree(sigbuf);
  		RETVAL_FALSE;
  	}
@@ -881,7 +885,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	if (keyresource == -1) {
  		EVP_PKEY_free(pkey);
  	}
-@@ -4856,7 +5151,7 @@ PHP_FUNCTION(openssl_verify)
+@@ -4856,7 +5153,7 @@ PHP_FUNCTION(openssl_verify)
  	zval **key;
  	EVP_PKEY *pkey;
  	int err;
@@ -890,7 +894,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	const EVP_MD *mdtype;
  	long keyresource = -1;
  	char * data;	int data_len;
-@@ -4890,10 +5185,11 @@ PHP_FUNCTION(openssl_verify)
+@@ -4890,10 +5187,11 @@ PHP_FUNCTION(openssl_verify)
  		RETURN_FALSE;
  	}
  
@@ -906,7 +910,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  
  	if (keyresource == -1) {
  		EVP_PKEY_free(pkey);
-@@ -4917,7 +5213,7 @@ PHP_FUNCTION(openssl_seal)
+@@ -4917,7 +5215,7 @@ PHP_FUNCTION(openssl_seal)
  	char *method =NULL;
  	int method_len = 0;
  	const EVP_CIPHER *cipher;
@@ -915,7 +919,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  
  	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "szza/|s", &data, &data_len, &sealdata, &ekeys, &pubkeys, &method, &method_len) == FAILURE) {
  		return;
-@@ -4950,6 +5246,7 @@ PHP_FUNCTION(openssl_seal)
+@@ -4950,6 +5248,7 @@ PHP_FUNCTION(openssl_seal)
  	memset(eks, 0, sizeof(*eks) * nkeys);
  	key_resources = safe_emalloc(nkeys, sizeof(long), 0);
  	memset(key_resources, 0, sizeof(*key_resources) * nkeys);
@@ -923,7 +927,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  
  	/* get the public keys we are using to seal this data */
  	zend_hash_internal_pointer_reset_ex(pubkeysht, &pos);
-@@ -4967,27 +5264,28 @@ PHP_FUNCTION(openssl_seal)
+@@ -4967,27 +5266,28 @@ PHP_FUNCTION(openssl_seal)
  		i++;
  	}
  
@@ -961,7 +965,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  		goto clean_exit;
  	}
  
-@@ -5018,7 +5316,7 @@ PHP_FUNCTION(openssl_seal)
+@@ -5018,7 +5318,7 @@ PHP_FUNCTION(openssl_seal)
  		efree(buf);
  	}
  	RETVAL_LONG(len1 + len2);
@@ -970,7 +974,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  
  clean_exit:
  	for (i=0; i<nkeys; i++) {
-@@ -5045,7 +5343,7 @@ PHP_FUNCTION(openssl_open)
+@@ -5045,7 +5345,7 @@ PHP_FUNCTION(openssl_open)
  	int len1, len2;
  	unsigned char *buf;
  	long keyresource = -1;
@@ -979,7 +983,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	char * data;	int data_len;
  	char * ekey;	int ekey_len;
  	char *method =NULL;
-@@ -5074,8 +5372,9 @@ PHP_FUNCTION(openssl_open)
+@@ -5074,8 +5374,9 @@ PHP_FUNCTION(openssl_open)
  	
  	buf = emalloc(data_len + 1);
  
@@ -991,7 +995,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  			efree(buf);
  			RETVAL_FALSE;
  		} else {
-@@ -5091,7 +5390,7 @@ PHP_FUNCTION(openssl_open)
+@@ -5091,7 +5392,7 @@ PHP_FUNCTION(openssl_open)
  	if (keyresource == -1) {
  		EVP_PKEY_free(pkey);
  	}
@@ -1000,7 +1004,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  }
  /* }}} */
  
-@@ -5151,7 +5450,7 @@ PHP_FUNCTION(openssl_digest)
+@@ -5151,7 +5452,7 @@ PHP_FUNCTION(openssl_digest)
  	char *data, *method;
  	int data_len, method_len;
  	const EVP_MD *mdtype;
@@ -1009,7 +1013,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	int siglen;
  	unsigned char *sigbuf;
  
-@@ -5167,9 +5466,10 @@ PHP_FUNCTION(openssl_digest)
+@@ -5167,9 +5468,10 @@ PHP_FUNCTION(openssl_digest)
  	siglen = EVP_MD_size(mdtype);
  	sigbuf = emalloc(siglen + 1);
  
@@ -1023,7 +1027,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  		if (raw_output) {
  			sigbuf[siglen] = '\0';
  			RETVAL_STRINGL((char *)sigbuf, siglen, 0);
-@@ -5185,6 +5485,8 @@ PHP_FUNCTION(openssl_digest)
+@@ -5185,6 +5487,8 @@ PHP_FUNCTION(openssl_digest)
  		efree(sigbuf);
  		RETVAL_FALSE;
  	}
@@ -1032,7 +1036,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  }
  /* }}} */
  
-@@ -5230,7 +5532,7 @@ PHP_FUNCTION(openssl_encrypt)
+@@ -5230,7 +5534,7 @@ PHP_FUNCTION(openssl_encrypt)
  	char *data, *method, *password, *iv = "";
  	int data_len, method_len, password_len, iv_len = 0, max_iv_len;
  	const EVP_CIPHER *cipher_type;
@@ -1041,7 +1045,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	int i=0, outlen, keylen;
  	unsigned char *outbuf, *key;
  	zend_bool free_iv;
-@@ -5262,19 +5564,24 @@ PHP_FUNCTION(openssl_encrypt)
+@@ -5262,19 +5566,24 @@ PHP_FUNCTION(openssl_encrypt)
  	outlen = data_len + EVP_CIPHER_block_size(cipher_type);
  	outbuf = safe_emalloc(outlen, 1, 1);
  
@@ -1072,7 +1076,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  		outlen += i;
  		if (options & OPENSSL_RAW_DATA) {
  			outbuf[outlen] = '\0';
-@@ -5301,7 +5608,8 @@ PHP_FUNCTION(openssl_encrypt)
+@@ -5301,7 +5610,8 @@ PHP_FUNCTION(openssl_encrypt)
  	if (free_iv) {
  		efree(iv);
  	}
@@ -1082,7 +1086,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  }
  /* }}} */
  
-@@ -5313,7 +5621,7 @@ PHP_FUNCTION(openssl_decrypt)
+@@ -5313,7 +5623,7 @@ PHP_FUNCTION(openssl_decrypt)
  	char *data, *method, *password, *iv = "";
  	int data_len, method_len, password_len, iv_len = 0;
  	const EVP_CIPHER *cipher_type;
@@ -1091,7 +1095,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	int i, outlen, keylen;
  	unsigned char *outbuf, *key;
  	int base64_str_len;
-@@ -5359,17 +5667,23 @@ PHP_FUNCTION(openssl_decrypt)
+@@ -5359,17 +5669,23 @@ PHP_FUNCTION(openssl_decrypt)
  	outlen = data_len + EVP_CIPHER_block_size(cipher_type);
  	outbuf = emalloc(outlen + 1);
  
@@ -1121,7 +1125,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  		outlen += i;
  		outbuf[outlen] = '\0';
  		RETVAL_STRINGL((char *)outbuf, outlen, 0);
-@@ -5386,7 +5700,8 @@ PHP_FUNCTION(openssl_decrypt)
+@@ -5386,7 +5702,8 @@ PHP_FUNCTION(openssl_decrypt)
  	if (base64_str) {
  		efree(base64_str);
  	}
@@ -1131,7 +1135,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  }
  /* }}} */
  
-@@ -5424,6 +5739,7 @@ PHP_FUNCTION(openssl_dh_compute_key)
+@@ -5424,6 +5741,7 @@ PHP_FUNCTION(openssl_dh_compute_key)
  	zval *key;
  	char *pub_str;
  	int pub_len;
@@ -1139,7 +1143,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  	EVP_PKEY *pkey;
  	BIGNUM *pub;
  	char *data;
-@@ -5433,14 +5749,21 @@ PHP_FUNCTION(openssl_dh_compute_key)
+@@ -5433,14 +5751,21 @@ PHP_FUNCTION(openssl_dh_compute_key)
  		return;
  	}
  	ZEND_FETCH_RESOURCE(pkey, EVP_PKEY *, &key, -1, "OpenSSL key", le_key);
@@ -1164,9 +1168,11 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  
  	if (len >= 0) {
  		data[len] = 0;
---- php5.6.orig/ext/openssl/tests/bug41033.phpt
-+++ php5.6/ext/openssl/tests/bug41033.phpt
-@@ -13,11 +13,11 @@ $pub = 'file://' . dirname(__FILE__) . '
+diff --git a/ext/openssl/tests/bug41033.phpt b/ext/openssl/tests/bug41033.phpt
+index 4aeae66..50c78fe 100644
+--- a/ext/openssl/tests/bug41033.phpt
++++ b/ext/openssl/tests/bug41033.phpt
+@@ -13,11 +13,11 @@ $pub = 'file://' . dirname(__FILE__) . '/' . 'bug41033pub.pem';
  
  $prkeyid = openssl_get_privatekey($prv, "1234");
  $ct = "Hello I am some text!";
@@ -1180,9 +1186,11 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  echo "Signature validity: " . $valid . "\n";
  
  
---- php5.6.orig/ext/openssl/tests/bug66501.phpt
-+++ php5.6/ext/openssl/tests/bug66501.phpt
-@@ -16,7 +16,7 @@ AwEHoUQDQgAEPq4hbIWHvB51rdWr8ejrjWo4qVNW
+diff --git a/ext/openssl/tests/bug66501.phpt b/ext/openssl/tests/bug66501.phpt
+index 7ad5e21..c2146ab 100644
+--- a/ext/openssl/tests/bug66501.phpt
++++ b/ext/openssl/tests/bug66501.phpt
+@@ -16,7 +16,7 @@ AwEHoUQDQgAEPq4hbIWHvB51rdWr8ejrjWo4qVNWVugYFtPg/xLQw0mHkIPZ4DvK
  sqOTOnMoezkbSmVVMuwz9flvnqHGmQvmug==
  -----END EC PRIVATE KEY-----';
  $key = openssl_pkey_get_private($pkey);
@@ -1191,9 +1199,11 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  var_dump($res);
  --EXPECTF--
  bool(true)
---- php5.6.orig/ext/openssl/tests/openssl_error_string_basic.phpt
-+++ php5.6/ext/openssl/tests/openssl_error_string_basic.phpt
-@@ -105,7 +105,7 @@ expect_openssl_errors('openssl_private_d
+diff --git a/ext/openssl/tests/openssl_error_string_basic.phpt b/ext/openssl/tests/openssl_error_string_basic.phpt
+index 82f3099..d94048d 100644
+--- a/ext/openssl/tests/openssl_error_string_basic.phpt
++++ b/ext/openssl/tests/openssl_error_string_basic.phpt
+@@ -105,7 +105,7 @@ expect_openssl_errors('openssl_private_decrypt', ['04065072']);
  // public encrypt and decrypt with failed padding check and padding
  @openssl_public_encrypt("data", $crypted, $public_key_file, 1000);
  @openssl_public_decrypt("data", $crypted, $public_key_file);
@@ -1202,9 +1212,25 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  
  // X509
  echo "X509 errors\n";
---- php5.6.orig/ext/openssl/xp_ssl.c
-+++ php5.6/ext/openssl/xp_ssl.c
-@@ -935,7 +935,7 @@ static int set_local_cert(SSL_CTX *ctx,
+diff --git a/ext/openssl/tests/sni_server.phpt b/ext/openssl/tests/sni_server.phpt
+index d44a69f..ef23258 100644
+--- a/ext/openssl/tests/sni_server.phpt
++++ b/ext/openssl/tests/sni_server.phpt
+@@ -27,6 +27,9 @@ CODE;
+ $clientCode = <<<'CODE'
+     $flags = STREAM_CLIENT_CONNECT;
+     $ctxArr = [
++        'verify_peer'  => false,
++        'verify_peer_name' => false,
++        'allow_self_signed' => true,
+         'cafile' => __DIR__ . '/sni_server_ca.pem',
+         'capture_peer_cert' => true
+     ];
+diff --git a/ext/openssl/xp_ssl.c b/ext/openssl/xp_ssl.c
+index d549033..c2d477c 100644
+--- a/ext/openssl/xp_ssl.c
++++ b/ext/openssl/xp_ssl.c
+@@ -935,7 +935,7 @@ static int set_local_cert(SSL_CTX *ctx, php_stream *stream TSRMLS_DC) /* {{{ */
  static const SSL_METHOD *php_select_crypto_method(long method_value, int is_client TSRMLS_DC) /* {{{ */
  {
  	if (method_value == STREAM_CRYPTO_METHOD_SSLv2) {
@@ -1213,7 +1239,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  		return is_client ? SSLv2_client_method() : SSLv2_server_method();
  #else
  		php_error_docref(NULL TSRMLS_CC, E_WARNING,
-@@ -1588,12 +1588,26 @@ int php_openssl_setup_crypto(php_stream
+@@ -1588,12 +1588,26 @@ int php_openssl_setup_crypto(php_stream *stream,
  }
  /* }}} */
  
@@ -1240,7 +1266,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  
  	switch (proto) {
  #if OPENSSL_VERSION_NUMBER >= 0x10001001L
-@@ -1611,7 +1625,7 @@ static zval *capture_session_meta(SSL *s
+@@ -1611,7 +1625,7 @@ static zval *capture_session_meta(SSL *ssl_handle) /* {{{ */
  	add_assoc_string(meta_arr, "protocol", proto_str, 1);
  	add_assoc_string(meta_arr, "cipher_name", (char *) SSL_CIPHER_get_name(cipher), 1);
  	add_assoc_long(meta_arr, "cipher_bits", SSL_CIPHER_get_bits(cipher, NULL));
@@ -1249,9 +1275,11 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  
  	return meta_arr;
  }
---- php5.6.orig/ext/phar/util.c
-+++ php5.6/ext/phar/util.c
-@@ -1531,7 +1531,7 @@ int phar_verify_signature(php_stream *fp
+diff --git a/ext/phar/util.c b/ext/phar/util.c
+index 828be8f..06e4e55 100644
+--- a/ext/phar/util.c
++++ b/ext/phar/util.c
+@@ -1531,7 +1531,7 @@ int phar_verify_signature(php_stream *fp, size_t end_of_phar, php_uint32 sig_typ
  			BIO *in;
  			EVP_PKEY *key;
  			EVP_MD *mdtype = (EVP_MD *) EVP_sha1();
@@ -1260,7 +1288,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  #else
  			int tempsig;
  #endif
-@@ -1608,7 +1608,8 @@ int phar_verify_signature(php_stream *fp
+@@ -1608,7 +1608,8 @@ int phar_verify_signature(php_stream *fp, size_t end_of_phar, php_uint32 sig_typ
  				return FAILURE;
  			}
  
@@ -1270,7 +1298,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  			read_len = end_of_phar;
  
  			if (read_len > sizeof(buf)) {
-@@ -1620,7 +1621,7 @@ int phar_verify_signature(php_stream *fp
+@@ -1620,7 +1621,7 @@ int phar_verify_signature(php_stream *fp, size_t end_of_phar, php_uint32 sig_typ
  			php_stream_seek(fp, 0, SEEK_SET);
  
  			while (read_size && (len = php_stream_read(fp, (char*)buf, read_size)) > 0) {
@@ -1279,7 +1307,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  				read_len -= (off_t)len;
  
  				if (read_len < read_size) {
-@@ -1628,9 +1629,9 @@ int phar_verify_signature(php_stream *fp
+@@ -1628,9 +1629,9 @@ int phar_verify_signature(php_stream *fp, size_t end_of_phar, php_uint32 sig_typ
  				}
  			}
  
@@ -1291,7 +1319,7 @@ Subject: Use OpenSSL 1.1 compatibility patch when built with OpenSSL >= 1.1
  
  				if (error) {
  					spprintf(error, 0, "broken openssl signature");
-@@ -1639,7 +1640,7 @@ int phar_verify_signature(php_stream *fp
+@@ -1639,7 +1640,7 @@ int phar_verify_signature(php_stream *fp, size_t end_of_phar, php_uint32 sig_typ
  				return FAILURE;
  			}
  
