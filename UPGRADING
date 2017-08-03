@@ -25,7 +25,7 @@ PHP 7.2 UPGRADE NOTES
   . is_object() will now return true for objects of class
     __PHP_Incomplete_Class.
   . Support for Netware operating systems have been removed.
-  . Casting arrays to objects (with (object) or settype()) will now covert
+  . Casting arrays to objects (with (object) or settype()) will now convert
     integer keys to string property names. This fixes the behaviour of previous
     versions, where integer keys would become inaccessible properties with
     integer names.
@@ -161,7 +161,7 @@ All the deprecated functionality listed in the following will be removed in
 PHP 8.0.
 
 - Core:
-  . The trace_errors ini directive has been deprecated.
+  . The track_errors ini directive has been deprecated.
   . The __autoload() mechanism has been deprecated, use spl_autoload_register()
     instead.
   . The (unset) cast has been deprecated. This does not affect the unset($var)
