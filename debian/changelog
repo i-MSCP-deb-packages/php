@@ -1,3 +1,10 @@
+php7.0 (7.0.22-1) unstable; urgency=medium
+
+  * New upstream version 7.0.22
+  * Rebase patches for PHP 7.0.22
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 03 Aug 2017 15:42:13 +0200
+
 php7.0 (7.0.21-1) unstable; urgency=medium
 
   * New upstream version 7.0.21
