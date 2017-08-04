@@ -6,7 +6,7 @@ Uploaders: Ondřej Surý <ondrej@debian.org>,
            Lior Kaplan <kaplan@debian.org>
 Build-Depends: apache2-dev (>= 2.4),
                autoconf (>= 2.63),
-               automake (>= 1.11) | automake1.11,
+               automake,
                bison,
                chrpath,
                debhelper (>= 9),
