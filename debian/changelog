@@ -1,3 +1,11 @@
+php7.2 (7.2.0~beta2-2) experimental; urgency=medium
+
+  * Update Vcs-* links to https://gitlab.com/deb.sury.org/...
+  * Stop depending on obsolete automake1.11
+  * Switch build-depends to libgcrypt20-dev
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 04 Aug 2017 11:56:09 +0200
+
 php7.2 (7.2.0~beta2-1) experimental; urgency=medium
 
   * Update d/watch for PHP 7.2
