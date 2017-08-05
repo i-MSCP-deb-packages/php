@@ -19,6 +19,8 @@ binary:jessie:
     - apt-get -y update
     - apt-get -y --no-install-recommends install build-essential devscripts pristine-tar equivs lintian gnupg ubuntu-dev-tools distro-info git-buildpackage
     - mk-build-deps --install --remove --tool="apt-get -y -o Debug::pkgProblemResolver=yes --no-install-recommends"
+    - git branch --track pristine-tar origin/pristine-tar
+    - git branch --track upstream-7.0 origin/upstream-7.0
   script:
     - gbp buildpackage --git-builder='$DEBUILD' --git-cleaner=/bin/true --git-verbose --git-color=on --git-ignore-branch --git-export-dir=$CI_PROJECT_DIR/build-area/ --git-pristine-tar --git-purge --git-postexport='dch --no-force-save-on-release --force-distribution --distribution "$DIST" --force-bad-version --newversion "$(dpkg-parsechangelog -SVersion)+0~$CI_PIPELINE_ID+$DIST" --vendor "$VENDOR" "Backport for Debian Jessie (8)"'
   artifacts:
@@ -36,6 +38,8 @@ binary:stretch:
     - apt-get -y update
     - apt-get -y --no-install-recommends install build-essential devscripts pristine-tar equivs lintian gnupg ubuntu-dev-tools distro-info git-buildpackage 
     - mk-build-deps --install --remove --tool="apt-get -y -o Debug::pkgProblemResolver=yes --no-install-recommends"
+    - git branch --track pristine-tar origin/pristine-tar
+    - git branch --track upstream-7.0 origin/upstream-7.0
   script:
     - gbp buildpackage --git-builder='$DEBUILD' --git-cleaner=/bin/true --git-verbose --git-color=on --git-ignore-branch --git-export-dir=$CI_PROJECT_DIR/build-area/ --git-pristine-tar --git-purge --git-postexport='dch --no-force-save-on-release --force-distribution --distribution "$DIST" --force-bad-version --newversion "$(dpkg-parsechangelog -SVersion)+0~$CI_PIPELINE_ID+$DIST" --vendor "$VENDOR" "Backport for Debian Stretch (9)"'
   artifacts:
@@ -53,6 +57,8 @@ binary:buster:
     - apt-get -y update
     - apt-get -y --no-install-recommends install build-essential devscripts pristine-tar equivs lintian gnupg ubuntu-dev-tools distro-info git-buildpackage
     - mk-build-deps --install --remove --tool="apt-get -y -o Debug::pkgProblemResolver=yes --no-install-recommends"
+    - git branch --track pristine-tar origin/pristine-tar
+    - git branch --track upstream-7.0 origin/upstream-7.0
   script:
     - gbp buildpackage --git-builder='$DEBUILD' --git-cleaner=/bin/true --git-verbose --git-color=on --git-ignore-branch --git-export-dir=$CI_PROJECT_DIR/build-area/ --git-pristine-tar --git-purge --git-postexport='dch --no-force-save-on-release --force-distribution --distribution "$DIST" --force-bad-version --newversion "$(dpkg-parsechangelog -SVersion)+0~$CI_PIPELINE_ID+$DIST" --vendor "$VENDOR" "Backport for Debian Buster (10)"'
   artifacts:
@@ -70,6 +76,8 @@ binary:sid:
     - apt-get -y update
     - apt-get -y --no-install-recommends install build-essential devscripts pristine-tar equivs lintian gnupg ubuntu-dev-tools distro-info git-buildpackage
     - mk-build-deps --install --remove --tool="apt-get -y -o Debug::pkgProblemResolver=yes --no-install-recommends"
+    - git branch --track pristine-tar origin/pristine-tar
+    - git branch --track upstream-7.0 origin/upstream-7.0
   script:
     - gbp buildpackage --git-builder='$DEBUILD' --git-cleaner=/bin/true --git-verbose --git-color=on --git-ignore-branch --git-export-dir=$CI_PROJECT_DIR/build-area/ --git-pristine-tar --git-purge --git-postexport='dch --no-force-save-on-release --force-distribution --distribution "$DIST" --force-bad-version --newversion "$(dpkg-parsechangelog -SVersion)+0~$CI_PIPELINE_ID+$DIST" --vendor "$VENDOR" "Backport for Debian Sid"'
   artifacts:
