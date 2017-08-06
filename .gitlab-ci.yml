@@ -14,13 +14,13 @@ variables:
 .binary: &binary
   stage: binary
   before_script:
-    - apt-get -qq update
-    - apt-get -y install apt-transport-https lsb-release ca-certificates curl
+    - apt-get -yqq update
+    - apt-get -yqq install apt-transport-https lsb-release ca-certificates curl
     - curl -L -o /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
     - if [ "$DIST" = "jessie" ] || [ "$DIST" = "stretch" ]; then echo "deb https://packages.sury.org/php/ $DIST main" > /etc/apt/sources.list.d/php.list; fi
-    - apt-get -qq update
-    - apt-get -y --no-install-recommends install build-essential devscripts pristine-tar equivs lintian gnupg ubuntu-dev-tools distro-info git-buildpackage
-    - mk-build-deps --install --remove --tool="apt-get -y -o Debug::pkgProblemResolver=yes --no-install-recommends"
+    - apt-get -yqq update
+    - apt-get -yqq --no-install-recommends install build-essential devscripts pristine-tar equivs lintian gnupg ubuntu-dev-tools distro-info git-buildpackage
+    - mk-build-deps --install --remove --tool="apt-get -yqq -o Debug::pkgProblemResolver=yes --no-install-recommends"
     - git branch --track pristine-tar origin/pristine-tar
     - git branch --track $UPSTREAM_BRANCH origin/$UPSTREAM_BRANCH
   script:
@@ -28,6 +28,7 @@ variables:
   artifacts:
     paths:
       - $CI_PROJECT_DIR/build-area/*
+    when: always
     expire_in: 1 day
   image: debian:$DIST
   
