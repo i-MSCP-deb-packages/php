@@ -1689,6 +1689,12 @@
 /* */
 #undef HAVE_SQLITE3
 
+/* have sqlite3_close_v2 */
+#undef HAVE_SQLITE3_CLOSE_V2
+
+/* have sqlite3_errstr function */
+#undef HAVE_SQLITE3_ERRSTR
+
 /* have commercial sqlite3 with crypto support */
 #undef HAVE_SQLITE3_KEY
 

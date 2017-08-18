@@ -717,6 +717,10 @@ int zend_startup(zend_utility_functions *utility_functions, char **extensions) /
 	extern zend_php_scanner_globals language_scanner_globals;
 #endif
 
+#ifdef ZEND_WIN32
+	php_win32_cp_set_by_id(65001);
+#endif
+
 	start_memory_manager();
 
 	virtual_cwd_startup(); /* Could use shutdown to free the main cwd but it would just slow it down for CGI */
@@ -769,7 +773,7 @@ int zend_startup(zend_utility_functions *utility_functions, char **extensions) /
 	zend_compile_file = compile_file;
 	zend_execute_ex = execute_ex;
 	zend_execute_internal = NULL;
-#endif /* HAVE_SYS_SDT_H */
+#endif /* HAVE_DTRACE */
 	zend_compile_string = compile_string;
 	zend_throw_exception_hook = NULL;
 
