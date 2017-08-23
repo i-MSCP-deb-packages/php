@@ -1,3 +1,11 @@
+php7.0 (7.0.22-3) unstable; urgency=medium
+
+  * Allow libgcrypt11-dev when it's not a transitional package
+  * Correct the --extend-diff-ignore to ignore custom .gitlab-ci.yml in the root
+  * Switch from curl-config to pkg-config for curl extension (Courtesy of Remi Collet)
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 23 Aug 2017 07:51:41 +0200
+
 php7.0 (7.0.22-2) unstable; urgency=medium
 
   * Update Vcs-* links to https://gitlab.com/deb.sury.org/...
