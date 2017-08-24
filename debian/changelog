@@ -1,4 +1,4 @@
-php7.2 (7.2.0~beta3-1) experimental; urgency=medium
+php7.2 (7.2.0~beta3-1) unstable; urgency=medium
 
   * Allow libgcrypt11-dev when it's not a transitional package
   * New upstream version 7.2.0~beta3
