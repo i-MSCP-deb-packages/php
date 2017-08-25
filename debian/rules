@@ -181,6 +181,7 @@ COMMON_CONFIG := \
 		--without-pear \
 		--enable-filter \
 		--with-openssl=yes \
+		--with-password-argon2=/usr \
 		--with-pcre-regex=/usr \
 		--enable-hash \
 		  --with-mhash=/usr \
