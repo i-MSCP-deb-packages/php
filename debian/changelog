@@ -1,3 +1,10 @@
+php7.2 (7.2.0~beta3-2) unstable; urgency=medium
+
+  * Enable Argon2 support for password hashing functions
+  * Enable shared libsodium extension
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 25 Aug 2017 11:35:23 +0200
+
 php7.2 (7.2.0~beta3-1) unstable; urgency=medium
 
   * Allow libgcrypt11-dev when it's not a transitional package
