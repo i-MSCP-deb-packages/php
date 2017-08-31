@@ -990,6 +990,9 @@
 /* */
 #undef HAVE_IODBC_H
 
+/* Define to 1 if you have the <io.h> header file. */
+#undef HAVE_IO_H
+
 /* Whether to enable IPv6 support */
 #undef HAVE_IPV6
 

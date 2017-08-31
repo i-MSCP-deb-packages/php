@@ -2980,6 +2980,9 @@ static int zend_update_type_info(const zend_op_array *op_array,
 					}
 					if (t1 & (MAY_BE_STRING|MAY_BE_ARRAY)) {
 						tmp |= MAY_BE_RC1;
+						if (opline->opcode == ZEND_FETCH_DIM_FUNC_ARG) {
+							tmp |= t1 & MAY_BE_RCN;
+						}
 					}
 					if (t1 & (MAY_BE_OBJECT|MAY_BE_RESOURCE)) {
 						tmp |= t1 & (MAY_BE_RC1|MAY_BE_RCN);
@@ -3000,6 +3003,13 @@ static int zend_update_type_info(const zend_op_array *op_array,
 						if (t2 & (MAY_BE_UNDEF | MAY_BE_NULL)) {
 							tmp |= MAY_BE_ARRAY_KEY_STRING;
 						}
+					}
+				} else if (opline->opcode == ZEND_FETCH_DIM_UNSET) {
+					if (t1 & MAY_BE_ARRAY) {
+						tmp |= MAY_BE_RC1;
+					}
+					if (t1 & (MAY_BE_OBJECT|MAY_BE_RESOURCE)) {
+						tmp |= t1 & (MAY_BE_RC1|MAY_BE_RCN);
 					}
 				}
 				j = ssa_vars[ssa_ops[i].result_def].use_chain;
@@ -3177,10 +3187,10 @@ static int zend_update_type_info(const zend_op_array *op_array,
 			break;
 		case ZEND_GET_CLASS:
 		case ZEND_GET_CALLED_CLASS:
-			UPDATE_SSA_TYPE(MAY_BE_FALSE|MAY_BE_STRING, ssa_ops[i].result_def);
+			UPDATE_SSA_TYPE(MAY_BE_FALSE|MAY_BE_STRING|MAY_BE_RCN, ssa_ops[i].result_def);
 			break;
 		case ZEND_GET_TYPE:
-			UPDATE_SSA_TYPE(MAY_BE_STRING, ssa_ops[i].result_def);
+			UPDATE_SSA_TYPE(MAY_BE_STRING|MAY_BE_RC1|MAY_BE_RCN, ssa_ops[i].result_def);
 			break;
 		case ZEND_TYPE_CHECK:
 		case ZEND_DEFINED:

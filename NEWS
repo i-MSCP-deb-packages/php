@@ -1,9 +1,41 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+31 Aug 2017, PHP 7.2.0RC1
+
+- Core:
+  . Fixed #75042 run-tests.php issues with EXTENSION block). (John Boehr)
+
+- CURL:
+  . Fixed bug #75093 (OpenSSL support not detected). (Remi)
+  . Better fix for #74125 (use pkg-config instead of curl-config). (Remi)
+
+- GD:
+  . Fixed bug #75111 (Memory disclosure or DoS via crafted .bmp image). (cmb)
+  . Fixed bug #75124 (gdImageGrayScale() may produce colors). (cmb)
+
+- Intl:
+  . Fixed bug #75090 (IntlGregorianCalendar doesn't have constants from parent
+    class). (tpunt)
+
+- PCRE:
+  . Fixed bug #75089 (preg_grep() is not reporting PREG_BAD_UTF8_ERROR after
+    first input string). (Dmitry)
+
+- PDO_OCI:
+  . Fixed bug #74631 (PDO_PCO with PHP-FPM: OCI environment initialized
+    before PHP-FPM sets it up). (Ingmar Runge)
+
+- SQLite3:
+  . Update to Sqlite 3.20.1. (cmb)
+
+- Standard:
+  . Fixed bug #75097 (gethostname fails if your host name is 64 chars long). (Andrea)
+
 17 Aug 2017, PHP 7.2.0beta3
 
 - Core:
   . Fixed bug #75063 (Main CWD initialized with wrong codepage). (Anatol)
+  . Fixed bug #74725 (html_errors=1 breaks unhandled exceptions). (Andrea)
 
 - Date:
   . Fixed bug #75002 (Null Pointer Dereference in timelib_time_clone). (Derick)
