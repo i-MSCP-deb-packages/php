@@ -1,3 +1,12 @@
+php7.2 (7.2.0~rc1-1) unstable; urgency=medium
+
+  * New upstream version 7.2.0~rc1
+  * Rebase patches on top of PHP 7.2.0~rc1
+  * Update d/copyright (License check courtesy of Luca Falavigna)
+  * Rewrap the files in d/ with wrap-and-sort -a
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 31 Aug 2017 14:00:16 +0200
+
 php7.2 (7.2.0~beta3-2) unstable; urgency=medium
 
   * Enable Argon2 support for password hashing functions
