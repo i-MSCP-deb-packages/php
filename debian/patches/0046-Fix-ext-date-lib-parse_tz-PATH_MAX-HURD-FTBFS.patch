@@ -7,10 +7,10 @@ Subject: Fix ext/date/lib/parse_tz PATH_MAX HURD FTBFS
  1 file changed, 41 insertions(+), 14 deletions(-)
 
 diff --git a/ext/date/lib/parse_tz.c b/ext/date/lib/parse_tz.c
-index ed7717e..97afe65 100644
+index ffa281d..abc4557 100644
 --- a/ext/date/lib/parse_tz.c
 +++ b/ext/date/lib/parse_tz.c
-@@ -428,13 +428,19 @@ static char *parse_iso6709(char *p, double *result)
+@@ -499,13 +499,19 @@ static char *parse_iso6709(char *p, double *result)
  static struct location_info **create_location_table(void)
  {
      struct location_info **li, *i;
@@ -32,7 +32,7 @@ index ed7717e..97afe65 100644
      if (!fp) {
          return NULL;
      }
-@@ -569,12 +575,14 @@ static void create_zone_index(timelib_tzdb *db)
+@@ -640,12 +646,14 @@ static void create_zone_index(timelib_tzdb *db)
  
  	do {
  		struct dirent **ents;
@@ -50,7 +50,7 @@ index ed7717e..97afe65 100644
  
  		count = php_scandir(name, &ents, index_filter, php_alphasort);
  
-@@ -582,7 +590,9 @@ static void create_zone_index(timelib_tzdb *db)
+@@ -653,7 +661,9 @@ static void create_zone_index(timelib_tzdb *db)
  			struct stat st;
  			const char *leaf = ents[count - 1]->d_name;
  
@@ -61,7 +61,7 @@ index ed7717e..97afe65 100644
  				 top, leaf);
  			
  			if (strlen(name) && stat(name, &st) == 0) {
-@@ -591,7 +601,9 @@ static void create_zone_index(timelib_tzdb *db)
+@@ -662,7 +672,9 @@ static void create_zone_index(timelib_tzdb *db)
  
  				if (root[0] == '/') root++;
  
@@ -72,7 +72,7 @@ index ed7717e..97afe65 100644
  					 *root ? "/": "", leaf);
  
  				if (S_ISDIR(st.st_mode)) {
-@@ -617,6 +629,7 @@ static void create_zone_index(timelib_tzdb *db)
+@@ -688,6 +700,7 @@ static void create_zone_index(timelib_tzdb *db)
  		}
  		
  		if (count != -1) free(ents);
@@ -80,7 +80,7 @@ index ed7717e..97afe65 100644
  		free(top);
  	} while (dirstack_top);
  
-@@ -715,18 +728,24 @@ static const char *canonical_tzname(const char *timezone)
+@@ -786,18 +799,24 @@ static const char *canonical_tzname(const char *timezone)
   * length of the mapped data is placed in *length. */
  static char *map_tzfile(const char *timezone, size_t *length)
  {
@@ -109,7 +109,7 @@ index ed7717e..97afe65 100644
  	if (fd == -1) {
  		return NULL;
  	} else if (fstat(fd, &st) != 0 || !is_valid_tzfile(&st, fd)) {
-@@ -843,7 +862,9 @@ int timelib_timezone_id_is_valid(char *timezone, const timelib_tzdb *tzdb)
+@@ -915,7 +934,9 @@ int timelib_timezone_id_is_valid(char *timezone, const timelib_tzdb *tzdb)
  
  #ifdef HAVE_SYSTEM_TZDATA
  	if (tzdb == timezonedb_system) {
@@ -120,7 +120,7 @@ index ed7717e..97afe65 100644
  		struct stat st;
  
  		if (timezone[0] == '\0' || strstr(timezone, "..") != NULL) {
-@@ -857,9 +878,15 @@ int timelib_timezone_id_is_valid(char *timezone, const timelib_tzdb *tzdb)
+@@ -929,9 +950,15 @@ int timelib_timezone_id_is_valid(char *timezone, const timelib_tzdb *tzdb)
  			}
  		}
  
