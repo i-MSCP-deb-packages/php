@@ -14,7 +14,7 @@ Subject: debian_quirks
  8 files changed, 22 insertions(+), 17 deletions(-)
 
 diff --git a/configure.in b/configure.in
-index 651c828..0978259 100644
+index 0769583..830416f 100644
 --- a/configure.in
 +++ b/configure.in
 @@ -1095,7 +1095,7 @@ if test "$PHP_CLI" = "no"; then
@@ -91,7 +91,7 @@ index 0a28d3b..b24f91b 100644
  ; Windows: "\path1;\path2"
  ;include_path = ".;c:\php\includes"
 diff --git a/sapi/cli/php.1.in b/sapi/cli/php.1.in
-index 7b5863a..4d27709 100644
+index f5fccfc..bda13c3 100644
 --- a/sapi/cli/php.1.in
 +++ b/sapi/cli/php.1.in
 @@ -365,13 +365,14 @@ Shows configuration for extension
