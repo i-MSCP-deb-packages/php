@@ -1,3 +1,11 @@
+php7.1 (7.1.9-1) unstable; urgency=medium
+
+  * Allow libgcrypt11-dev when it's not a transitional package
+  * New upstream version 7.1.9
+  * Rebase patches on top of PHP 7.1.9
+
+ -- Ondřej Surý <ondrej@debian.org>  Sat, 02 Sep 2017 07:53:00 +0200
+
 php7.1 (7.1.8-2) unstable; urgency=medium
 
   * Update Vcs-* links to https://gitlab.com/deb.sury.org/...
