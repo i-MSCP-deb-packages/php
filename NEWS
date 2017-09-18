@@ -1,9 +1,57 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+14 Sep 2017, PHP 7.2.0RC2
+
+- Core:
+  . Fixed Bug #75142 (buildcheck.sh check for autoconf version needs to be updated
+    for v2.64). (zizzy at zizzy dot net, Remi)
+
+- BCMath:
+  . Fixed bug #44995 (bcpowmod() fails if scale != 0). (cmb)
+  . Fixed bug #46781 (BC math handles minus zero incorrectly). (cmb)
+  . Fixed bug #54598 (bcpowmod() may return 1 if modulus is 1). (okano1220, cmb)
+  . Fixed bug #75178 (bcpowmod() misbehaves for non-integer base or modulus). (cmb)
+
+- CLI server:
+  . Fixed bug #70470 (Built-in server truncates headers spanning over TCP
+    packets). (bouk)
+
+- Date:
+  . Fixed bug #75149 (redefinition of typedefs ttinfo and t1info). (Remi)
+
+- GD:
+  . Fixed bug #75139 (libgd/gd_interpolation.c:1786: suspicious if ?). (cmb)
+
+- Intl:
+  .  Fixed bug #75193 (segfault in collator_convert_object_to_string). (Remi)
+
+- Gettext:
+  . Fixed bug #73730 (textdomain(null) throws in strict mode). (cmb)
+
+- Opcache
+  . Fixed incorect constant conditional jump elimination. (Dmitry)
+
+- OpenSSL
+  . Automatically load OpenSSL configuration file. (Jakub Zelenka)
+
+- SPL:
+  . Fixed bug #75155 (AppendIterator::append() is broken when appending another
+    AppendIterator). (Nikita)
+  . Fixed bug #75173 (incorrect behavior of AppendIterator::append in foreach loop).
+    (jhdxr)
+
+- Standard:
+  . Fixed bug #75152 (signed integer overflow in parse_iv). (Laruence)
+  . Fixed bug #75170 (mt_rand() bias on 64-bit machines). (Nikita)
+
+- ZIP:
+  . Fixed bug #75143 (new method setEncryptionName() seems not to exist
+    in ZipArchive). (Anatol)
+
 31 Aug 2017, PHP 7.2.0RC1
 
 - Core:
-  . Fixed #75042 run-tests.php issues with EXTENSION block). (John Boehr)
+  . Fixed bug #75042 (run-tests.php issues with EXTENSION block). (John Boehr)
 
 - CURL:
   . Fixed bug #75093 (OpenSSL support not detected). (Remi)
@@ -42,6 +90,10 @@ PHP                                                                        NEWS
 
 - FTP:
   . Added ftp_append() function. (blar)
+
+- JSON:
+  . Fixed bug #75185 (Buffer overflow in json_decode() with
+    JSON_INVALID_UTF8_IGNORE or JSON_INVALID). (Jakub Zelenka)
 
 - Mbstring:
   . Fixed bug #75001 (Wrong reflection on mb_eregi_replace). (Fabien
@@ -370,6 +422,10 @@ PHP                                                                        NEWS
 
 - Calendar:
   . Fix integer overflows (Joshua Rogers)
+
+- CLI server:
+  . Fixed bug #60471 (Random "Invalid request (unexpected EOF)" using a router
+    script). (SammyK)
 
 - Date:
   . Fixed bug #55407 (Impossible to prototype DateTime::createFromFormat).
