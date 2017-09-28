@@ -1,5 +1,34 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+28 Sep 2017, PHP 7.2.0RC3
+
+- Core
+  . Fixed bug #75241 (Null pointer dereference in zend_mm_alloc_small()).
+    (Laruence)
+  . Fixed bug #74878 (Data race in ZTS builds). (Nikita, Dmitry)
+  . Fixed bug #75236 (infinite loop when printing an error-message). (Andrea)
+  . Fixed bug #75252 (Incorrect token formatting on two parse errors in one
+    request). (Nikita)
+
+- FPM:
+  . Fixed bug #75212 (php_value acts like php_admin_value). (Remi)
+
+- MySQLi:
+  . Fixed bug #75018 (Data corruption when reading fields of bit type). (Anatol)
+
+- Opcache:
+  . Fixed bug #75230 (Invalid opcode 49/1/8 using opcache). (Laruence)
+
+- PCRE:
+  . Fixed bug ##75223 (PCRE JIT broken in 7.2). (Dmitry)
+
+- PDO_mysql:
+  . Fixed bug #75177 (Type 'bit' is fetched as unexpected string). (Anatol)
+
+- SPL:
+  . Fixed bug #73629 (SplDoublyLinkedList::setIteratorMode masks intern flags).
+    (J. Jeising, cmb)
+
 14 Sep 2017, PHP 7.2.0RC2
 
 - Core:
