@@ -220,6 +220,10 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_set_exception_handler, 0, 0, 1)
 	ZEND_ARG_INFO(0, exception_handler)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_get_defined_functions, 0, 0, 1)
+	ZEND_ARG_INFO(0, exclude_disabled)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_create_function, 0, 0, 2)
 	ZEND_ARG_INFO(0, args)
 	ZEND_ARG_INFO(0, code)
@@ -366,7 +370,7 @@ static const zend_function_entry builtin_functions[] = { /* {{{ */
 	ZEND_FE(get_declared_classes, 		arginfo_zend__void)
 	ZEND_FE(get_declared_traits, 		arginfo_zend__void)
 	ZEND_FE(get_declared_interfaces, 	arginfo_zend__void)
-	ZEND_FE(get_defined_functions, 		arginfo_zend__void)
+	ZEND_FE(get_defined_functions, 		arginfo_get_defined_functions)
 	ZEND_FE(get_defined_vars,		arginfo_zend__void)
 	ZEND_FE(create_function,		arginfo_create_function)
 	ZEND_FE(get_resource_type,		arginfo_get_resource_type)
@@ -1280,7 +1284,7 @@ ZEND_FUNCTION(get_object_vars)
 						zend_unmangle_property_name_ex(key, &class_name, &prop_name, &prop_len);
 						zend_hash_str_add_new(Z_ARRVAL_P(return_value), prop_name, prop_len, value);
 					} else {
-						zend_symbtable_add_new(Z_ARRVAL_P(return_value), key, value);
+						zend_symtable_add_new(Z_ARRVAL_P(return_value), key, value);
 					}
 				}
 			}
