@@ -1638,6 +1638,9 @@
 /* Define to 1 if you have the `sin' function. */
 #undef HAVE_SIN
 
+/* Define is hash3 algo is available */
+#undef HAVE_SLOW_HASH3
+
 /* */
 #undef HAVE_SNMP
 
