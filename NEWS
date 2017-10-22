@@ -1,5 +1,45 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+12 Oct 2017, PHP 7.2.0RC4
+
+- Core
+  . Fixed bug #75220 (Segfault when calling is_callable on parent). 
+    (andrewnester)
+  . Fixed bug #75290 (debug info of Closures of internal functions contain
+    garbage argument names). (Andrea)
+
+- Apache2Handler:
+  . Fixed bug #75311 (error: 'zend_hash_key' has no member named 'arKey' in
+    apache2handler). (mcarbonneaux)
+
+- Date:
+  . Fixed bug #75222 (DateInterval microseconds property always 0). (jhdxr)
+
+- Hash:
+  . Fixed Bug #75284 (sha3 is not supported on bigendian machine). (Remi)
+
+- Intl:
+  . Fixed bug #75318 (The parameter of UConverter::getAliases() is not
+    optional). (cmb)
+
+- litespeed:
+  . Fixed bug #75248 (Binary directory doesn't get created when building 
+    only litespeed SAPI). (petk)
+  . Fixed bug #75251 (Missing program prefix and suffix). (petk)
+
+- OCI8:
+  . Fixed incorrect reference counting. (Dmitry, Tianfang Yang)
+
+- Opcache
+  . Fixed bug #75255 (Request hangs and not finish). (Dmitry)
+
+- PCRE:
+  . Fixed bug #75285 (Broken build when system libpcre don't have jit support).
+    (Remi)
+
+- Sodium:
+  . Added missing bindings for libsodium > 1.0.13. (Frank)
+
 28 Sep 2017, PHP 7.2.0RC3
 
 - Core

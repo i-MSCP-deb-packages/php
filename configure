@@ -1791,11 +1791,9 @@ Extensions:
   --with-system-ciphers   OPENSSL: Use system default cipher list instead of hardcoded value
   --with-pcre-regex=DIR   Include Perl Compatible Regular Expressions support.
                           DIR is the PCRE install prefix BUNDLED
-  --with-pcre-jit         Enable PCRE JIT functionality
+  --with-pcre-jit         Enable PCRE JIT functionality (BUNDLED only)
   --with-pcre-valgrind=DIR
                           Enable PCRE valgrind support. Developers only!
-  --with-pcre-valgrind=DIR
-                           Enable PCRE valgrind support. Developers only!
   --without-sqlite3=DIR   Do not include SQLite3 support. DIR is the prefix to
                           SQLite3 installation directory.
   --with-zlib=DIR         Include ZLIB support (requires zlib >= 1.0.9)
@@ -3656,7 +3654,7 @@ ac_config_headers="$ac_config_headers main/php_config.h"
 PHP_MAJOR_VERSION=7
 PHP_MINOR_VERSION=2
 PHP_RELEASE_VERSION=0
-PHP_EXTRA_VERSION="RC3"
+PHP_EXTRA_VERSION="RC4"
 PHP_VERSION="$PHP_MAJOR_VERSION.$PHP_MINOR_VERSION.$PHP_RELEASE_VERSION$PHP_EXTRA_VERSION"
 PHP_VERSION_ID=`expr $PHP_MAJOR_VERSION \* 10000 + $PHP_MINOR_VERSION \* 100 + $PHP_RELEASE_VERSION`
 
@@ -10329,8 +10327,8 @@ EOF
   PHP_OUTPUT_FILES="$PHP_OUTPUT_FILES sapi/cgi/php-cgi.1"
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
 
 
@@ -19140,6 +19138,28 @@ ext_output=$PHP_PCRE_REGEX
 
 
 
+
+php_with_pcre_jit=yes
+
+
+
+# Check whether --with-pcre-jit was given.
+if test "${with_pcre_jit+set}" = set; then :
+  withval=$with_pcre_jit; PHP_PCRE_JIT=$withval
+else
+
+  PHP_PCRE_JIT=yes
+
+
+fi
+
+
+ext_output=$PHP_PCRE_JIT
+
+
+
+
+
   if test "$PHP_PCRE_REGEX" != "yes" && test "$PHP_PCRE_REGEX" != "no"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PCRE headers location" >&5
 $as_echo_n "checking for PCRE headers location... " >&6; }
@@ -19177,6 +19197,159 @@ $as_echo "$PCRE_LIBDIR" >&6; }
     if test "$pcre_version" -lt 660; then
       as_fn_error $? "The PCRE extension requires PCRE library version >= 6.6" "$LINENO" 5
     fi
+
+
+  save_old_LDFLAGS=$LDFLAGS
+  ac_stuff="
+      -L$PCRE_LIBDIR
+    "
+
+  save_ext_shared=$ext_shared
+  ext_shared=yes
+
+  for ac_i in $ac_stuff; do
+    case $ac_i in
+    -pthread)
+      if test "$ext_shared" = "yes"; then
+        LDFLAGS="$LDFLAGS -pthread"
+      else
+
+
+  unique=`echo $ac_i|$SED 's/[^a-zA-Z0-9]/_/g'`
+
+  cmd="echo $ac_n \"\$EXTRA_LDFLAGS$unique$ac_c\""
+  if test -n "$unique" && test "`eval $cmd`" = "" ; then
+    eval "EXTRA_LDFLAGS$unique=set"
+    EXTRA_LDFLAGS="$EXTRA_LDFLAGS $ac_i"
+  fi
+
+      fi
+    ;;
+    -l*)
+      ac_ii=`echo $ac_i|cut -c 3-`
+
+
+  case $ac_ii in
+  c|c_r|pthread*) ;;
+  *)
+    if test "$ext_shared" = "yes"; then
+        LDFLAGS="$LDFLAGS -l$ac_ii"
+    else
+
+
+  case $ac_ii in
+  c|c_r|pthread*) ;;
+  *)
+      LIBS="$LIBS -l$ac_ii"
+   ;;
+  esac
+
+
+    fi
+   ;;
+  esac
+
+
+    ;;
+    -L*)
+      ac_ii=`echo $ac_i|cut -c 3-`
+
+  if test "$ac_ii" != "/usr/$PHP_LIBDIR" && test "$ac_ii" != "/usr/lib"; then
+
+  if test -z "$ac_ii" || echo "$ac_ii" | grep '^/' >/dev/null ; then
+    ai_p=$ac_ii
+  else
+
+    ep_dir=`echo $ac_ii|$SED 's%/*[^/][^/]*/*$%%'`
+
+    ep_realdir=`(cd "$ep_dir" && pwd)`
+    ai_p="$ep_realdir"/`basename "$ac_ii"`
+  fi
+
+
+      if test "$ext_shared" = "yes"; then
+        LDFLAGS="-L$ai_p $LDFLAGS"
+        test -n "$ld_runpath_switch" && LDFLAGS="$ld_runpath_switch$ai_p $LDFLAGS"
+      else
+
+
+
+  unique=`echo $ai_p|$SED 's/[^a-zA-Z0-9]/_/g'`
+
+  cmd="echo $ac_n \"\$LIBPATH$unique$ac_c\""
+  if test -n "$unique" && test "`eval $cmd`" = "" ; then
+    eval "LIBPATH$unique=set"
+
+    test -n "$ld_runpath_switch" && LDFLAGS="$LDFLAGS $ld_runpath_switch$ai_p"
+    LDFLAGS="$LDFLAGS -L$ai_p"
+    PHP_RPATHS="$PHP_RPATHS $ai_p"
+
+  fi
+
+
+      fi
+
+  fi
+
+    ;;
+    esac
+  done
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcre_jit_exec in -lpcre" >&5
+$as_echo_n "checking for pcre_jit_exec in -lpcre... " >&6; }
+if ${ac_cv_lib_pcre_pcre_jit_exec+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpcre  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pcre_jit_exec ();
+int
+main ()
+{
+return pcre_jit_exec ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_pcre_pcre_jit_exec=yes
+else
+  ac_cv_lib_pcre_pcre_jit_exec=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pcre_pcre_jit_exec" >&5
+$as_echo "$ac_cv_lib_pcre_pcre_jit_exec" >&6; }
+if test "x$ac_cv_lib_pcre_pcre_jit_exec" = xyes; then :
+
+    LDFLAGS=$save_old_LDFLAGS
+    ext_shared=$save_ext_shared
+
+
+$as_echo "#define HAVE_PCRE_JIT_SUPPORT 1" >>confdefs.h
+
+
+
+else
+
+    LDFLAGS=$save_old_LDFLAGS
+    ext_shared=$save_ext_shared
+    unset ac_cv_lib_pcre_pcre_jit_exec
+
+
+
+fi
 
 
 
@@ -19822,67 +19995,23 @@ EOF
 
 $as_echo "#define HAVE_BUNDLED_PCRE 1" >>confdefs.h
 
-  fi
 
-
-php_with_pcre_jit=yes
-
-
-
-# Check whether --with-pcre-jit was given.
-if test "${with_pcre_jit+set}" = set; then :
-  withval=$with_pcre_jit; PHP_PCRE_JIT=$withval
-else
-
-  PHP_PCRE_JIT=yes
-
-
-fi
-
-
-ext_output=$PHP_PCRE_JIT
-
-
-
-
-  if test "$PHP_PCRE_REGEX" != "no"; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable PCRE JIT functionality" >&5
+    if test "$PHP_PCRE_REGEX" != "no"; then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable PCRE JIT functionality" >&5
 $as_echo_n "checking whether to enable PCRE JIT functionality... " >&6; }
-    if test "$PHP_PCRE_JIT" != "no"; then
+      if test "$PHP_PCRE_JIT" != "no"; then
 
 $as_echo "#define HAVE_PCRE_JIT_SUPPORT 1" >>confdefs.h
 
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-    else
+      else
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
+      fi
     fi
   fi
 
-  if test "$PHP_DEBUG" != "no" && test "$PHP_DEBUG" != "0"; then
-
-php_with_pcre_valgrind=yes
-
-
-
-# Check whether --with-pcre-valgrind was given.
-if test "${with_pcre_valgrind+set}" = set; then :
-  withval=$with_pcre_valgrind; PHP_PCRE_VALGRIND=$withval
-else
-
-  PHP_PCRE_VALGRIND=yes
-
-
-fi
-
-
-ext_output=$PHP_PCRE_VALGRIND
-
-
-
-
-  else
 
 php_with_pcre_valgrind=no
 
@@ -19904,16 +20033,11 @@ ext_output=$PHP_PCRE_VALGRIND
 
 
 
-  fi
-
   if test "$PHP_PCRE_REGEX" != "yes" && test "$PHP_PCRE_REGEX" != "no"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: PHP is going to be linked with an external PCRE, --with-pcre-valgrind has no effect" >&5
 $as_echo "$as_me: WARNING: PHP is going to be linked with an external PCRE, --with-pcre-valgrind has no effect" >&2;}
   else
-    if test "$PHP_PCRE_VALGRIND" = "no" && test "$PHP_DEBUG" != "0"; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: PCRE Valgrind support is disabled for debug build" >&5
-$as_echo "$as_me: PCRE Valgrind support is disabled for debug build" >&6;}
-    elif test "$PHP_PCRE_VALGRIND" != "no" || test "$PHP_DEBUG" != "0"; then
+    if test "$PHP_PCRE_VALGRIND" != "no"; then
       PHP_PCRE_VALGRIND_INCDIR=
       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Valgrind headers location" >&5
 $as_echo_n "checking for Valgrind headers location... " >&6; }
@@ -39323,6 +39447,14 @@ _ACEOF
 
 
 
+  if test $ac_cv_c_bigendian_php = yes; then
+    EXT_HASH_SHA3_SOURCES="hash_sha3.c"
+
+$as_echo "#define HAVE_SLOW_HASH3 1" >>confdefs.h
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: \"Use SHA3 slow implementation on bigendian\"" >&5
+$as_echo "$as_me: WARNING: \"Use SHA3 slow implementation on bigendian\"" >&2;}
+  else
 
   # The cast to long int works around a bug in the HP C Compiler
 # version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
@@ -39363,32 +39495,35 @@ $as_echo_n "checking checking if we're at 64-bit platform... " >&6; }
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
-    SHA3_DIR="sha3/generic32lc"
-    SHA3_OPT_SRC="$SHA3_DIR/KeccakP-1600-inplace32BI.c"
+      SHA3_DIR="sha3/generic32lc"
+      SHA3_OPT_SRC="$SHA3_DIR/KeccakP-1600-inplace32BI.c"
 
   else
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
-    SHA3_DIR="sha3/generic64lc"
-    SHA3_OPT_SRC="$SHA3_DIR/KeccakP-1600-opt64.c"
+      SHA3_DIR="sha3/generic64lc"
+      SHA3_OPT_SRC="$SHA3_DIR/KeccakP-1600-opt64.c"
 
   fi
 
-  EXT_HASH_SHA3_SOURCES="$SHA3_OPT_SRC $SHA3_DIR/KeccakHash.c $SHA3_DIR/KeccakSponge.c"
-  PHP_HASH_CFLAGS="-I@ext_srcdir@/$SHA3_DIR -DKeccakP200_excluded -DKeccakP400_excluded -DKeccakP800_excluded"
-  EXT_HASH_SOURCES="hash.c hash_md.c hash_sha.c hash_ripemd.c hash_haval.c \
-    hash_tiger.c hash_gost.c hash_snefru.c hash_whirlpool.c hash_adler32.c \
-    hash_crc32.c hash_fnv.c hash_joaat.c hash_sha3.c $EXT_HASH_SHA3_SOURCES"
-  EXT_HASH_HEADERS="php_hash.h php_hash_md.h php_hash_sha.h php_hash_ripemd.h \
-    php_hash_haval.h php_hash_tiger.h php_hash_gost.h php_hash_snefru.h \
-    php_hash_whirlpool.h php_hash_adler32.h php_hash_crc32.h \
-    php_hash_fnv.h php_hash_joaat.h php_hash_sha3.h"
+    EXT_HASH_SHA3_SOURCES="$SHA3_OPT_SRC $SHA3_DIR/KeccakHash.c $SHA3_DIR/KeccakSponge.c hash_sha3.c"
+    PHP_HASH_CFLAGS="-I@ext_srcdir@/$SHA3_DIR -DKeccakP200_excluded -DKeccakP400_excluded -DKeccakP800_excluded"
 
 
 
     $php_shtool mkdir -p ext/hash/$SHA3_DIR
 
+
+  fi
+
+  EXT_HASH_SOURCES="hash.c hash_md.c hash_sha.c hash_ripemd.c hash_haval.c \
+    hash_tiger.c hash_gost.c hash_snefru.c hash_whirlpool.c hash_adler32.c \
+    hash_crc32.c hash_fnv.c hash_joaat.c $EXT_HASH_SHA3_SOURCES"
+  EXT_HASH_HEADERS="php_hash.h php_hash_md.h php_hash_sha.h php_hash_ripemd.h \
+    php_hash_haval.h php_hash_tiger.h php_hash_gost.h php_hash_snefru.h \
+    php_hash_whirlpool.h php_hash_adler32.h php_hash_crc32.h \
+    php_hash_fnv.h php_hash_joaat.h php_hash_sha3.h"
 
 
   ext_builddir=ext/hash
@@ -94333,7 +94468,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 94336 "configure"
+#line 94471 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -96368,7 +96503,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 96371 "configure"' > conftest.$ac_ext
+  echo '#line 96506 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -97766,7 +97901,7 @@ else
       LDFLAGS="$LDFLAGS -Wl,-exported_symbols_list,conftest.sym"
 
 cat > conftest.$ac_ext <<EOF
-#line 97769 "configure"
+#line 97904 "configure"
 #include "confdefs.h"
 int main() {
 ; return 0; }
@@ -97924,11 +98059,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"configure:97927: $lt_compile\"" >&5)
+   (eval echo "\"configure:98062: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "configure:97931: \$? = $ac_status" >&5
+   echo "configure:98066: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -98222,11 +98357,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"configure:98225: $lt_compile\"" >&5)
+   (eval echo "\"configure:98360: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "configure:98229: \$? = $ac_status" >&5
+   echo "configure:98364: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -98326,11 +98461,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"configure:98329: $lt_compile\"" >&5)
+   (eval echo "\"configure:98464: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "configure:98333: \$? = $ac_status" >&5
+   echo "configure:98468: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -98790,7 +98925,7 @@ _LT_EOF
        # Determine the default libpath from the value encoded in an empty executable.
 
 cat > conftest.$ac_ext <<EOF
-#line 98793 "configure"
+#line 98928 "configure"
 #include "confdefs.h"
 int main() {
 ; return 0; }
@@ -98832,7 +98967,7 @@ if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
 	 # Determine the default libpath from the value encoded in an empty executable.
 
 cat > conftest.$ac_ext <<EOF
-#line 98835 "configure"
+#line 98970 "configure"
 #include "confdefs.h"
 int main() {
 ; return 0; }
@@ -100349,7 +100484,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 100352 "configure"
+#line 100487 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -100449,7 +100584,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 100452 "configure"
+#line 100587 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -101514,7 +101649,7 @@ case $host_os in
       # Determine the default libpath from the value encoded in an empty executable.
 
 cat > conftest.$ac_ext <<EOF
-#line 101517 "configure"
+#line 101652 "configure"
 #include "confdefs.h"
 int main() {
 ; return 0; }
@@ -101557,7 +101692,7 @@ if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
 	# Determine the default libpath from the value encoded in an empty executable.
 
 cat > conftest.$ac_ext <<EOF
-#line 101560 "configure"
+#line 101695 "configure"
 #include "confdefs.h"
 int main() {
 ; return 0; }
@@ -102809,11 +102944,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"configure:102812: $lt_compile\"" >&5)
+   (eval echo "\"configure:102947: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "configure:102816: \$? = $ac_status" >&5
+   echo "configure:102951: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -102913,11 +103048,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"configure:102916: $lt_compile\"" >&5)
+   (eval echo "\"configure:103051: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "configure:102920: \$? = $ac_status" >&5
+   echo "configure:103055: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
