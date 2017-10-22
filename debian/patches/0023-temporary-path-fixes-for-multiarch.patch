@@ -80,10 +80,10 @@ index 7ea238f..e0c71a6 100644
      PHP_ADD_LIBRARY_WITH_PATH(ldap, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
  
 diff --git a/ext/pcre/config0.m4 b/ext/pcre/config0.m4
-index cc9f1b2..ae36e98 100644
+index 80c8a58..bc60712 100644
 --- a/ext/pcre/config0.m4
 +++ b/ext/pcre/config0.m4
-@@ -21,7 +21,7 @@ PHP_ARG_WITH(pcre-regex,,
+@@ -23,7 +23,7 @@ PHP_ARG_WITH(pcre-jit,,[  --with-pcre-jit         Enable PCRE JIT functionality
      AC_MSG_RESULT([$PCRE_INCDIR])
  
      AC_MSG_CHECKING([for PCRE library location])
