@@ -1,3 +1,9 @@
+php7.2 (7.2.0~rc4-2) unstable; urgency=medium
+
+  * Fix the usage of internal allocator in xmlrpc extension
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 24 Oct 2017 18:54:46 +0000
+
 php7.2 (7.2.0~rc4-1) unstable; urgency=medium
 
   * New upstream version 7.2.0~rc4
