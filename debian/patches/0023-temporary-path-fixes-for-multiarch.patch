@@ -98,7 +98,7 @@ diff --git a/ext/mysql/config.m4 b/ext/mysql/config.m4
 index 999c47b..838010b 100644
 --- a/ext/mysql/config.m4
 +++ b/ext/mysql/config.m4
-@@ -94,16 +94,14 @@ Note that the MySQL client library is not bundled anymore!])
+@@ -94,17 +94,15 @@ Note that the MySQL client library is not bundled anymore!])
    fi
  
    for i in $PHP_LIBDIR $PHP_LIBDIR/mysql; do
@@ -111,16 +111,17 @@ index 999c47b..838010b 100644
 +    fi
    done
  
--  if test -z "$MYSQL_LIB_DIR"; then
+   if test -z "$MYSQL_LIB_DIR"; then
 -    MYSQL_LIB_CHK(lib/x86_64-linux-gnu)
 -  fi
 -  if test -z "$MYSQL_LIB_DIR"; then
 -    MYSQL_LIB_CHK(lib/i386-linux-gnu)
 -  fi
 -
-   if test -z "$MYSQL_LIB_DIR"; then
+-  if test -z "$MYSQL_LIB_DIR"; then
      AC_MSG_ERROR([Cannot find lib$MYSQL_LIBNAME under $MYSQL_DIR.
  Note that the MySQL client library is not bundled anymore!])
+   fi
 diff --git a/ext/pcre/config0.m4 b/ext/pcre/config0.m4
 index bfe2009..71b98a1 100644
 --- a/ext/pcre/config0.m4
