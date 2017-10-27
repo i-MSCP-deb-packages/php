@@ -1708,6 +1708,10 @@ static int zend_infer_ranges(const zend_op_array *op_array, zend_ssa *ssa) /* {{
 			for (j = scc_var[scc]; j >= 0; j = next_scc_var[j]) {
 				if (!ssa->var_info[j].has_range) {
 					zend_inference_init_range(op_array, ssa, j, 1, ZEND_LONG_MIN, ZEND_LONG_MAX, 1);
+				} else if (ssa->vars[j].definition_phi &&
+				           ssa->vars[j].definition_phi->pi < 0) {
+					/* narrowing Phi functions first */
+					zend_ssa_range_narrowing(op_array, ssa, j, scc);
 				}
 				zend_bitset_incl(worklist, j);
 			}
@@ -2331,12 +2335,14 @@ static int zend_update_type_info(const zend_op_array *op_array,
 				}
 			} else if (opline->extended_value == ZEND_ASSIGN_OBJ) {
 				if (opline->op1_type == IS_CV) {
-					if (orig & (MAY_BE_UNDEF|MAY_BE_NULL|MAY_BE_FALSE)) {
-						orig &= (MAY_BE_UNDEF|MAY_BE_NULL|MAY_BE_FALSE);
-						orig |= MAY_BE_OBJECT | MAY_BE_RC1 | MAY_BE_RCN;
-					}
-					if (orig & MAY_BE_OBJECT) {
-						orig |= (MAY_BE_RC1|MAY_BE_RCN);
+					if (!(orig & MAY_BE_REF)) {
+						if (orig & (MAY_BE_UNDEF|MAY_BE_NULL|MAY_BE_FALSE)) {
+							orig &= ~(MAY_BE_UNDEF|MAY_BE_NULL|MAY_BE_FALSE);
+							orig |= MAY_BE_OBJECT | MAY_BE_RC1 | MAY_BE_RCN;
+						}
+						if (orig & MAY_BE_OBJECT) {
+							orig |= (MAY_BE_RC1|MAY_BE_RCN);
+						}
 					}
 					UPDATE_SSA_TYPE(orig, ssa_ops[i].op1_def);
 					COPY_SSA_OBJ_TYPE(ssa_ops[i].op1_use, ssa_ops[i].op1_def);
