@@ -1,3 +1,10 @@
+php5.6 (5.6.32-1) experimental; urgency=medium
+
+  * New upstream version 5.6.32
+  * Rebase patches for new upstream release.
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 27 Oct 2017 13:48:33 +0000
+
 php5.6 (5.6.31-6) experimental; urgency=medium
 
   * Remove patches to address CVE-2017-7272 as they break BC
