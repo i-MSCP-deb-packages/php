@@ -1,5 +1,24 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+09 Nov 2017, PHP 7.2.0RC6
+
+- Core:
+  . Fixed bug #75420 (Crash when modifing property name in __isset for
+    BP_VAR_IS). (Laruence)
+
+- GD:
+  . Fixed bug #75437 (Wrong reflection on imagewebp). (Fabien Villepinte)
+
+- interbase:
+  . Fixed bug #75453 (Incorrect reflection for ibase_[p]connect). (villfa)
+
+- Mysqli:
+  . Fixed bug #75434 (Wrong reflection for mysqli_fetch_all function). (Fabien
+    Villepinte)
+
+- SOAP:
+  . Fixed bug #75464 (Wrong reflection on SoapClient::__setSoapHeaders). (villfa)
+
 26 Oct 2017, PHP 7.2.0RC5
 
 - Core:
@@ -50,6 +69,7 @@ PHP                                                                        NEWS
 
 - Openssl:
   . Fixed bug #75363 (openssl_x509_parse leaks memory). (Bob)
+  . Fixed bug #75307 (Wrong reflection for openssl_open function). (villfa)
 
 - PCRE:
   . Fixed bug #75207 (applied upstream patch for CVE-2016-1283). (Anatol)
