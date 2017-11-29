@@ -16,10 +16,10 @@ Subject: php-5.3.9-gnusrc
  10 files changed, 5 insertions(+), 10 deletions(-)
 
 diff --git a/Zend/zend_language_parser.c b/Zend/zend_language_parser.c
-index b816670..61b12a1 100644
+index 89d666a..a9201f3 100644
 --- a/Zend/zend_language_parser.c
 +++ b/Zend/zend_language_parser.c
-@@ -70,6 +70,8 @@
+@@ -69,6 +69,8 @@
  
  /* Copy the first part of user declarations.  */
  
@@ -29,7 +29,7 @@ index b816670..61b12a1 100644
  /*
     +----------------------------------------------------------------------+
 diff --git a/configure.in b/configure.in
-index bbb118b..f3d3045 100644
+index e2fbe28..a9405d7 100644
 --- a/configure.in
 +++ b/configure.in
 @@ -136,6 +136,8 @@ AC_DEFUN([PHP_EXT_DIR],[$config_m4_dir])dnl
@@ -42,7 +42,7 @@ index bbb118b..f3d3045 100644
  dnl -------------------------------------------------------------------------
  
 diff --git a/ext/interbase/interbase.c b/ext/interbase/interbase.c
-index 50851b9..73bce8f 100644
+index ac87059..6f86d6e 100644
 --- a/ext/interbase/interbase.c
 +++ b/ext/interbase/interbase.c
 @@ -22,7 +22,6 @@
