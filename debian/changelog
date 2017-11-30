@@ -1,3 +1,11 @@
+php7.2 (7.2.0-1) unstable; urgency=low
+
+  * Update PHP 7.2 signing keys
+  * New upstream version 7.2.0
+  * Rebase patches for new upstream release.
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 30 Nov 2017 13:55:57 +0000
+
 php7.2 (7.2.0~rc6-1) unstable; urgency=medium
 
   * New upstream version 7.2.0~rc6
