@@ -1,3 +1,9 @@
+php7.0 (7.0.26-2) unstable; urgency=medium
+
+  * Fix upstream segmentation fault in 7.1.12 and 7.0.26
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 07 Dec 2017 15:53:05 +0000
+
 php7.0 (7.0.26-1) unstable; urgency=medium
 
   * New upstream version 7.0.26
