@@ -1,0 +1,49 @@
+From: Dmitry Stogov <dmitry@zend.com>
+Date: Mon, 27 Nov 2017 10:16:16 +0300
+Subject: Fixed bug in type inference
+
+---
+ ext/opcache/Optimizer/zend_inference.c |  3 ++-
+ ext/opcache/tests/ssa_bug_011.phpt     | 19 +++++++++++++++++++
+ 2 files changed, 21 insertions(+), 1 deletion(-)
+ create mode 100644 ext/opcache/tests/ssa_bug_011.phpt
+
+diff --git a/ext/opcache/Optimizer/zend_inference.c b/ext/opcache/Optimizer/zend_inference.c
+index 5d27c94..ef82135 100644
+--- a/ext/opcache/Optimizer/zend_inference.c
++++ b/ext/opcache/Optimizer/zend_inference.c
+@@ -3079,7 +3079,8 @@ static int zend_update_type_info(const zend_op_array *op_array,
+ 					UPDATE_SSA_TYPE(tmp, ssa_ops[i].op1_def);
+ 				} else {
+ 					/* invalid key type */
+-					UPDATE_SSA_TYPE(t1, ssa_ops[i].op1_def);
++					tmp = (tmp & (MAY_BE_RC1|MAY_BE_RCN)) | (t1 & ~(MAY_BE_RC1|MAY_BE_RCN));
++					UPDATE_SSA_TYPE(tmp, ssa_ops[i].op1_def);
+ 				}
+ 				COPY_SSA_OBJ_TYPE(ssa_ops[i].op1_use, ssa_ops[i].op1_def);
+ 			}
+diff --git a/ext/opcache/tests/ssa_bug_011.phpt b/ext/opcache/tests/ssa_bug_011.phpt
+new file mode 100644
+index 0000000..58f3980
+--- /dev/null
++++ b/ext/opcache/tests/ssa_bug_011.phpt
+@@ -0,0 +1,19 @@
++--TEST--
++Type inference warning
++--FILE--
++<?php
++function renderRawGraph(array $parents) {
++    $graph = array();
++    foreach ($parents as $p) {
++        foreach ($graph as $v) {
++            $graph[$v]['line'] = 1;
++        }
++        $graph[] = array(
++            'line' => 1,
++        );
++    }
++}
++?>
++OK
++--EXPECT--
++OK
