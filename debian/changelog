@@ -1,3 +1,9 @@
+php7.1 (7.1.12-3) unstable; urgency=medium
+
+  * Pull upstream fix for 'Narrowing occurred during type inference.' bug.
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 14 Dec 2017 14:39:17 +0000
+
 php7.1 (7.1.12-2) unstable; urgency=medium
 
   * Fix upstream segmentation fault in 7.1.12 and 7.0.26
