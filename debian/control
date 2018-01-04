@@ -74,8 +74,8 @@ Build-Depends: apache2-dev (>= 2.4),
 Build-Conflicts: bind-dev,
                  libxmlrpc-core-c3-dev
 Standards-Version: 3.9.7
-Vcs-Git: https://gitlab.com/deb.sury.org/php.git
-Vcs-Browser: https://gitlab.com/deb.sury.org/php
+Vcs-Git: https://salsa.debian.org/php-team/php.git
+Vcs-Browser: https://salsa.debian.org/php-team/php
 Homepage: http://www.php.net/
 
 Package: libapache2-mod-php5.6
