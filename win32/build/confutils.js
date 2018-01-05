@@ -39,6 +39,8 @@ var INTELVERS = -1;
 var COMPILER_NUMERIC_VERSION = -1;
 var COMPILER_NAME = "unknown";
 var PHP_OBJECT_OUT_DIR = "";
+var PHP_CONFIG_PROFILE = "no";
+var PHP_SANITIZER = "no";
 
 var PHP_TEST_INI_PATH = "";
 var PHP_TEST_INI = "";
@@ -69,6 +71,7 @@ VC_VERSIONS[1800] = 'MSVC12 (Visual C++ 2013)';
 VC_VERSIONS[1900] = 'MSVC14 (Visual C++ 2015)';
 VC_VERSIONS[1910] = 'MSVC15 (Visual C++ 2017)';
 VC_VERSIONS[1911] = 'MSVC15 (Visual C++ 2017)';
+VC_VERSIONS[1912] = 'MSVC15 (Visual C++ 2017)';
 
 var VC_VERSIONS_SHORT = new Array();
 VC_VERSIONS_SHORT[1700] = 'VC11';
@@ -76,6 +79,7 @@ VC_VERSIONS_SHORT[1800] = 'VC12';
 VC_VERSIONS_SHORT[1900] = 'VC14';
 VC_VERSIONS_SHORT[1910] = 'VC15';
 VC_VERSIONS_SHORT[1911] = 'VC15';
+VC_VERSIONS_SHORT[1912] = 'VC15';
 
 if (PROGRAM_FILES == null) {
 	PROGRAM_FILES = "C:\\Program Files";
@@ -1939,7 +1943,7 @@ function generate_tmp_php_ini()
 		}
 		
 		var directive = "extension";
-		if ("opcache" == extensions_enabled[i][0]) {
+		if ("opcache" == extensions_enabled[i][0] || "xdebug" == extensions_enabled[i][0]) {
 			directive = "zend_extension";
 		}
 

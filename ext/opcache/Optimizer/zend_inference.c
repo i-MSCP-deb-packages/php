@@ -2926,7 +2926,7 @@ static int zend_update_type_info(const zend_op_array *op_array,
 			break;
 		case ZEND_FE_FETCH_R:
 		case ZEND_FE_FETCH_RW:
-			tmp = (t2 & MAY_BE_REF);
+			tmp = t2;
 			if (t1 & MAY_BE_OBJECT) {
 				if (opline->opcode == ZEND_FE_FETCH_RW) {
 					tmp |= MAY_BE_REF | MAY_BE_ANY | MAY_BE_ARRAY_KEY_ANY | MAY_BE_ARRAY_OF_ANY | MAY_BE_ARRAY_OF_REF;
@@ -2951,7 +2951,7 @@ static int zend_update_type_info(const zend_op_array *op_array,
 			}
 			UPDATE_SSA_TYPE(tmp, ssa_ops[i].op2_def);
 			if (ssa_ops[i].result_def >= 0) {
-				tmp = 0;
+				tmp = (ssa_ops[i].result_use >= 0) ? RES_USE_INFO() : 0;
 				if (t1 & MAY_BE_OBJECT) {
 					tmp |= MAY_BE_RC1 | MAY_BE_RCN | MAY_BE_ANY | MAY_BE_ARRAY_KEY_ANY | MAY_BE_ARRAY_OF_ANY | MAY_BE_ARRAY_OF_REF;
 				}
@@ -3087,7 +3087,8 @@ static int zend_update_type_info(const zend_op_array *op_array,
 					UPDATE_SSA_TYPE(tmp, ssa_ops[i].op1_def);
 				} else {
 					/* invalid key type */
-					UPDATE_SSA_TYPE(t1, ssa_ops[i].op1_def);
+					tmp = (tmp & (MAY_BE_RC1|MAY_BE_RCN)) | (t1 & ~(MAY_BE_RC1|MAY_BE_RCN));
+					UPDATE_SSA_TYPE(tmp, ssa_ops[i].op1_def);
 				}
 				COPY_SSA_OBJ_TYPE(ssa_ops[i].op1_use, ssa_ops[i].op1_def);
 			}
@@ -3865,7 +3866,7 @@ static int zend_infer_types(const zend_op_array *op_array, const zend_script *sc
 		if (ssa->vars[j].alias) {
 			if (ssa->vars[j].alias == PHP_ERRORMSG_ALIAS) {
 				ssa_var_info[j].type |= MAY_BE_STRING | MAY_BE_RC1 | MAY_BE_RCN;
-			} else if (ssa->vars[j].alias == PHP_ERRORMSG_ALIAS) {
+			} else if (ssa->vars[j].alias == HTTP_RESPONSE_HEADER_ALIAS) {
 				ssa_var_info[j].type |= MAY_BE_ARRAY | MAY_BE_ARRAY_KEY_LONG | MAY_BE_ARRAY_OF_STRING | MAY_BE_RC1 | MAY_BE_RCN;
 			} else {
 				ssa_var_info[j].type = MAY_BE_UNDEF | MAY_BE_RC1 | MAY_BE_RCN | MAY_BE_REF | MAY_BE_ANY | MAY_BE_ARRAY_KEY_ANY | MAY_BE_ARRAY_OF_ANY | MAY_BE_ARRAY_OF_REF;
