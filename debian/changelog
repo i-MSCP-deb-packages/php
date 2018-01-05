@@ -1,3 +1,12 @@
+php7.1 (7.1.13-1) unstable; urgency=medium
+
+  * Update the Vcs-* to salsa.d.o
+  * Add Sara Golemon's GPG key to d/upstream/signing-key.asc
+  * New upstream version 7.1.13
+  * Rebase patches on top of new upstream release.
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 05 Jan 2018 12:14:37 +0000
+
 php7.1 (7.1.12-3) unstable; urgency=medium
 
   * Pull upstream fix for 'Narrowing occurred during type inference.' bug.
