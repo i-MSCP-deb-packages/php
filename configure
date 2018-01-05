@@ -3653,7 +3653,7 @@ ac_config_headers="$ac_config_headers main/php_config.h"
 
 PHP_MAJOR_VERSION=7
 PHP_MINOR_VERSION=2
-PHP_RELEASE_VERSION=0
+PHP_RELEASE_VERSION=1
 PHP_EXTRA_VERSION=""
 PHP_VERSION="$PHP_MAJOR_VERSION.$PHP_MINOR_VERSION.$PHP_RELEASE_VERSION$PHP_EXTRA_VERSION"
 PHP_VERSION_ID=`expr $PHP_MAJOR_VERSION \* 10000 + $PHP_MINOR_VERSION \* 100 + $PHP_RELEASE_VERSION`
@@ -41646,7 +41646,7 @@ $as_echo "#define HAVE_NEW_MIME2TEXT 1" >>confdefs.h
     CFLAGS="-I$IMAP_INC_DIR"
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for U8T_DECOMPOSE" >&5
 $as_echo_n "checking for U8T_DECOMPOSE... " >&6; }
-if ${ac_cv_u8t_canonical+:} false; then :
+if ${ac_cv_u8t_decompose+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -41676,8 +41676,8 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_u8t_canonical" >&5
-$as_echo "$ac_cv_u8t_canonical" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_u8t_decompose" >&5
+$as_echo "$ac_cv_u8t_decompose" >&6; }
     CFLAGS=$old_CFLAGS
 
     if test "$ac_cv_u8t_decompose" = "no" && test "$ac_cv_utf8_mime2text" = "new"; then
