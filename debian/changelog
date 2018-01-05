@@ -1,3 +1,10 @@
+php7.0 (7.0.27-0+deb8u1) stretch-security; urgency=high
+
+  * New upstream version 7.0.27
+  * Rebase patches on top of new upstream release
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 05 Jan 2018 13:51:52 +0000
+
 php7.0 (7.0.22-0+deb8u1) stretch-security; urgency=high
 
   * New upstream version 7.0.22
