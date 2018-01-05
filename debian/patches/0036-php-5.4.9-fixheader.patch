@@ -8,7 +8,7 @@ Make generated php_config.h constant across rebuilds.
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/configure.in b/configure.in
-index c73b502..9c23392 100644
+index 5afbb4e..92ecc37 100644
 --- a/configure.in
 +++ b/configure.in
 @@ -1292,7 +1292,7 @@ fi
