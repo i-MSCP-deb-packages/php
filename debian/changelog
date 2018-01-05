@@ -1,3 +1,12 @@
+php7.0 (7.0.27-1) unstable; urgency=medium
+
+  * Update the Vcs-* to salsa.d.o
+  * Remove defunct .gitlab-ci.yml
+  * New upstream version 7.0.27
+  * Rebase patches on top of new upstream release
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 05 Jan 2018 12:34:37 +0000
+
 php7.0 (7.0.26-2) unstable; urgency=medium
 
   * Fix upstream segmentation fault in 7.1.12 and 7.0.26
