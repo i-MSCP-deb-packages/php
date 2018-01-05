@@ -4,7 +4,7 @@ Upstream-Contact: https://bugs.php.net/
 Source: http://php.net/downloads.php
 
 Files: *
-Copyright: 1999-2015 The PHP Group.
+Copyright: 1999-2018 The PHP Group.
 License: PHP-3.01
 
 Files: TSRM/*
@@ -70,7 +70,8 @@ Copyright: 1985-1995 Ian F. Darwin
 License: BSD-2-clause-libmagic
 
 Files: ext/date/lib/*
-Copyright: 2015 Derick Rethans
+Copyright: 2015-2017 Derick Rethans
+	   2017 MongoDB, Inc.
 License: Expat
 
 Files: ext/mbstring/libmbfl/*
@@ -120,6 +121,11 @@ Files: ext/hash/sha3/*/brg_endian.h
 Copyright: 1998-2008, Brian Gladman
 License: BSD-3-clause
 
+Files: ext/mbstring/oniguruma/src/st.h ext/mbstring/oniguruma/src/st.c
+Copyright: 1989 Peter Moore
+License public-domain
+ This is a public domain general purpose hash table package.
+
 Files: ext/mbstring/oniguruma/
 Copyright: 2002-2015  K.Kosako
 License: BSD-2-clause
@@ -128,9 +134,9 @@ Files: ext/mbstring/ucgendat/
 Copyright: 1999-2003 The OpenLDAP Foundation
 License: OpenLDAP
 
-Files: ext/xmlrpc/libxmlrpc/base64.h, ext/xmlrpc/libxmlrpc/base64.c
+Files: ext/xmlrpc/libxmlrpc/base64.h ext/xmlrpc/libxmlrpc/base64.c
 Copyright: John Walker
-Licence: PD
+Licence: public-domain
  This program is in the public domain.
 
 Files: ext/xmlrpc/libxmlrpc/queue.c ext/xmlrpc/libxmlrpc/queue.h
@@ -145,6 +151,16 @@ License: Expat
 Files: ext/zip/lib/*
 Copyright: 1999-2008 Dieter Baron and Thomas Klausner
 License: BSD-3-clause
+
+Files: ext/zip/lib/config.h
+Copyright: 1999-2018 The PHP Group.
+License: PHP-3.01
+
+Files: ext/sqlite3/libsqlite/*
+Copyright: D. Richard Hipp <drh@hwaci.com>
+License: public-domain
+ The files listed have been put on the public domain by the sqlite3
+ contributors.
 
 Files: main/mergesort.c
 Copyright: 1992, 1993 The Regents of the University of California
