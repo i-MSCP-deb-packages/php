@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend OPcache                                                         |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2017 The PHP Group                                |
+   | Copyright (c) 1998-2018 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -1251,18 +1251,9 @@ static void zend_accel_add_key(char *key, unsigned int key_length, zend_accel_ha
 }
 
 #ifdef HAVE_OPCACHE_FILE_CACHE
-static zend_persistent_script *cache_script_in_file_cache(zend_persistent_script *new_persistent_script, int *from_shared_memory)
+static zend_persistent_script *store_script_in_file_cache(zend_persistent_script *new_persistent_script)
 {
 	uint32_t memory_used;
-
-	/* Check if script may be stored in shared memory */
-	if (!zend_accel_script_persistable(new_persistent_script)) {
-		return new_persistent_script;
-	}
-
-	if (!zend_optimize_script(&new_persistent_script->script, ZCG(accel_directives).optimization_level, ZCG(accel_directives).opt_debug_level)) {
-		return new_persistent_script;
-	}
 
 	zend_shared_alloc_init_xlat_table();
 
@@ -1303,8 +1294,22 @@ static zend_persistent_script *cache_script_in_file_cache(zend_persistent_script
 
 	zend_file_cache_script_store(new_persistent_script, 0);
 
-	*from_shared_memory = 1;
 	return new_persistent_script;
+}
+
+static zend_persistent_script *cache_script_in_file_cache(zend_persistent_script *new_persistent_script, int *from_shared_memory)
+{
+	/* Check if script may be stored in shared memory */
+	if (!zend_accel_script_persistable(new_persistent_script)) {
+		return new_persistent_script;
+	}
+
+	if (!zend_optimize_script(&new_persistent_script->script, ZCG(accel_directives).optimization_level, ZCG(accel_directives).opt_debug_level)) {
+		return new_persistent_script;
+	}
+
+	*from_shared_memory = 1;
+	return store_script_in_file_cache(new_persistent_script);
 }
 #endif
 
@@ -1325,14 +1330,6 @@ static zend_persistent_script *cache_script_in_shared_memory(zend_persistent_scr
 	/* exclusive lock */
 	zend_shared_alloc_lock();
 
-	if (zend_accel_hash_is_full(&ZCSG(hash))) {
-		zend_accel_error(ACCEL_LOG_DEBUG, "No more entries in hash table!");
-		ZSMMG(memory_exhausted) = 1;
-		zend_accel_schedule_restart_if_necessary(ACCEL_RESTART_HASH);
-		zend_shared_alloc_unlock();
-		return new_persistent_script;
-	}
-
 	/* Check if we still need to put the file into the cache (may be it was
 	 * already stored by another process. This final check is done under
 	 * exclusive lock) */
@@ -1351,6 +1348,19 @@ static zend_persistent_script *cache_script_in_shared_memory(zend_persistent_scr
 		}
 	}
 
+	if (zend_accel_hash_is_full(&ZCSG(hash))) {
+		zend_accel_error(ACCEL_LOG_DEBUG, "No more entries in hash table!");
+		ZSMMG(memory_exhausted) = 1;
+		zend_accel_schedule_restart_if_necessary(ACCEL_RESTART_HASH);
+		zend_shared_alloc_unlock();
+#ifdef HAVE_OPCACHE_FILE_CACHE
+		if (ZCG(accel_directives).file_cache) {
+			new_persistent_script = store_script_in_file_cache(new_persistent_script);
+			*from_shared_memory = 1;
+		}
+#endif
+		return new_persistent_script;
+	}
 
 	zend_shared_alloc_init_xlat_table();
 
@@ -1375,6 +1385,12 @@ static zend_persistent_script *cache_script_in_shared_memory(zend_persistent_scr
 		zend_shared_alloc_destroy_xlat_table();
 		zend_accel_schedule_restart_if_necessary(ACCEL_RESTART_OOM);
 		zend_shared_alloc_unlock();
+#ifdef HAVE_OPCACHE_FILE_CACHE
+		if (ZCG(accel_directives).file_cache) {
+			new_persistent_script = store_script_in_file_cache(new_persistent_script);
+			*from_shared_memory = 1;
+		}
+#endif
 		return new_persistent_script;
 	}
 
@@ -1910,6 +1926,11 @@ zend_op_array *persistent_compile_file(zend_file_handle *file_handle, int type)
 		if (ZSMMG(memory_exhausted) || ZCSG(restart_pending)) {
 			SHM_PROTECT();
 			HANDLE_UNBLOCK_INTERRUPTIONS();
+#ifdef HAVE_OPCACHE_FILE_CACHE
+			if (ZCG(accel_directives).file_cache) {
+				return file_cache_compile_file(file_handle, type);
+			}
+#endif
 			return accelerator_orig_compile_file(file_handle, type);
 		}
 
@@ -2853,7 +2874,7 @@ ZEND_EXT_API zend_extension zend_extension_entry = {
 	PHP_VERSION,							/* version */
 	"Zend Technologies",					/* author */
 	"http://www.zend.com/",					/* URL */
-	"Copyright (c) 1999-2017",				/* copyright */
+	"Copyright (c) 1999-2018",				/* copyright */
 	accel_startup,					   		/* startup */
 	NULL,									/* shutdown */
 	accel_activate,							/* per-script activation */
