@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 7                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2017 The PHP Group                                |
+   | Copyright (c) 1997-2018 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -586,12 +586,20 @@ static char *sapi_fcgi_getenv(char *name, size_t name_len)
 	fcgi_request *request = (fcgi_request*) SG(server_context);
 	char *ret = fcgi_getenv(request, name, (int)name_len);
 
+#ifndef PHP_WIN32
 	if (ret) return ret;
 	/*  if cgi, or fastcgi and not found in fcgi env
 		check the regular environment */
-#ifndef PHP_WIN32
 	return getenv(name);
 #else
+	if (ret) {
+		/* The functions outside here don't know, where does it come
+			from. They'll need to free the returned memory as it's
+			not necessary from the fcgi env. */
+		return strdup(ret);
+	}
+	/*  if cgi, or fastcgi and not found in fcgi env
+		check the regular environment */
 	return cgi_getenv_win32(name, name_len);
 #endif
 }
@@ -2419,9 +2427,9 @@ consult the installation file that came with this distribution, or visit \n\
 								SG(request_info).no_headers = 1;
 							}
 #if ZEND_DEBUG
-							php_printf("PHP %s (%s) (built: %s %s) (DEBUG)\nCopyright (c) 1997-2017 The PHP Group\n%s", PHP_VERSION, sapi_module.name, __DATE__, __TIME__, get_zend_version());
+							php_printf("PHP %s (%s) (built: %s %s) (DEBUG)\nCopyright (c) 1997-2018 The PHP Group\n%s", PHP_VERSION, sapi_module.name, __DATE__, __TIME__, get_zend_version());
 #else
-							php_printf("PHP %s (%s) (built: %s %s)\nCopyright (c) 1997-2017 The PHP Group\n%s", PHP_VERSION, sapi_module.name, __DATE__, __TIME__, get_zend_version());
+							php_printf("PHP %s (%s) (built: %s %s)\nCopyright (c) 1997-2018 The PHP Group\n%s", PHP_VERSION, sapi_module.name, __DATE__, __TIME__, get_zend_version());
 #endif
 							php_request_shutdown((void *) 0);
 							fcgi_shutdown();

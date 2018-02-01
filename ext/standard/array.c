@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 7                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2017 The PHP Group                                |
+   | Copyright (c) 1997-2018 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -4028,7 +4028,7 @@ PHP_FUNCTION(array_values)
 
 	/* Return empty input as is */
 	arrlen = zend_hash_num_elements(arrval);
-	if (!arrlen) {
+	if (!arrlen && arrval->nNextFreeElement == arrlen) {
 		RETURN_ZVAL(input, 1, 0);
 	}
 

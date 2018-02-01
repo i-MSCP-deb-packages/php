@@ -3,7 +3,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 7                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2008 The PHP Group                                |
+  | Copyright (c) 1997-2018 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -72,6 +72,7 @@ VC_VERSIONS[1900] = 'MSVC14 (Visual C++ 2015)';
 VC_VERSIONS[1910] = 'MSVC15 (Visual C++ 2017)';
 VC_VERSIONS[1911] = 'MSVC15 (Visual C++ 2017)';
 VC_VERSIONS[1912] = 'MSVC15 (Visual C++ 2017)';
+VC_VERSIONS[1913] = 'MSVC15 (Visual C++ 2017)';
 
 var VC_VERSIONS_SHORT = new Array();
 VC_VERSIONS_SHORT[1700] = 'VC11';
@@ -80,6 +81,7 @@ VC_VERSIONS_SHORT[1900] = 'VC14';
 VC_VERSIONS_SHORT[1910] = 'VC15';
 VC_VERSIONS_SHORT[1911] = 'VC15';
 VC_VERSIONS_SHORT[1912] = 'VC15';
+VC_VERSIONS_SHORT[1913] = 'VC15';
 
 if (PROGRAM_FILES == null) {
 	PROGRAM_FILES = "C:\\Program Files";

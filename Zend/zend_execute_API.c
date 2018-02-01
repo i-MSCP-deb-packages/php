@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2017 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2018 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -296,6 +296,8 @@ void shutdown_executor(void) /* {{{ */
 				break;
 			}
 		} ZEND_HASH_FOREACH_END_DEL();
+
+		zend_cleanup_internal_classes();
 	} else {
 		zend_hash_graceful_reverse_destroy(&EG(symbol_table));
 
@@ -358,6 +360,8 @@ void shutdown_executor(void) /* {{{ */
 			} ZEND_HASH_FOREACH_END_DEL();
 		}
 
+		zend_cleanup_internal_classes();
+
 		while (EG(symtable_cache_ptr)>=EG(symtable_cache)) {
 			zend_hash_destroy(*EG(symtable_cache_ptr));
 			FREE_HASHTABLE(*EG(symtable_cache_ptr));
@@ -387,8 +391,6 @@ void shutdown_executor(void) /* {{{ */
 #endif
 
 	EG(ht_iterators_used) = 0;
-
-	zend_cleanup_internal_classes();
 
 	zend_shutdown_fpu();
 }
