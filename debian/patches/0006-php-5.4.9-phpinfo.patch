@@ -11,7 +11,7 @@ The available extensions are not related to this command.
  2 files changed, 4 deletions(-)
 
 diff --git a/ext/standard/info.c b/ext/standard/info.c
-index 0e1f751..2bcfb43 100644
+index 0299d85..1eb3921 100644
 --- a/ext/standard/info.c
 +++ b/ext/standard/info.c
 @@ -837,9 +837,6 @@ PHPAPI void php_print_info(int flag)

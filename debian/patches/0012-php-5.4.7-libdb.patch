@@ -76,7 +76,7 @@ index 2a99c2a..5c442ea 100644
  PHP_DBA_STD_RESULT(db4,Berkeley DB4)
  
 diff --git a/ext/dba/dba.c b/ext/dba/dba.c
-index 5dd03e8..567cdaa 100644
+index a003416..6cd3b4d 100644
 --- a/ext/dba/dba.c
 +++ b/ext/dba/dba.c
 @@ -53,6 +53,10 @@

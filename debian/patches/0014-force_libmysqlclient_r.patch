@@ -21,7 +21,7 @@ index c700dac..8932005 100644
      MYSQL_LIB_NAME='mysqlclient_r'
    else
 diff --git a/ext/pdo_mysql/config.m4 b/ext/pdo_mysql/config.m4
-index c165fb6..2e391eb 100755
+index f787cdf..f48dbc1 100755
 --- a/ext/pdo_mysql/config.m4
 +++ b/ext/pdo_mysql/config.m4
 @@ -67,7 +67,7 @@ if test "$PHP_PDO_MYSQL" != "no"; then

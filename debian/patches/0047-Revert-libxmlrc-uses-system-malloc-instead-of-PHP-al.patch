@@ -770,7 +770,7 @@ index e43f78e..fbe7104 100644
  
  #ifdef __cplusplus
 diff --git a/ext/xmlrpc/xmlrpc-epi-php.c b/ext/xmlrpc/xmlrpc-epi-php.c
-index 2b1a642..fd63667 100644
+index 19df2ad..407f499 100644
 --- a/ext/xmlrpc/xmlrpc-epi-php.c
 +++ b/ext/xmlrpc/xmlrpc-epi-php.c
 @@ -701,7 +701,7 @@ PHP_FUNCTION(xmlrpc_encode_request)
