@@ -44,7 +44,7 @@ Build-Depends: apache2-dev (>= 2.4),
                libnss-myhostname [linux-any],
                libonig-dev,
                libpam0g-dev,
-               libpcre3-dev (>= 8.20),
+               libpcre3-dev,
                libpng-dev,
                libpq-dev,
                libpspell-dev,
@@ -84,7 +84,6 @@ Package: libapache2-mod-php7.2
 Section: httpd
 Architecture: any
 Depends: libmagic1,
-         libpcre3 (>= 1:8.20),
          mime-support,
          php7.2-cli,
          php7.2-common (= ${binary:Version}),
@@ -112,7 +111,6 @@ Description: server-side, HTML-embedded scripting language (Apache 2 module)
 Package: libphp7.2-embed
 Architecture: any
 Depends: libmagic1,
-         libpcre3 (>= 1:8.20),
          mime-support,
          php7.2-cli,
          php7.2-common (= ${binary:Version}),
@@ -158,7 +156,6 @@ Description: server-side, HTML-embedded scripting language (metapackage)
 Package: php7.2-cgi
 Architecture: any
 Depends: libmagic1,
-         libpcre3 (>= 1:8.20),
          mime-support,
          php7.2-cli,
          php7.2-common (= ${binary:Version}),
@@ -187,7 +184,6 @@ Package: php7.2-cli
 Architecture: any
 Depends: libedit2 (>= 2.11-20080614-4),
          libmagic1,
-         libpcre3 (>= 1:8.20),
          mime-support,
          php7.2-common (= ${binary:Version}),
          php7.2-json,
@@ -213,7 +209,6 @@ Description: command-line interpreter for the PHP scripting language
 Package: php7.2-dev
 Depends: autoconf (>= 2.63),
          automake (>= 1.11),
-         libpcre3-dev (>= 1:8.20),
          libssl-dev,
          php7.2-cli (>= ${binary:Version}),
          php7.2-common (= ${binary:Version}),
@@ -236,7 +231,6 @@ Description: Files for PHP7.2 module development
 Package: php7.2-fpm
 Architecture: any
 Depends: libmagic1,
-         libpcre3 (>= 1:8.20),
          mime-support,
          php7.2-cli,
          php7.2-common (= ${binary:Version}),
@@ -264,7 +258,6 @@ Description: server-side, HTML-embedded scripting language (FPM-CGI binary)
 Package: php7.2-phpdbg
 Architecture: any
 Depends: libmagic1,
-         libpcre3 (>= 1:8.20),
          mime-support,
          php7.2-cli,
          php7.2-common (= ${binary:Version}),
