@@ -43,7 +43,7 @@ Build-Depends: apache2-dev (>= 2.4),
                libnss-myhostname [linux-any],
                libonig-dev,
                libpam0g-dev,
-               libpcre3-dev,
+               libpcre3-dev (>= 2:8.35),
                libpng-dev,
                libpq-dev,
                libpspell-dev,
@@ -82,6 +82,7 @@ Package: libapache2-mod-php5.6
 Section: httpd
 Architecture: any
 Depends: libmagic1,
+         libpcre3 (>= 2:8.35),
          mime-support,
          php5.6-cli,
          php5.6-common (= ${binary:Version}),
@@ -109,6 +110,7 @@ Description: server-side, HTML-embedded scripting language (Apache 2 module)
 Package: libphp5.6-embed
 Architecture: any
 Depends: libmagic1,
+         libpcre3 (>= 2:8.35),
          mime-support,
          php5.6-cli,
          php5.6-common (= ${binary:Version}),
@@ -154,6 +156,7 @@ Description: server-side, HTML-embedded scripting language (metapackage)
 Package: php5.6-cgi
 Architecture: any
 Depends: libmagic1,
+         libpcre3 (>= 2:8.35),
          mime-support,
          php5.6-cli,
          php5.6-common (= ${binary:Version}),
@@ -182,6 +185,7 @@ Package: php5.6-cli
 Architecture: any
 Depends: libedit2 (>= 2.11-20080614-4),
          libmagic1,
+         libpcre3 (>= 2:8.35),
          mime-support,
          php5.6-common (= ${binary:Version}),
          php5.6-json,
@@ -207,6 +211,7 @@ Description: command-line interpreter for the PHP scripting language
 Package: php5.6-dev
 Depends: autoconf (>= 2.63),
          automake (>= 1.11),
+         libpcre3-dev (>= 2:8.35),
          libssl-dev,
          php5.6-cli (>= ${binary:Version}),
          php5.6-common (= ${binary:Version}),
@@ -229,6 +234,7 @@ Description: Files for PHP5.6 module development
 Package: php5.6-fpm
 Architecture: any
 Depends: libmagic1,
+         libpcre3 (>= 2:8.35),
          mime-support,
          php5.6-cli,
          php5.6-common (= ${binary:Version}),
@@ -256,6 +262,7 @@ Description: server-side, HTML-embedded scripting language (FPM-CGI binary)
 Package: php5.6-phpdbg
 Architecture: any
 Depends: libmagic1,
+         libpcre3 (>= 2:8.35),
          mime-support,
          php5.6-cli,
          php5.6-common (= ${binary:Version}),
