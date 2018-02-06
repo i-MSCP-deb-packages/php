@@ -1,3 +1,10 @@
+php7.0 (7.0.27-3) unstable; urgency=medium
+
+  * Add explicit libpcre3 >= 2:8.35 dependency as dh_genshlibs is failing
+    to add versioned dependency for some reason.
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 06 Feb 2018 16:09:11 +0000
+
 php7.0 (7.0.27-2) unstable; urgency=medium
 
   * Remove explicit libpcre3 dependency and let dh_genshlibs do its magic
