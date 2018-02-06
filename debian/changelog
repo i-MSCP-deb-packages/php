@@ -1,3 +1,10 @@
+php5.6 (5.6.33-3) experimental; urgency=medium
+
+  * Add explicit libpcre3 >= 2:8.35 dependency as dh_genshlibs is failing
+    to add versioned dependency for some reason.
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 06 Feb 2018 16:09:34 +0000
+
 php5.6 (5.6.33-2) experimental; urgency=medium
 
   * Remove explicit libpcre3 dependency and let dh_genshlibs do its magic
