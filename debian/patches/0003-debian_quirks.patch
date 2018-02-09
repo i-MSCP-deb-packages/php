@@ -14,7 +14,7 @@ Subject: debian_quirks
  8 files changed, 22 insertions(+), 17 deletions(-)
 
 diff --git a/configure.in b/configure.in
-index c27d196..f00c10f 100644
+index 9ec2088..bebabae 100644
 --- a/configure.in
 +++ b/configure.in
 @@ -1095,7 +1095,7 @@ if test "$PHP_CLI" = "no"; then
@@ -43,7 +43,7 @@ index c27d196..f00c10f 100644
  if test -z "$EXTENSION_DIR"; then
    extbasedir=$ZEND_MODULE_API_NO
    if test "$oldstyleextdir" = "yes"; then
-@@ -1533,6 +1536,7 @@ $php_shtool mkdir -p scripts/man1
+@@ -1534,6 +1537,7 @@ $php_shtool mkdir -p scripts/man1
  ALL_OUTPUT_FILES="php7.spec main/build-defs.h \
  scripts/phpize scripts/man1/phpize.1 \
  scripts/php-config scripts/man1/php-config.1 \
@@ -91,7 +91,7 @@ index 0a28d3b..b24f91b 100644
  ; Windows: "\path1;\path2"
  ;include_path = ".;c:\php\includes"
 diff --git a/sapi/cli/php.1.in b/sapi/cli/php.1.in
-index f5fccfc..bda13c3 100644
+index 5d82093..1316f1b 100644
 --- a/sapi/cli/php.1.in
 +++ b/sapi/cli/php.1.in
 @@ -365,13 +365,14 @@ Shows configuration for extension
