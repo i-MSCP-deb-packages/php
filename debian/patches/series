@@ -33,7 +33,6 @@
 0033-zlib-largefile-function-renaming.patch
 0034-php-fpm-do-reload-on-SIGHUP.patch
 0035-php-5.4.8-ldap_r.patch
-0036-php-5.4.9-fixheader.patch
 0037-php-5.6.0-noNO.patch
 0038-php-5.6.0-oldpcre.patch
 0039-hack-phpdbg-to-explicitly-link-with-libedit.patch
