@@ -7,7 +7,7 @@ Subject: Fix ext/date/lib/parse_tz PATH_MAX HURD FTBFS
  1 file changed, 41 insertions(+), 14 deletions(-)
 
 diff --git a/ext/date/lib/parse_tz.c b/ext/date/lib/parse_tz.c
-index 7942190..f387fa4 100644
+index efd40fe..21fa866 100644
 --- a/ext/date/lib/parse_tz.c
 +++ b/ext/date/lib/parse_tz.c
 @@ -499,13 +499,19 @@ static char *parse_iso6709(char *p, double *result)
@@ -109,7 +109,7 @@ index 7942190..f387fa4 100644
  	if (fd == -1) {
  		return NULL;
  	} else if (fstat(fd, &st) != 0 || !is_valid_tzfile(&st, fd)) {
-@@ -915,7 +934,9 @@ int timelib_timezone_id_is_valid(char *timezone, const timelib_tzdb *tzdb)
+@@ -896,7 +915,9 @@ int timelib_timezone_id_is_valid(char *timezone, const timelib_tzdb *tzdb)
  
  #ifdef HAVE_SYSTEM_TZDATA
  	if (tzdb == timezonedb_system) {
@@ -120,7 +120,7 @@ index 7942190..f387fa4 100644
  		struct stat st;
  
  		if (timezone[0] == '\0' || strstr(timezone, "..") != NULL) {
-@@ -929,9 +950,15 @@ int timelib_timezone_id_is_valid(char *timezone, const timelib_tzdb *tzdb)
+@@ -910,9 +931,15 @@ int timelib_timezone_id_is_valid(char *timezone, const timelib_tzdb *tzdb)
  			}
  		}
  
