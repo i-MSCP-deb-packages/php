@@ -1,3 +1,10 @@
+php5.6 (5.6.34-1) experimental; urgency=medium
+
+  * New upstream version 5.6.34
+  * Rebase patches on top of new upstrem release.
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 06 Mar 2018 10:38:20 +0000
+
 php5.6 (5.6.33-3) experimental; urgency=medium
 
   * Add explicit libpcre3 >= 2:8.35 dependency as dh_genshlibs is failing
