@@ -1,5 +1,42 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+01 Mar 2018, PHP 7.1.15
+
+- Apache2Handler:
+  . Fixed bug #75882 (a simple way for segfaults in threadsafe php just with
+    configuration). (Anatol)
+
+- Date:
+  . Fixed bug #75857 (Timezone gets truncated when formatted). (carusogabriel)
+  . Fixed bug #75928 (Argument 2 for `DateTimeZone::listIdentifiers()` should
+    accept `null`). (Pedro Lacerda)
+  . Fixed bug #68406 (calling var_dump on a DateTimeZone object modifies it).
+    (jhdxr)
+
+- PGSQL:
+  . Fixed #75838 (Memory leak in pg_escape_bytea()). (ard_1 at mail dot ru)
+
+- ODBC:
+  . Fixed bug #73725 (Unable to retrieve value of varchar(max) type). (Anatol)
+
+- LDAP:
+  . Fixed bug #49876 (Fix LDAP path lookup on 64-bit distros). (dzuelke)
+
+- libxml2:
+  . Fixed bug #75871 (use pkg-config where available). (pmmaga)
+
+- Phar:
+  . Fixed bug #65414 (deal with leading slash when adding files correctly).
+    (bishopb)
+
+- SPL:
+  . Fixed bug #74519 (strange behavior of AppendIterator). (jhdxr)
+
+- Standard:
+  . Fixed bug #75916 (DNS_CAA record results contain garbage). (Mike, 
+    Philip Sharp)
+  . Fixed bug #75981 (stack-buffer-overflow while parsing HTTP response). (Stas)
+
 01 Feb 2018, PHP 7.1.14
 
 - Core:
