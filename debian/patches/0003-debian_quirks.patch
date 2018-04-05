@@ -14,7 +14,7 @@ Subject: debian_quirks
  8 files changed, 22 insertions(+), 17 deletions(-)
 
 diff --git a/configure.in b/configure.in
-index e7e47a4..cf82acd 100644
+index 847a351..c520c1d 100644
 --- a/configure.in
 +++ b/configure.in
 @@ -1095,7 +1095,7 @@ if test "$PHP_CLI" = "no"; then
@@ -43,7 +43,7 @@ index e7e47a4..cf82acd 100644
  if test -z "$EXTENSION_DIR"; then
    extbasedir=$ZEND_MODULE_API_NO
    if test "$oldstyleextdir" = "yes"; then
-@@ -1534,6 +1537,7 @@ $php_shtool mkdir -p scripts/man1
+@@ -1537,6 +1540,7 @@ $php_shtool mkdir -p scripts/man1
  ALL_OUTPUT_FILES="php7.spec main/build-defs.h \
  scripts/phpize scripts/man1/phpize.1 \
  scripts/php-config scripts/man1/php-config.1 \
@@ -65,7 +65,7 @@ index f5b9b25..a9f6646 100755
  
  ## convert skel_dir to full path
 diff --git a/php.ini-development b/php.ini-development
-index e371ca5..59c0d52 100644
+index bad3017..2ac9626 100644
 --- a/php.ini-development
 +++ b/php.ini-development
 @@ -710,7 +710,7 @@ default_charset = "UTF-8"
@@ -78,7 +78,7 @@ index e371ca5..59c0d52 100644
  ; Windows: "\path1;\path2"
  ;include_path = ".;c:\php\includes"
 diff --git a/php.ini-production b/php.ini-production
-index 0a28d3b..b24f91b 100644
+index 2232d75..e469cc6 100644
 --- a/php.ini-production
 +++ b/php.ini-production
 @@ -710,7 +710,7 @@ default_charset = "UTF-8"
