@@ -1,3 +1,10 @@
+php7.2 (7.2.5-1) unstable; urgency=medium
+
+  * New upstream version 7.2.5
+  * Rebase patches for PHP 7.2.5
+
+ -- Ondřej Surý <ondrej@debian.org>  Sat, 05 May 2018 04:56:32 +0000
+
 php7.2 (7.2.4-1) unstable; urgency=medium
 
   * New upstream version 7.2.4
