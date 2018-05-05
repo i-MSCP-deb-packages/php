@@ -14,10 +14,10 @@ Subject: debian_quirks
  8 files changed, 22 insertions(+), 17 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 03608d3..a206949 100644
+index 49effd3..bc98122 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1078,7 +1078,7 @@ if test "$PHP_CLI" = "no"; then
+@@ -1106,7 +1106,7 @@ if test "$PHP_CLI" = "no"; then
  fi
  
  PHP_ARG_WITH(pear, [whether to install PEAR],
@@ -26,7 +26,7 @@ index 03608d3..a206949 100644
    --without-pear          Do not install PEAR], DEFAULT, yes)
  
  if test "$PHP_PEAR" != "no"; then
-@@ -1115,6 +1115,7 @@ dnl
+@@ -1143,6 +1143,7 @@ dnl
    PHP_ADD_MAKEFILE_FRAGMENT($abs_srcdir/pear/Makefile.frag,$abs_srcdir/pear,pear)
  fi
  
@@ -34,7 +34,7 @@ index 03608d3..a206949 100644
  
  dnl Configuring Zend and TSRM.
  dnl -------------------------------------------------------------------------
-@@ -1187,6 +1188,8 @@ dnl Build extension directory path
+@@ -1215,6 +1216,8 @@ dnl Build extension directory path
  
  ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modules.h|$SED 's/#define ZEND_MODULE_API_NO //'`
  
@@ -43,7 +43,7 @@ index 03608d3..a206949 100644
  if test -z "$EXTENSION_DIR"; then
    extbasedir=$ZEND_MODULE_API_NO
    if test "$oldstyleextdir" = "yes"; then
-@@ -1501,6 +1504,7 @@ $php_shtool mkdir -p scripts/man1
+@@ -1529,6 +1532,7 @@ $php_shtool mkdir -p scripts/man1
  ALL_OUTPUT_FILES="php7.spec main/build-defs.h \
  scripts/phpize scripts/man1/phpize.1 \
  scripts/php-config scripts/man1/php-config.1 \
@@ -65,7 +65,7 @@ index 09a003c..2e71bf0 100755
  
  ## convert skel_dir to full path
 diff --git a/php.ini-development b/php.ini-development
-index 83ed0fa..24f5f47 100644
+index 5750036..9d71566 100644
 --- a/php.ini-development
 +++ b/php.ini-development
 @@ -704,7 +704,7 @@ default_charset = "UTF-8"
@@ -78,7 +78,7 @@ index 83ed0fa..24f5f47 100644
  ; Windows: "\path1;\path2"
  ;include_path = ".;c:\php\includes"
 diff --git a/php.ini-production b/php.ini-production
-index a8fb5c9..d3cd4ea 100644
+index 9733ec4..518d71e 100644
 --- a/php.ini-production
 +++ b/php.ini-production
 @@ -711,7 +711,7 @@ default_charset = "UTF-8"
