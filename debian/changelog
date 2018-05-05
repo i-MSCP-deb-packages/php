@@ -1,3 +1,10 @@
+php7.1 (7.1.17-1) unstable; urgency=medium
+
+  * New upstream version 7.1.17
+  * Rebase patches for PHP 7.1.17
+
+ -- Ondřej Surý <ondrej@debian.org>  Sat, 05 May 2018 04:52:27 +0000
+
 php7.1 (7.1.16-1) unstable; urgency=medium
 
   * New upstream version 7.1.16
