@@ -1,3 +1,9 @@
+php7.0 (7.0.30-0+deb9u1) stretch-security; urgency=high
+
+  * Regenerate patches for PHP 7.0.30
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 14 Jun 2018 13:50:25 +0000
+
 php7.0 (7.0.27-0+deb9u1) stretch-security; urgency=high
 
   * New upstream version 7.0.27
