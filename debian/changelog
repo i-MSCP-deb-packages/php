@@ -1,5 +1,13 @@
 php7.0 (7.0.30-0+deb9u1) stretch-security; urgency=high
 
+  * New upstream version 7.0.30
+  * Fixed security bugs:
+   + [CVE-2018-10549]: Heap Buffer Overflow (READ: 1786) in exif_iif_add_value
+   + [CVE-2018-10546]: stream filter convert.iconv leads to infinite loop on invalid sequence
+   + [CVE-2018-10548]: Malicious LDAP-Server Response causes Crash
+   + [CVE-2018-10547]: fix for CVE-2018-5712 may not be complete
+   + [CVE-2018-10545]: Dumpable FPM child processes allow bypassing opcache access controls
+   + [CVE-2018-7584]: stack-buffer-overflow while parsing HTTP response
   * Regenerate patches for PHP 7.0.30
 
  -- Ondřej Surý <ondrej@debian.org>  Thu, 14 Jun 2018 13:50:25 +0000
