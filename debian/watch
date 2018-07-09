@@ -1,6 +1,7 @@
 version=3
 opts=downloadurlmangle=s#/a/#/this/#,\
-filenamemangle=s#/get/(php-(7\.2\..*)\.tar\.xz)/.*#$1#,\
+filenamemangle=s#/get/(php-(7\.3\..*)\.tar\.xz)/.*#$1#,\
+uversionmangle=s/((alpha|beta|rc)\d+)$/~$1/,\
 dversionmangle=s/\+dfsg$//,\
 pgpsigurlmangle=s/\.tar\.xz/.tar.xz.asc/ \
-https://secure.php.net/downloads.php /get/php-(7\.2\..*)\.tar\.xz/from/a/mirror debian
+https://downloads.php.net/~cmb/ php-(7\.3\..*)\.tar\.xz debian
