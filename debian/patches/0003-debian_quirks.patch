@@ -42,14 +42,6 @@ index 354ce4e..b1b1d49 100644
  if test -z "$EXTENSION_DIR"; then
    extbasedir=$ZEND_MODULE_API_NO
    if test "$oldstyleextdir" = "yes"; then
-@@ -1552,6 +1555,7 @@ $php_shtool mkdir -p scripts/man1
- ALL_OUTPUT_FILES="php7.spec main/build-defs.h \
- scripts/phpize scripts/man1/phpize.1 \
- scripts/php-config scripts/man1/php-config.1 \
-+ext/ext_skel
- $PHP_OUTPUT_FILES"
- 
- dnl
 diff --git a/php.ini-development b/php.ini-development
 index 3f45c08..ed5d897 100644
 --- a/php.ini-development

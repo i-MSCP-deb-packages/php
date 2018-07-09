@@ -279,7 +279,6 @@ PREPARE_FILES := $(addprefix debian/,$(shell cat debian/prepare-files))
 
 prepared: prepared-stamp debian/control debian/source.lintian-overrides
 prepared-stamp:
-	[ -f ext/ext_skel ] && mv ext/ext_skel ext/ext_skel.in
 	$(SED) -i -e 's/EXTRA_VERSION=""/EXTRA_VERSION="-$(PHP_DEBIAN_REVISION)"/' configure.ac
 	./buildconf --force
 	touch prepared-stamp
