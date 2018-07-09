@@ -91,6 +91,10 @@ LIBTOOL_VERSION := $(shell dpkg-query -f'$${Version}' -W libtool)
 
 # Disable the test now
 RUN_TESTS := yes
+ifneq ($(filter nocheck,$(DEB_BUILD_PROFILES)),)
+  $(warning Disabling checks due DEB_BUILD_PROFILES)
+  RUN_TESTS := no
+endif
 ifeq (nocheck,$(findstring nocheck,$(DEB_BUILD_OPTIONS)))
   $(warning Disabling checks due DEB_BUILD_OPTIONS)
   RUN_TESTS := no
