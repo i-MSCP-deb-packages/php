@@ -9,7 +9,7 @@ Subject: php-5.3.3-macropen
  3 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/ext/dba/dba.c b/ext/dba/dba.c
-index 6cd3b4d..370ac08 100644
+index 90fa0e3..fb2b8a8 100644
 --- a/ext/dba/dba.c
 +++ b/ext/dba/dba.c
 @@ -993,7 +993,7 @@ restart:
@@ -22,10 +22,10 @@ index 6cd3b4d..370ac08 100644
  		php_error_docref2(NULL, Z_STRVAL(args[0]), Z_STRVAL(args[1]), E_WARNING, "Driver initialization failed for handler: %s%s%s", hptr->name, error?": ":"", error?error:"");
  		FREENOW;
 diff --git a/ext/dba/dba_db3.c b/ext/dba/dba_db3.c
-index dd1bcb8..aca3c93 100644
+index a47a733..26bc0b1 100644
 --- a/ext/dba/dba_db3.c
 +++ b/ext/dba/dba_db3.c
-@@ -96,9 +96,9 @@ DBA_OPEN_FUNC(db3)
+@@ -95,9 +95,9 @@ DBA_OPEN_FUNC(db3)
  	    dbp->set_errcall(dbp, php_dba_db3_errcall_fcn);
  		if(
  #if (DB_VERSION_MAJOR > 4 || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR >= 1))
@@ -38,10 +38,10 @@ index dd1bcb8..aca3c93 100644
  			dba_db3_data *data;
  
 diff --git a/ext/dba/dba_db4.c b/ext/dba/dba_db4.c
-index 63a69bd..a77cc22 100644
+index 8ac8e6e..aa79525 100644
 --- a/ext/dba/dba_db4.c
 +++ b/ext/dba/dba_db4.c
-@@ -125,9 +125,9 @@ DBA_OPEN_FUNC(db4)
+@@ -124,9 +124,9 @@ DBA_OPEN_FUNC(db4)
  	    dbp->set_errcall(dbp, php_dba_db4_errcall_fcn);
  	    if (
  #if (DB_VERSION_MAJOR > 4 || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR >= 1))

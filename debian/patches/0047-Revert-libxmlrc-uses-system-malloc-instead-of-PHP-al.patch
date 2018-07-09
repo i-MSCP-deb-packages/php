@@ -19,7 +19,7 @@ Subject: Revert "libxmlrc uses system malloc instead of PHP alloc routines"
  13 files changed, 98 insertions(+), 101 deletions(-)
 
 diff --git a/ext/xmlrpc/libxmlrpc/base64.c b/ext/xmlrpc/libxmlrpc/base64.c
-index dd60dc9..6603b48 100644
+index 0739a71..6e6dc25 100644
 --- a/ext/xmlrpc/libxmlrpc/base64.c
 +++ b/ext/xmlrpc/libxmlrpc/base64.c
 @@ -15,7 +15,6 @@ static const char rcsid[] = "#(@) $Id$";
@@ -57,7 +57,7 @@ index dd60dc9..6603b48 100644
    b->offset = 0;
    b->ptr = NULL;
 diff --git a/ext/xmlrpc/libxmlrpc/encodings.c b/ext/xmlrpc/libxmlrpc/encodings.c
-index 5777152..ca225a1 100644
+index 77b5cc1..8023f47 100644
 --- a/ext/xmlrpc/libxmlrpc/encodings.c
 +++ b/ext/xmlrpc/libxmlrpc/encodings.c
 @@ -30,8 +30,6 @@
@@ -76,25 +76,22 @@ index 5777152..ca225a1 100644
 -         outbuf = (char*)emalloc(outlen + 1);
 +         outbuf = (char*)malloc(outlen + 1);
  
-          if(outbuf) {
-             out_ptr = (char*)outbuf;
-@@ -76,14 +74,14 @@ static char* convert(const char* src, int src_len, int *new_len, const char* fro
-                      int diff = out_ptr - outbuf;
-                      outlen += inlenleft;
-                      outlenleft += inlenleft;
--                     outbuf = (char*)erealloc(outbuf, outlen + 1);
-+                     outbuf = (char*)realloc(outbuf, outlen + 1);
-                      if(!outbuf) {
-                         break;
-                      }
-                      out_ptr = outbuf + diff;
-                   }
-                   else {
--                     efree(outbuf);
-+                     free(outbuf);
-                      outbuf = 0;
-                      break;
-                   }
+          out_ptr = (char*)outbuf;
+          while(inlenleft) {
+@@ -75,11 +73,11 @@ static char* convert(const char* src, int src_len, int *new_len, const char* fro
+                   int diff = out_ptr - outbuf;
+                   outlen += inlenleft;
+                   outlenleft += inlenleft;
+-                  outbuf = (char*)erealloc(outbuf, outlen + 1);
++                  outbuf = (char*)realloc(outbuf, outlen + 1);
+                   out_ptr = outbuf + diff;
+                }
+                else {
+-                  efree(outbuf);
++                  free(outbuf);
+                   outbuf = 0;
+                   break;
+                }
 diff --git a/ext/xmlrpc/libxmlrpc/queue.c b/ext/xmlrpc/libxmlrpc/queue.c
 index 961b4ca..b7bfa26 100644
 --- a/ext/xmlrpc/libxmlrpc/queue.c
@@ -744,7 +741,7 @@ index 12b6c7a..9b0d934 100644
  #ifdef __cplusplus
  extern "C" {
 diff --git a/ext/xmlrpc/libxmlrpc/xmlrpc_introspection.c b/ext/xmlrpc/libxmlrpc/xmlrpc_introspection.c
-index c554e73..25d6000 100644
+index 212438c..37d0708 100644
 --- a/ext/xmlrpc/libxmlrpc/xmlrpc_introspection.c
 +++ b/ext/xmlrpc/libxmlrpc/xmlrpc_introspection.c
 @@ -575,7 +575,7 @@ int XMLRPC_ServerRegisterIntrospectionCallback(XMLRPC_SERVER server, XMLRPC_Intr
@@ -770,10 +767,10 @@ index e43f78e..fbe7104 100644
  
  #ifdef __cplusplus
 diff --git a/ext/xmlrpc/xmlrpc-epi-php.c b/ext/xmlrpc/xmlrpc-epi-php.c
-index 19df2ad..407f499 100644
+index 6fbb66d..5bcf1c0 100644
 --- a/ext/xmlrpc/xmlrpc-epi-php.c
 +++ b/ext/xmlrpc/xmlrpc-epi-php.c
-@@ -701,7 +701,7 @@ PHP_FUNCTION(xmlrpc_encode_request)
+@@ -698,7 +698,7 @@ PHP_FUNCTION(xmlrpc_encode_request)
  			outBuf = XMLRPC_REQUEST_ToXML(xRequest, 0);
  			if (outBuf) {
  				RETVAL_STRING(outBuf);
@@ -782,7 +779,7 @@ index 19df2ad..407f499 100644
  			}
  			XMLRPC_RequestFree(xRequest, 1);
  		}
-@@ -735,7 +735,7 @@ PHP_FUNCTION(xmlrpc_encode)
+@@ -732,7 +732,7 @@ PHP_FUNCTION(xmlrpc_encode)
  		if (xOut) {
  			if (outBuf) {
  				RETVAL_STRING(outBuf);
@@ -791,7 +788,7 @@ index 19df2ad..407f499 100644
  			}
  			/* cleanup */
  			XMLRPC_CleanupValue(xOut);
-@@ -1102,7 +1102,7 @@ PHP_FUNCTION(xmlrpc_server_call_method)
+@@ -1095,7 +1095,7 @@ PHP_FUNCTION(xmlrpc_server_call_method)
  				outBuf = XMLRPC_REQUEST_ToXML(xResponse, &buf_len);
  				if (outBuf) {
  					RETVAL_STRINGL(outBuf, buf_len);

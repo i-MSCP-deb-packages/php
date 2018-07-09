@@ -9,10 +9,10 @@ Subject: session_save_path
  3 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/ext/session/session.c b/ext/session/session.c
-index dd54e6f..165c357 100644
+index 3482768..5420ea1 100644
 --- a/ext/session/session.c
 +++ b/ext/session/session.c
-@@ -790,7 +790,7 @@ static PHP_INI_MH(OnUpdateRfc1867Freq) /* {{{ */
+@@ -791,7 +791,7 @@ static PHP_INI_MH(OnUpdateRfc1867Freq) /* {{{ */
  /* {{{ PHP_INI
   */
  PHP_INI_BEGIN()
@@ -22,10 +22,10 @@ index dd54e6f..165c357 100644
  	PHP_INI_ENTRY("session.save_handler",           "files",     PHP_INI_ALL, OnUpdateSaveHandler)
  	STD_PHP_INI_BOOLEAN("session.auto_start",       "0",         PHP_INI_PERDIR, OnUpdateBool,       auto_start,         php_ps_globals,    ps_globals)
 diff --git a/php.ini-development b/php.ini-development
-index a5b587b..ca168b8 100644
+index a08ff35..1597f03 100644
 --- a/php.ini-development
 +++ b/php.ini-development
-@@ -1347,7 +1347,7 @@ session.save_handler = files
+@@ -1336,7 +1336,7 @@ session.save_handler = files
  ; where MODE is the octal representation of the mode. Note that this
  ; does not overwrite the process's umask.
  ; http://php.net/session.save-path
@@ -33,12 +33,12 @@ index a5b587b..ca168b8 100644
 +;session.save_path = "/var/lib/php/sessions"
  
  ; Whether to use strict session mode.
- ; Strict session mode does not accept uninitialized session ID and regenerate
+ ; Strict session mode does not accept an uninitialized session ID, and
 diff --git a/php.ini-production b/php.ini-production
-index 05b8e90..7c84ff8 100644
+index 413454b..994069c 100644
 --- a/php.ini-production
 +++ b/php.ini-production
-@@ -1348,7 +1348,7 @@ session.save_handler = files
+@@ -1339,7 +1339,7 @@ session.save_handler = files
  ; where MODE is the octal representation of the mode. Note that this
  ; does not overwrite the process's umask.
  ; http://php.net/session.save-path
@@ -46,4 +46,4 @@ index 05b8e90..7c84ff8 100644
 +;session.save_path = "/var/lib/php/sessions"
  
  ; Whether to use strict session mode.
- ; Strict session mode does not accept uninitialized session ID and regenerate
+ ; Strict session mode does not accept an uninitialized session ID, and

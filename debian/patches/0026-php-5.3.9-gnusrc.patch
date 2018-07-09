@@ -16,7 +16,7 @@ Subject: php-5.3.9-gnusrc
  10 files changed, 5 insertions(+), 10 deletions(-)
 
 diff --git a/Zend/zend_language_parser.c b/Zend/zend_language_parser.c
-index dbd30da..989912c 100644
+index 7168323..19fd55e 100644
 --- a/Zend/zend_language_parser.c
 +++ b/Zend/zend_language_parser.c
 @@ -69,6 +69,8 @@
@@ -29,7 +29,7 @@ index dbd30da..989912c 100644
  /*
     +----------------------------------------------------------------------+
 diff --git a/configure.ac b/configure.ac
-index b4f4c9b..55e54fe 100644
+index 01d00e2..736f502 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -124,6 +124,8 @@ AC_DEFUN([PHP_EXT_DIR],[$config_m4_dir])dnl
@@ -42,7 +42,7 @@ index b4f4c9b..55e54fe 100644
  dnl -------------------------------------------------------------------------
  
 diff --git a/ext/interbase/interbase.c b/ext/interbase/interbase.c
-index 5cdf25b..d1a1389 100644
+index 27cbb32..385be74 100644
 --- a/ext/interbase/interbase.c
 +++ b/ext/interbase/interbase.c
 @@ -22,7 +22,6 @@
@@ -54,7 +54,7 @@ index 5cdf25b..d1a1389 100644
  #include "php.h"
  
 diff --git a/ext/pdo_firebird/firebird_driver.c b/ext/pdo_firebird/firebird_driver.c
-index 3060615..34e234a 100644
+index 6b77e31..ce852ba 100644
 --- a/ext/pdo_firebird/firebird_driver.c
 +++ b/ext/pdo_firebird/firebird_driver.c
 @@ -20,7 +20,6 @@
@@ -66,10 +66,10 @@ index 3060615..34e234a 100644
  #include "php.h"
  #include "zend_exceptions.h"
 diff --git a/ext/standard/file.c b/ext/standard/file.c
-index ff3bef3..c7d1912 100644
+index 643876a..2540450 100644
 --- a/ext/standard/file.c
 +++ b/ext/standard/file.c
-@@ -108,9 +108,6 @@ php_file_globals file_globals;
+@@ -107,9 +107,6 @@ php_file_globals file_globals;
  #endif
  
  #if defined(HAVE_FNMATCH) && !defined(PHP_WIN32)
@@ -80,7 +80,7 @@ index ff3bef3..c7d1912 100644
  #endif
  
 diff --git a/ext/zlib/zlib_fopen_wrapper.c b/ext/zlib/zlib_fopen_wrapper.c
-index ff242736..82109bf 100644
+index 3544ada..2f960b3 100644
 --- a/ext/zlib/zlib_fopen_wrapper.c
 +++ b/ext/zlib/zlib_fopen_wrapper.c
 @@ -19,8 +19,6 @@
@@ -93,7 +93,7 @@ index ff242736..82109bf 100644
  #include "php_zlib.h"
  #include "fopen_wrappers.h"
 diff --git a/main/php.h b/main/php.h
-index 3b0b896..50eb2aa 100644
+index 945e2b3..9bb1dd4 100644
 --- a/main/php.h
 +++ b/main/php.h
 @@ -31,6 +31,7 @@
@@ -105,7 +105,7 @@ index 3b0b896..50eb2aa 100644
  #include "zend.h"
  #include "zend_sort.h"
 diff --git a/main/streams/cast.c b/main/streams/cast.c
-index 9ef5420..6f5baa3 100644
+index 0c2510e..f810933 100644
 --- a/main/streams/cast.c
 +++ b/main/streams/cast.c
 @@ -18,7 +18,6 @@
@@ -117,7 +117,7 @@ index 9ef5420..6f5baa3 100644
  #include "php_globals.h"
  #include "php_network.h"
 diff --git a/main/streams/memory.c b/main/streams/memory.c
-index 7011cff..b484b1c 100644
+index 99bbb12..60e0493 100644
 --- a/main/streams/memory.c
 +++ b/main/streams/memory.c
 @@ -18,7 +18,6 @@
@@ -129,7 +129,7 @@ index 7011cff..b484b1c 100644
  #include "ext/standard/base64.h"
  
 diff --git a/main/streams/streams.c b/main/streams/streams.c
-index 3cf0c7e..96a0c3f 100644
+index 6f77b29..cd02561 100644
 --- a/main/streams/streams.c
 +++ b/main/streams/streams.c
 @@ -21,7 +21,6 @@

@@ -20,10 +20,10 @@ index 2b7481a..0d2859d 100644
 +Warning: preg_replace_callback(): Numeric named subpatterns are not allowed in %sbug37911.php on line %d
  NULL
 diff --git a/ext/pcre/tests/grep2.phpt b/ext/pcre/tests/grep2.phpt
-index 1a8476c..0cf8d4a 100644
+index a739cb6..048eab0 100644
 --- a/ext/pcre/tests/grep2.phpt
 +++ b/ext/pcre/tests/grep2.phpt
-@@ -40,12 +40,6 @@ array(1) {
+@@ -42,12 +42,6 @@ array(1) {
    string(1) "1"
  }
  bool(true)
