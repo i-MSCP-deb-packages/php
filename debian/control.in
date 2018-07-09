@@ -1,7 +1,7 @@
 Source: php@PHP_VERSION@
 Section: php
 Priority: optional
-Maintainer: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Maintainer: Debian PHP Maintainers <team+pkg-php@tracker.debian.org>
 Uploaders: Ondřej Surý <ondrej@debian.org>,
            Lior Kaplan <kaplan@debian.org>
 Build-Depends: apache2-dev (>= 2.4),
