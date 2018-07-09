@@ -1,3 +1,10 @@
+php7.0 (7.0.30-2) unstable; urgency=medium
+
+  * Update Vcs-* links to salsa.d.o
+  * Update maintainer address to team+pkg-php@tracker.d.o
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 09 Jul 2018 12:30:28 +0000
+
 php7.0 (7.0.30-1) unstable; urgency=medium
 
   * New upstream version 7.0.30
