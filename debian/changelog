@@ -1,9 +1,12 @@
-php7.1 (7.1.18-2) unstable; urgency=medium
+php7.1 (7.1.19-1) unstable; urgency=medium
 
+  * Add nocheck Build Profile to disable mysql-server installation
+  * New upstream version 7.1.19
+  * Rebased patches for PHP 7.1.19
   * Update Vcs-* links to salsa.d.o
   * Update maintainer address to team+pkg-php@tracker.d.o
 
- -- Ondřej Surý <ondrej@debian.org>  Mon, 09 Jul 2018 12:31:18 +0000
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 09 Jul 2018 13:07:27 +0000
 
 php7.1 (7.1.18-1) unstable; urgency=medium
 
