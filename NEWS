@@ -1,6 +1,59 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-22 Jun 2018, PHP 7.1.19
+19 Jul 2018, PHP 7.1.20
+
+- Core:
+  . Fixed bug #76534 (PHP hangs on 'illegal string offset on string references
+    with an error handler). (Laruence)
+  . Fixed bug #76502 (Chain of mixed exceptions and errors does not serialize
+    properly). (Nikita)
+
+- Date:
+  . Fixed bug #76462 (Undefined property: DateInterval::$f). (Anatol)
+
+- exif:
+  . Fixed bug #76423 (Int Overflow lead to Heap OverFlow in
+    exif_thumbnail_extract of exif.c). (Stas)
+ . Fixed bug #76557 (heap-buffer-overflow (READ of size 48) while reading exif
+    data). (Stas)
+
+- FPM:
+  . Fixed bug #73342 (Vulnerability in php-fpm by changing stdin to
+    non-blocking). (Nikita)
+
+- GMP:
+  . Fixed bug #74670 (Integer Underflow when unserializing GMP and possible
+    other classes). (Nikita)
+
+- intl:
+  . Fixed bug #76556 (get_debug_info handler for BreakIterator shows wrong
+    type). (cmb)
+
+- mbstring:
+  . Fixed bug #76532 (Integer overflow and excessive memory usage
+    in mb_strimwidth). (MarcusSchwarz)
+
+- PGSQL:
+  . Fixed bug #76548 (pg_fetch_result did not fetch the next row). (Anatol)
+
+- phpdbg:
+  . Fix arginfo wrt. optional/required parameters. (cmb)
+
+- Reflection:
+  . Fixed bug #76536 (PHP crashes with core dump when throwing exception in
+    error handler). (Laruence)
+  . Fixed bug #75231 (ReflectionProperty#getValue() incorrectly works with
+    inherited classes). (Nikita)
+
+- Standard:
+  . Fixed bug #76505 (array_merge_recursive() is duplicating sub-array keys).
+    (Laruence)
+  . Fixed bug #71848 (getimagesize with $imageinfo returns false). (cmb)
+
+- Win32:
+  . Fixed bug #76459 (windows linkinfo lacks openbasedir check). (Anatol)
+
+22 Jun 2019, PHP 7.1.19
 
 - CLI Server:
   . Fixed bug #76333 (PHP built-in server does not find files if root path
