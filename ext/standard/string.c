@@ -1758,8 +1758,7 @@ PHP_FUNCTION(pathinfo)
 	} else {
 		zval *element;
 		if ((element = zend_hash_get_current_data(Z_ARRVAL(tmp))) != NULL) {
-			ZVAL_DEREF(element);
-			ZVAL_COPY(return_value, element);
+			ZVAL_COPY_DEREF(return_value, element);
 		} else {
 			ZVAL_EMPTY_STRING(return_value);
 		}
@@ -4261,7 +4260,7 @@ static zend_long php_str_replace_in_subject(zval *search, zval *replace, zval *s
 	/* If search is an array */
 	if (Z_TYPE_P(search) == IS_ARRAY) {
 		/* Duplicate subject string for repeated replacement */
-		ZVAL_STR_COPY(result, subject_str);
+		zend_string_addref(subject_str);
 
 		if (Z_TYPE_P(replace) == IS_ARRAY) {
 			replace_idx = 0;
@@ -4276,14 +4275,6 @@ static zend_long php_str_replace_in_subject(zval *search, zval *replace, zval *s
 			/* Make sure we're dealing with strings. */
 			zend_string *tmp_search_str;
 			zend_string *search_str = zval_get_tmp_string(search_entry, &tmp_search_str);
-
-			if (ZSTR_LEN(search_str) == 0) {
-				if (Z_TYPE_P(replace) == IS_ARRAY) {
-					replace_idx++;
-				}
-				zend_tmp_string_release(tmp_search_str);
-				continue;
-			}
 
 			/* If replace is an array. */
 			if (Z_TYPE_P(replace) == IS_ARRAY) {
@@ -4314,7 +4305,7 @@ static zend_long php_str_replace_in_subject(zval *search, zval *replace, zval *s
 			if (ZSTR_LEN(search_str) == 1) {
 				zend_long old_replace_count = replace_count;
 
-				tmp_result = php_char_to_str_ex(Z_STR_P(result),
+				tmp_result = php_char_to_str_ex(subject_str,
 								ZSTR_VAL(search_str)[0],
 								replace_value,
 								replace_len,
@@ -4326,22 +4317,25 @@ static zend_long php_str_replace_in_subject(zval *search, zval *replace, zval *s
 				}
 			} else if (ZSTR_LEN(search_str) > 1) {
 				if (case_sensitivity) {
-					tmp_result = php_str_to_str_ex(Z_STR_P(result),
+					tmp_result = php_str_to_str_ex(subject_str,
 							ZSTR_VAL(search_str), ZSTR_LEN(search_str),
 							replace_value, replace_len, &replace_count);
 				} else {
 					zend_long old_replace_count = replace_count;
 
 					if (!lc_subject_str) {
-						lc_subject_str = php_string_tolower(Z_STR_P(result));
+						lc_subject_str = php_string_tolower(subject_str);
 					}
-					tmp_result = php_str_to_str_i_ex(Z_STR_P(result), ZSTR_VAL(lc_subject_str),
+					tmp_result = php_str_to_str_i_ex(subject_str, ZSTR_VAL(lc_subject_str),
 							search_str, replace_value, replace_len, &replace_count);
 					if (replace_count != old_replace_count) {
 						zend_string_release_ex(lc_subject_str, 0);
 						lc_subject_str = NULL;
 					}
 				}
+			} else {
+				zend_tmp_string_release(tmp_search_str);
+				continue;
 			}
 
 			zend_tmp_string_release(tmp_search_str);
@@ -4350,17 +4344,24 @@ static zend_long php_str_replace_in_subject(zval *search, zval *replace, zval *s
 				zend_string_release_ex(tmp_replace_entry_str, 0);
 				tmp_replace_entry_str = NULL;
 			}
-			zend_string_release_ex(Z_STR_P(result), 0);
-			ZVAL_STR(result, tmp_result);
 
-			if (Z_STRLEN_P(result) == 0) {
-				if (lc_subject_str) {
-					zend_string_release_ex(lc_subject_str, 0);
+			if (subject_str == tmp_result) {
+				zend_string_delref(subject_str);
+			} else {
+				zend_string_release_ex(subject_str, 0);
+				subject_str = tmp_result;
+				if (ZSTR_LEN(subject_str) == 0) {
+					zend_string_release_ex(subject_str, 0);
+					ZVAL_EMPTY_STRING(result);
+					if (lc_subject_str) {
+						zend_string_release_ex(lc_subject_str, 0);
+					}
+					zend_tmp_string_release(tmp_subject_str);
+					return replace_count;
 				}
-				zend_tmp_string_release(tmp_subject_str);
-				return replace_count;
 			}
 		} ZEND_HASH_FOREACH_END();
+		ZVAL_STR(result, subject_str);
 		if (lc_subject_str) {
 			zend_string_release_ex(lc_subject_str, 0);
 		}
@@ -5001,19 +5002,16 @@ PHPAPI size_t php_strip_tags(char *rbuf, size_t len, uint8_t *stateptr, const ch
 PHPAPI size_t php_strip_tags_ex(char *rbuf, size_t len, uint8_t *stateptr, const char *allow, size_t allow_len, zend_bool allow_tag_spaces)
 {
 	char *tbuf, *tp, *rp, c, lc;
-	const char *buf, *p;
+	const char *buf, *p, *end;
 	int br, depth=0, in_q = 0;
 	uint8_t state = 0;
-	size_t pos, i = 0;
+	size_t pos;
 	char *allow_free = NULL;
 	const char *allow_actual;
 	char is_xml = 0;
 
-	if (stateptr)
-		state = *stateptr;
-
 	buf = estrndup(rbuf, len);
-	c = *buf;
+	end = buf + len;
 	lc = '\0';
 	p = buf;
 	rp = rbuf;
@@ -5027,237 +5025,294 @@ PHPAPI size_t php_strip_tags_ex(char *rbuf, size_t len, uint8_t *stateptr, const
 		tbuf = tp = NULL;
 	}
 
-	while (i < len) {
-		switch (c) {
-			case '\0':
+	if (stateptr) {
+		state = *stateptr;
+		switch (state) {
+			case 1: goto state_1;
+			case 2: goto state_2;
+			case 3: goto state_3;
+			case 4: goto state_4;
+			default:
 				break;
-			case '<':
+		}
+	}
+
+state_0:
+	if (p >= end) {
+		goto finish;
+	}
+	c = *p;
+	switch (c) {
+		case '\0':
+			break;
+		case '<':
+			if (in_q) {
+				break;
+			}
+			if (isspace(*(p + 1)) && !allow_tag_spaces) {
+				*(rp++) = c;
+				break;
+			}
+			lc = '<';
+			state = 1;
+			if (allow) {
+				if (tp - tbuf >= PHP_TAG_BUF_SIZE) {
+					pos = tp - tbuf;
+					tbuf = erealloc(tbuf, (tp - tbuf) + PHP_TAG_BUF_SIZE + 1);
+					tp = tbuf + pos;
+				}
+				*(tp++) = '<';
+			}
+			p++;
+			goto state_1;
+		case '>':
+			if (depth) {
+				depth--;
+				break;
+			}
+
+			if (in_q) {
+				break;
+			}
+
+			*(rp++) = c;
+			break;
+		default:
+			*(rp++) = c;
+			break;
+	}
+	p++;
+	goto state_0;
+
+state_1:
+	if (p >= end) {
+		goto finish;
+	}
+	c = *p;
+	switch (c) {
+		case '\0':
+			break;
+		case '<':
+			if (in_q) {
+				break;
+			}
+			if (isspace(*(p + 1)) && !allow_tag_spaces) {
+				goto reg_char_1;
+			}
+			depth++;
+			break;
+		case '>':
+			if (depth) {
+				depth--;
+				break;
+			}
+			if (in_q) {
+				break;
+			}
+
+			lc = '>';
+			if (is_xml && *(p -1) == '-') {
+				break;
+			}
+			in_q = state = is_xml = 0;
+			if (allow) {
+				if (tp - tbuf >= PHP_TAG_BUF_SIZE) {
+					pos = tp - tbuf;
+					tbuf = erealloc(tbuf, (tp - tbuf) + PHP_TAG_BUF_SIZE + 1);
+					tp = tbuf + pos;
+				}
+				*(tp++) = '>';
+				*tp='\0';
+				if (php_tag_find(tbuf, tp-tbuf, allow_actual)) {
+					memcpy(rp, tbuf, tp-tbuf);
+					rp += tp-tbuf;
+				}
+				tp = tbuf;
+			}
+			p++;
+			goto state_0;
+		case '"':
+		case '\'':
+			if (p != buf && (!in_q || *p == in_q)) {
 				if (in_q) {
-					break;
+					in_q = 0;
+				} else {
+					in_q = *p;
 				}
-				if (isspace(*(p + 1)) && !allow_tag_spaces) {
-					goto reg_char;
+			}
+			goto reg_char_1;
+		case '!':
+			/* JavaScript & Other HTML scripting languages */
+			if (*(p-1) == '<') {
+				state = 3;
+				lc = c;
+				p++;
+				goto state_3;
+			} else {
+				goto reg_char_1;
+			}
+			break;
+		case '?':
+			if (*(p-1) == '<') {
+				br=0;
+				state = 2;
+				p++;
+				goto state_2;
+			} else {
+				goto reg_char_1;
+			}
+			break;
+		default:
+reg_char_1:
+			if (allow) {
+				if (tp - tbuf >= PHP_TAG_BUF_SIZE) {
+					pos = tp - tbuf;
+					tbuf = erealloc(tbuf, (tp - tbuf) + PHP_TAG_BUF_SIZE + 1);
+					tp = tbuf + pos;
 				}
-				if (state == 0) {
-					lc = '<';
-					state = 1;
-					if (allow) {
-						if (tp - tbuf >= PHP_TAG_BUF_SIZE) {
-							pos = tp - tbuf;
-							tbuf = erealloc(tbuf, (tp - tbuf) + PHP_TAG_BUF_SIZE + 1);
-							tp = tbuf + pos;
-						}
-						*(tp++) = '<';
-				 	}
-				} else if (state == 1) {
-					depth++;
-				}
+				*(tp++) = c;
+			}
+			break;
+	}
+	p++;
+	goto state_1;
+
+state_2:
+	if (p >= end) {
+		goto finish;
+	}
+	c = *p;
+	switch (c) {
+		case '(':
+			if (lc != '"' && lc != '\'') {
+				lc = '(';
+				br++;
+			}
+			break;
+		case ')':
+			if (lc != '"' && lc != '\'') {
+				lc = ')';
+				br--;
+			}
+			break;
+		case '>':
+			if (in_q) {
 				break;
+			}
 
-			case '(':
-				if (state == 2) {
-					if (lc != '"' && lc != '\'') {
-						lc = '(';
-						br++;
-					}
-				} else if (allow && state == 1) {
-					if (tp - tbuf >= PHP_TAG_BUF_SIZE) {
-						pos = tp - tbuf;
-						tbuf = erealloc(tbuf, (tp - tbuf) + PHP_TAG_BUF_SIZE + 1);
-						tp = tbuf + pos;
-					}
-					*(tp++) = c;
-				} else if (state == 0) {
-					*(rp++) = c;
+			if (!br && lc != '\"' && *(p-1) == '?') {
+				in_q = state = 0;
+				tp = tbuf;
+				p++;
+				goto state_0;
+			}
+			break;
+		case '"':
+		case '\'':
+			if (*(p-1) != '\\') {
+				if (lc == c) {
+					lc = '\0';
+				} else if (lc != '\\') {
+					lc = c;
 				}
-				break;
-
-			case ')':
-				if (state == 2) {
-					if (lc != '"' && lc != '\'') {
-						lc = ')';
-						br--;
-					}
-				} else if (allow && state == 1) {
-					if (tp - tbuf >= PHP_TAG_BUF_SIZE) {
-						pos = tp - tbuf;
-						tbuf = erealloc(tbuf, (tp - tbuf) + PHP_TAG_BUF_SIZE + 1);
-						tp = tbuf + pos;
-					}
-					*(tp++) = c;
-				} else if (state == 0) {
-					*(rp++) = c;
-				}
-				break;
-
-			case '>':
-				if (depth) {
-					depth--;
-					break;
-				}
-
-				if (in_q) {
-					break;
-				}
-
-				switch (state) {
-					case 1: /* HTML/XML */
-						lc = '>';
-						if (is_xml && *(p -1) == '-') {
-							break;
-						}
-						in_q = state = is_xml = 0;
-						if (allow) {
-							if (tp - tbuf >= PHP_TAG_BUF_SIZE) {
-								pos = tp - tbuf;
-								tbuf = erealloc(tbuf, (tp - tbuf) + PHP_TAG_BUF_SIZE + 1);
-								tp = tbuf + pos;
-							}
-							*(tp++) = '>';
-							*tp='\0';
-							if (php_tag_find(tbuf, tp-tbuf, allow_actual)) {
-								memcpy(rp, tbuf, tp-tbuf);
-								rp += tp-tbuf;
-							}
-							tp = tbuf;
-						}
-						break;
-
-					case 2: /* PHP */
-						if (!br && lc != '\"' && *(p-1) == '?') {
-							in_q = state = 0;
-							tp = tbuf;
-						}
-						break;
-
-					case 3:
-						in_q = state = 0;
-						tp = tbuf;
-						break;
-
-					case 4: /* JavaScript/CSS/etc... */
-						if (p >= buf + 2 && *(p-1) == '-' && *(p-2) == '-') {
-							in_q = state = 0;
-							tp = tbuf;
-						}
-						break;
-
-					default:
-						*(rp++) = c;
-						break;
-				}
-				break;
-
-			case '"':
-			case '\'':
-				if (state == 4) {
-					/* Inside <!-- comment --> */
-					break;
-				} else if (state == 2 && *(p-1) != '\\') {
-					if (lc == c) {
-						lc = '\0';
-					} else if (lc != '\\') {
-						lc = c;
-					}
-				} else if (state == 0) {
-					*(rp++) = c;
-				} else if (allow && state == 1) {
-					if (tp - tbuf >= PHP_TAG_BUF_SIZE) {
-						pos = tp - tbuf;
-						tbuf = erealloc(tbuf, (tp - tbuf) + PHP_TAG_BUF_SIZE + 1);
-						tp = tbuf + pos;
-					}
-					*(tp++) = c;
-				}
-				if (state && p != buf && (state == 1 || *(p-1) != '\\') && (!in_q || *p == in_q)) {
+			} else {
+				if (p != buf && *(p-1) != '\\' && (!in_q || *p == in_q)) {
 					if (in_q) {
 						in_q = 0;
 					} else {
 						in_q = *p;
 					}
 				}
-				break;
-
-			case '!':
-				/* JavaScript & Other HTML scripting languages */
-				if (state == 1 && *(p-1) == '<') {
-					state = 3;
-					lc = c;
-				} else {
-					if (state == 0) {
-						*(rp++) = c;
-					} else if (allow && state == 1) {
-						if (tp - tbuf >= PHP_TAG_BUF_SIZE) {
-							pos = tp - tbuf;
-							tbuf = erealloc(tbuf, (tp - tbuf) + PHP_TAG_BUF_SIZE + 1);
-							tp = tbuf + pos;
-						}
-						*(tp++) = c;
-					}
-				}
-				break;
-
-			case '-':
-				if (state == 3 && p >= buf + 2 && *(p-1) == '-' && *(p-2) == '!') {
-					state = 4;
-				} else {
-					goto reg_char;
-				}
-				break;
-
-			case '?':
-
-				if (state == 1 && *(p-1) == '<') {
-					br=0;
-					state=2;
-					break;
-				}
-
-			case 'E':
-			case 'e':
-				/* !DOCTYPE exception */
-				if (state==3 && p > buf+6
-						     && tolower(*(p-1)) == 'p'
-					         && tolower(*(p-2)) == 'y'
-						     && tolower(*(p-3)) == 't'
-						     && tolower(*(p-4)) == 'c'
-						     && tolower(*(p-5)) == 'o'
-						     && tolower(*(p-6)) == 'd') {
-					state = 1;
-					break;
-				}
-				/* fall-through */
-
-			case 'l':
-			case 'L':
-
-				/* swm: If we encounter '<?xml' then we shouldn't be in
-				 * state == 2 (PHP). Switch back to HTML.
-				 */
-
-				if (state == 2 && p > buf+4 && strncasecmp(p-4, "<?xm", 4) == 0) {
-					state = 1; is_xml=1;
-					break;
-				}
-
-				/* fall-through */
-			default:
-reg_char:
-				if (state == 0) {
-					*(rp++) = c;
-				} else if (allow && state == 1) {
-					if (tp - tbuf >= PHP_TAG_BUF_SIZE) {
-						pos = tp - tbuf;
-						tbuf = erealloc(tbuf, (tp - tbuf) + PHP_TAG_BUF_SIZE + 1);
-						tp = tbuf + pos;
-					}
-					*(tp++) = c;
-				}
-				break;
-		}
-		c = *(++p);
-		i++;
+			}
+			break;
+		case 'l':
+		case 'L':
+			/* swm: If we encounter '<?xml' then we shouldn't be in
+			 * state == 2 (PHP). Switch back to HTML.
+			 */
+			if (state == 2 && p > buf+4
+				     && (*(p-1) == 'm' || *(p-1) == 'M')
+				     && (*(p-2) == 'x' || *(p-2) == 'X')
+				     && *(p-3) == '?'
+				     && *(p-4) == '<') {
+				state = 1; is_xml=1;
+				p++;
+				goto state_1;
+			}
+			break;
+		default:
+			break;
 	}
+	p++;
+	goto state_2;
+
+state_3:
+	if (p >= end) {
+		goto finish;
+	}
+	c = *p;
+	switch (c) {
+		case '>':
+			if (in_q) {
+				break;
+			}
+			in_q = state = 0;
+			tp = tbuf;
+			p++;
+			goto state_0;
+		case '"':
+		case '\'':
+			if (p != buf && *(p-1) != '\\' && (!in_q || *p == in_q)) {
+				if (in_q) {
+					in_q = 0;
+				} else {
+					in_q = *p;
+				}
+			}
+			break;
+		case '-':
+			if (p >= buf + 2 && *(p-1) == '-' && *(p-2) == '!') {
+				state = 4;
+				p++;
+				goto state_4;
+			}
+			break;
+		case 'E':
+		case 'e':
+			/* !DOCTYPE exception */
+			if (p > buf+6
+			     && (*(p-1) == 'p' || *(p-1) == 'P')
+			     && (*(p-2) == 'y' || *(p-2) == 'Y')
+			     && (*(p-3) == 't' || *(p-3) == 'T')
+			     && (*(p-4) == 'c' || *(p-4) == 'C')
+			     && (*(p-5) == 'o' || *(p-5) == 'O')
+			     && (*(p-6) == 'd' || *(p-6) == 'D')) {
+				state = 1;
+				p++;
+				goto state_1;
+			}
+			break;
+		default:
+			break;
+	}
+	p++;
+	goto state_3;
+
+state_4:
+	while (p < end) {
+		c = *p;
+		if (c == '>' && !in_q) {
+			if (p >= buf + 2 && *(p-1) == '-' && *(p-2) == '-') {
+				in_q = state = 0;
+				tp = tbuf;
+				p++;
+				goto state_0;
+			}
+		}
+		p++;
+	}
+
+finish:
 	if (rp < rbuf + len) {
 		*rp = '\0';
 	}
