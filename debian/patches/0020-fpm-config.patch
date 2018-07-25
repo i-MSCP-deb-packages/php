@@ -7,7 +7,7 @@ Subject: fpm-config
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/sapi/fpm/php-fpm.conf.in b/sapi/fpm/php-fpm.conf.in
-index 56c18e8..4741195 100644
+index 7f21aaa..de60822 100644
 --- a/sapi/fpm/php-fpm.conf.in
 +++ b/sapi/fpm/php-fpm.conf.in
 @@ -14,14 +14,14 @@
@@ -27,7 +27,7 @@ index 56c18e8..4741195 100644
  
  ; syslog_facility is used to specify what type of program is logging the
  ; message. This lets syslogd specify that messages from different facilities
-@@ -122,4 +122,4 @@
+@@ -140,4 +140,4 @@
  ; Relative path can also be used. They will be prefixed by:
  ;  - the global prefix if it's been set (-p argument)
  ;  - @prefix@ otherwise

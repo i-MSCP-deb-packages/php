@@ -3,20 +3,20 @@ Date: Sat, 2 May 2015 10:26:51 +0200
 Subject: debian_quirks
 
 ---
- configure.ac          |  6 +++++-
+ configure.ac          |  5 ++++-
  php.ini-development   |  2 +-
  php.ini-production    |  2 +-
  sapi/cli/php.1.in     | 11 ++++++-----
  scripts/Makefile.frag |  4 ++--
  scripts/php-config.in |  8 ++++----
  scripts/phpize.in     |  4 ++--
- 7 files changed, 21 insertions(+), 16 deletions(-)
+ 7 files changed, 20 insertions(+), 16 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 354ce4e..b1b1d49 100644
+index 019179e..16fd570 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1134,7 +1134,7 @@ if test "$PHP_CLI" = "no"; then
+@@ -1138,7 +1138,7 @@ if test "$PHP_CLI" = "no"; then
  fi
  
  PHP_ARG_WITH(pear, [whether to install PEAR],
@@ -25,7 +25,7 @@ index 354ce4e..b1b1d49 100644
    --without-pear          Do not install PEAR], DEFAULT, yes)
  
  if test "$PHP_PEAR" != "no"; then
-@@ -1171,6 +1171,7 @@ dnl
+@@ -1175,6 +1175,7 @@ dnl
    PHP_ADD_MAKEFILE_FRAGMENT($abs_srcdir/pear/Makefile.frag,$abs_srcdir/pear,pear)
  fi
  
@@ -33,7 +33,7 @@ index 354ce4e..b1b1d49 100644
  
  dnl Configuring Zend and TSRM.
  dnl -------------------------------------------------------------------------
-@@ -1243,6 +1244,8 @@ dnl Build extension directory path
+@@ -1247,6 +1248,8 @@ dnl Build extension directory path
  
  ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modules.h|$SED 's/#define ZEND_MODULE_API_NO //'`
  
@@ -56,10 +56,10 @@ index 3f45c08..ed5d897 100644
  ; Windows: "\path1;\path2"
  ;include_path = ".;c:\php\includes"
 diff --git a/php.ini-production b/php.ini-production
-index 7cfade4..413454b 100644
+index 793174d..c98b022 100644
 --- a/php.ini-production
 +++ b/php.ini-production
-@@ -721,7 +721,7 @@ default_charset = "UTF-8"
+@@ -719,7 +719,7 @@ default_charset = "UTF-8"
  ;;;;;;;;;;;;;;;;;;;;;;;;;
  
  ; UNIX: "/path1:/path2"

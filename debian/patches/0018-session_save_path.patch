@@ -9,7 +9,7 @@ Subject: session_save_path
  3 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/ext/session/session.c b/ext/session/session.c
-index 3482768..5420ea1 100644
+index a86f7c2..d956121 100644
 --- a/ext/session/session.c
 +++ b/ext/session/session.c
 @@ -791,7 +791,7 @@ static PHP_INI_MH(OnUpdateRfc1867Freq) /* {{{ */
@@ -35,10 +35,10 @@ index a08ff35..1597f03 100644
  ; Whether to use strict session mode.
  ; Strict session mode does not accept an uninitialized session ID, and
 diff --git a/php.ini-production b/php.ini-production
-index 413454b..994069c 100644
+index c98b022..6c1ed74 100644
 --- a/php.ini-production
 +++ b/php.ini-production
-@@ -1339,7 +1339,7 @@ session.save_handler = files
+@@ -1337,7 +1337,7 @@ session.save_handler = files
  ; where MODE is the octal representation of the mode. Note that this
  ; does not overwrite the process's umask.
  ; http://php.net/session.save-path

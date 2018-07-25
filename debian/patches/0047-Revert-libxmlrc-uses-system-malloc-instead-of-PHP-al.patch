@@ -767,10 +767,10 @@ index e43f78e..fbe7104 100644
  
  #ifdef __cplusplus
 diff --git a/ext/xmlrpc/xmlrpc-epi-php.c b/ext/xmlrpc/xmlrpc-epi-php.c
-index 6fbb66d..5bcf1c0 100644
+index e1ccd92..c0be886 100644
 --- a/ext/xmlrpc/xmlrpc-epi-php.c
 +++ b/ext/xmlrpc/xmlrpc-epi-php.c
-@@ -698,7 +698,7 @@ PHP_FUNCTION(xmlrpc_encode_request)
+@@ -697,7 +697,7 @@ PHP_FUNCTION(xmlrpc_encode_request)
  			outBuf = XMLRPC_REQUEST_ToXML(xRequest, 0);
  			if (outBuf) {
  				RETVAL_STRING(outBuf);
@@ -779,7 +779,7 @@ index 6fbb66d..5bcf1c0 100644
  			}
  			XMLRPC_RequestFree(xRequest, 1);
  		}
-@@ -732,7 +732,7 @@ PHP_FUNCTION(xmlrpc_encode)
+@@ -731,7 +731,7 @@ PHP_FUNCTION(xmlrpc_encode)
  		if (xOut) {
  			if (outBuf) {
  				RETVAL_STRING(outBuf);
@@ -788,7 +788,7 @@ index 6fbb66d..5bcf1c0 100644
  			}
  			/* cleanup */
  			XMLRPC_CleanupValue(xOut);
-@@ -1095,7 +1095,7 @@ PHP_FUNCTION(xmlrpc_server_call_method)
+@@ -1094,7 +1094,7 @@ PHP_FUNCTION(xmlrpc_server_call_method)
  				outBuf = XMLRPC_REQUEST_ToXML(xResponse, &buf_len);
  				if (outBuf) {
  					RETVAL_STRINGL(outBuf, buf_len);

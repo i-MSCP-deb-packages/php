@@ -1,5 +1,15 @@
---- php7.3.orig/Zend/zend_cpuinfo.c
-+++ php7.3/Zend/zend_cpuinfo.c
+From: Debian PHP Maintainers <team+pkg-php@tracker.debian.org>
+Date: Wed, 25 Jul 2018 11:10:08 +0000
+Subject: fix-inconsistent-operand-constraints-in-an-asm
+
+---
+ Zend/zend_cpuinfo.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/Zend/zend_cpuinfo.c b/Zend/zend_cpuinfo.c
+index 43252a7..70e1dbf 100644
+--- a/Zend/zend_cpuinfo.c
++++ b/Zend/zend_cpuinfo.c
 @@ -29,12 +29,9 @@ typedef struct _zend_cpu_info {
  static zend_cpu_info cpuinfo = {0};
  
