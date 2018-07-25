@@ -1,3 +1,10 @@
+php7.2 (7.2.8-1) unstable; urgency=medium
+
+  * New upstream version 7.2.8
+  * Rebase patches for PHP 7.2.8
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 25 Jul 2018 10:49:02 +0000
+
 php7.2 (7.2.7-3) unstable; urgency=medium
 
   * Add <!nocheck> profile to all default-mysql-server alternatives
