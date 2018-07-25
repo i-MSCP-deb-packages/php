@@ -1,3 +1,11 @@
+php7.3 (7.3.0~alpha4-1) unstable; urgency=medium
+
+  * Use cpuid.h instead of custom assembler
+  * New upstream version 7.3.0~alpha4
+  * Rebase patches for PHP 7.3.0~alpha4
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 25 Jul 2018 11:11:09 +0000
+
 php7.3 (7.3.0~alpha3-2) unstable; urgency=medium
 
   * Remove traces of ext_skel modifications
