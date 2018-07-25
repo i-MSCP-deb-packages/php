@@ -1,3 +1,10 @@
+php7.0 (7.0.31-1) unstable; urgency=medium
+
+  * New upstream version 7.0.31
+  * Rebase patches for PHP 7.0.31 release
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 25 Jul 2018 09:57:46 +0000
+
 php7.0 (7.0.30-3) unstable; urgency=medium
 
   * Fix the Vcs-Browser link
