@@ -1,3 +1,11 @@
+php7.1 (7.1.20-1) unstable; urgency=medium
+
+  * Add <!nocheck> profile to all default-mysql-server alternatives
+  * New upstream version 7.1.20
+  * Rebase patches for PHP 7.1.20
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 25 Jul 2018 10:04:19 +0000
+
 php7.1 (7.1.19-1) unstable; urgency=medium
 
   * Add nocheck Build Profile to disable mysql-server installation
