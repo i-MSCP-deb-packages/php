@@ -1,5 +1,47 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+19 Jul 2018, PHP 7.3.0alpha4
+
+- Core:
+  . Fixed bug #33502 (Some nullary functions don't check the number of
+    arguments). (cmb)
+  . Fixed bug #76392 (Error relocating sapi/cli/php: unsupported relocation
+    type 37). (Peter Kokot)
+  . The declaration and use of case-insensitive constants has been deprecated.
+    (Nikita)
+
+- Filter:
+  . Added the 'add_slashes' sanitization mode (FILTER_SANITIZE_ADD_SLASHES). 
+	(Kalle)
+  . Fixed bug #76366 (References in sub-array for filtering breaks the filter).
+    (ZiHang Gao)
+
+- FPM:
+  . Fixed bug #62596 (getallheaders() missing with PHP-FPM). (Remi)
+  . Added fpm_get_status function. (Till Backhaus)
+  . Fixed bug #69031 (Long messages into stdout/stderr are truncated
+    incorrectly) - added new log related FPM configuration options:
+    log_limit, log_buffering and decorate_workers_output. (Jakub Zelenka) 
+
+- mbstring:
+  . Fixed bug #76574 (use of undeclared identifiers INT_MAX and LONG_MAX). (cmb)
+  . Fixed bug #76594 (Bus Error due to unaligned access in zend_ini.c
+    OnUpdateLong). (cmb, Nikita)
+
+- PDO_Firebird:
+  . Fixed bug #74462 (PDO_Firebird returns only NULLs for results with boolean
+    for FIREBIRD >= 3.0). (Dorin Marcoci)
+  . Fixed bug #76488 (Memory leak when fetching a BLOB field). (Simonov Denis)
+
+- Standard:
+  . Fixed bug #73817 (Incorrect entries in get_html_translation_table). (cmb)
+  . Fixed bug #76136 (stream_socket_get_name should enclose IPv6 in brackets).
+    (seliver)
+
+- Zip:
+  . Fixed bug #76524 (ZipArchive memory leak (OVERWRITE flag and empty archive)).
+    (Timur Ibragimov)
+
 05 Jul 2018, PHP 7.3.0alpha3
 
 - Core:
@@ -15,7 +57,7 @@ PHP                                                                        NEWS
   . Added syslog.facility and syslog.ident INI entries for customizing syslog
     logging. (Philip Prindeville)
   . Fixed bug #63217 (Constant numeric strings become integers when used as
-    ArrayAccess offset). (Rudi Theunissen)
+    ArrayAccess offset). (Rudi Theunissen, Dmitry)
 
 - DOM:
   . Fixed bug #76285 (DOMDocument::formatOutput attribute sometimes ignored).
@@ -62,6 +104,7 @@ PHP                                                                        NEWS
   . Fixed bug #76505 (array_merge_recursive() is duplicating sub-array keys).
     (Laruence)
   . Fixed bug #71848 (getimagesize with $imageinfo returns false). (cmb)
+  . Fixed bug #48016 (stdClass::__setState is not defined although var_export() uses it). (Andrea)
 
 - Tokenizer:
   . Fixed bug #76538 (token_get_all with TOKEN_PARSE flag fails to recognise
