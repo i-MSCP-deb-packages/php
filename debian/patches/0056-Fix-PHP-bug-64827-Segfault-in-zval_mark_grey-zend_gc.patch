@@ -1,4 +1,4 @@
-From: =?utf-8?q?Ond=C5=99ej_Sur=C3=BD?= <ondrej@sury.org>
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
 Date: Sat, 8 Apr 2017 10:40:20 +0200
 Subject: Fix PHP bug #64827: Segfault in zval_mark_grey (zend_gc.c)
 

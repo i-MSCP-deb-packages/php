@@ -1,4 +1,4 @@
-From: =?utf-8?q?Ond=C5=99ej_Sur=C3=BD?= <ondrej@sury.org>
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
 Date: Mon, 14 Mar 2016 16:09:34 +0100
 Subject: Really expand $libdir/$datadir into @EXPANDED_LIBDIR/DATADIR@
 
@@ -7,7 +7,7 @@ Subject: Really expand $libdir/$datadir into @EXPANDED_LIBDIR/DATADIR@
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/configure.in b/configure.in
-index f61cedb..4fe6007 100644
+index 2a92522..c99e60b 100644
 --- a/configure.in
 +++ b/configure.in
 @@ -1244,9 +1244,9 @@ EXPANDED_LOCALSTATEDIR=`eval echo $localstatedir`

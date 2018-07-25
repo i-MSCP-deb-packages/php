@@ -1,4 +1,4 @@
-From: =?utf-8?q?Ond=C5=99ej_Sur=C3=BD?= <ondrej@sury.org>
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
 Date: Fri, 4 Dec 2015 15:53:50 +0100
 Subject: Don't put $(INSTALL_ROOT) into phar.phar exec stanza
 
