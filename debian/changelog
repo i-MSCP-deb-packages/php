@@ -1,3 +1,9 @@
+php7.2 (7.2.8-2) unstable; urgency=medium
+
+  * Build in a chroot which hasn't been usr-merged (Closes: #905187)
+
+ -- Lior Kaplan <kaplan@debian.org>  Thu, 02 Aug 2018 07:09:06 +0300
+
 php7.2 (7.2.8-1) unstable; urgency=medium
 
   [ Ondřej Surý ]
