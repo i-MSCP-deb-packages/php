@@ -259,11 +259,15 @@ FPM:
 ========================================
 
 Core:
-  . The declaration of case-insensitive constants has been deprecate. Passing
+  . The declaration of case-insensitive constants has been deprecated. Passing
     true as the third argument to define() will now generate a deprecation
     warning. The use of case-insensitive constants with a case that differs from
     the declaration is also deprecated.
     (RFC: https://wiki.php.net/rfc/case_insensitive_constant_deprecation)
+  . Declaring a function called assert() inside a namespace is deprecated.
+    The assert() function is subject to special handling by the engine, which
+    may lead to inconsistent behavior when defining a namespaced function with
+    the same name.
 
 Filter:
   . The explicit usage of the constants FILTER_FLAG_SCHEME_REQUIRED and
@@ -274,7 +278,47 @@ GD:
   . image2wbmp() has been deprecated.
 
 Intl:
-  . Usage of the Normalizer::NONE form throws a deprecation warning, if PHP is linked with ICU >= 56.
+  . Usage of the Normalizer::NONE form throws a deprecation warning, if PHP is
+    linked with ICU >= 56.
+
+Mbstring:
+  . The following undocumented mbereg_*() aliases have been deprecated. Use the
+    corresponding mb_ereg_*() variants instead.
+     . mbregex_encoding()
+     . mbereg()
+     . mberegi()
+     . mbereg_replace()
+     . mberegi_replace()
+     . mbsplit()
+     . mbereg_match()
+     . mbereg_search()
+     . mbereg_search_pos()
+     . mbereg_search_regs()
+     . mbereg_search_init()
+     . mbereg_search_getregs()
+     . mbereg_search_getpos()
+     . mbereg_search_setpos()
+
+PDO ODBC:
+  . The pdo_odbc.db2_instance_name ini setting has been formally deprecated. It
+    has already been deprecated in the documentation since PHP 5.1.1.
+
+Standard:
+  . Passing a non-string needle to string search functions is deprecated. In the
+    future the needle will be interpreted as a string instead of an ASCII codepoint.
+    Depending on the intended behavior, you should either explicitly cast the
+    needle to string or perform an explicit call to ord(). The following functions
+    are affected:
+      . strpos()
+      . strrpos()
+      . stripos()
+      . strripos()
+      . strstr()
+      . strchr()
+      . strrchr()
+      . stristr()
+  . The fgetss() function and the string.strip_tags stream filter have been deprecated.
+    This also affects the SplFileObject::fgetss() method and gzgetss() function.
 
 ========================================
 5. Changed Functions
@@ -288,11 +332,23 @@ JSON:
     precedence over JSON_THROW_ON_ERROR.
     (RFC: https://wiki.php.net/rfc/json_throw_on_error)
 
+Session:
+  . session_set_cookie_params() now also supports the following signature:
+    session_set_cookie_params(array $options)
+    where $options is an associative array which may have any of the keys
+    "lifetime", "path", "domain", "secure", "httponly" and "samesite".
+    Accordingly, the return value of session_get_cookie_params() now also has an
+    element with the key "samesite".
+
 Standard:
   . debug_zval_dump() was changed to display recursive arrays and objects
     in the same way as var_dump(). Now, it doesn't display them twice.
   . array_push() and array_unshift() can now also be called with a single
     argument, which is particularly convenient wrt. the spread operator.
+  . setcookie() and setrawcookie() now also support the following signature:
+    set(raw)cookie(string $name, [string $value, [array $options]])
+    where $options is an associative array which may have any of the keys
+    "expires", "path", "domain", "secure", "httponly" and "samesite".
 
 PCRE:
   . preg_quote() now also escapes the '#' character.
@@ -432,6 +488,13 @@ Curl:
 JSON:
   . JSON_THROW_ON_ERROR
 
+MBString:
+  . MB_CASE_FOLD
+  . MB_CASE_LOWER_SIMPLE
+  . MB_CASE_UPPER_SIMPLE
+  . MB_CASE_TITLE_SIMPLE
+  . MB_CASE_FOLD_SIMPLE
+
 PGSQL:
   . Requires Postgres 9.3
     - PGSQL_DIAG_SCHEMA_NAME
@@ -456,9 +519,19 @@ Standard:
   . This INI directive has been removed. The value has already been ignored
     since PHP 5.3.0.
 
+- session.cookie_samesite
+  . New INI option to allow to set the SameSite directive for cookies. Defaults
+    to "" (empty string), so no SameSite directive is set. Can be set to "Lax"
+    or "Strict", which sets the respective SameSite directive.
+
 - syslog.facility
   - New INI to set syslog facility which specifies what type of program is
     logging the message. It is used only when error_log is set to syslog.
+
+- syslog.filter
+  . New INI to set syslog filter type to filter the logged messages. There are
+    3 supported filter types - all, no-ctrl and ascii. It is used only when
+    error_log is set to syslog.
 
 - syslog.ident
   . New INI to set syslog ident string which is prepended to every message. It

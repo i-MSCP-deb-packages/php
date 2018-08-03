@@ -23,8 +23,6 @@
  * THE SOFTWARE.
  */
 
-/* $Id$ */
-
 #include "timelib.h"
 #include "timelib_private.h"
 
