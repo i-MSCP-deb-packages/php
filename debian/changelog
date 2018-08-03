@@ -1,3 +1,14 @@
+php7.3 (7.3.0~beta1-1) unstable; urgency=medium
+
+  [ Lior Kaplan ]
+  * Fix syntax typo
+
+  [ Ondřej Surý ]
+  * New upstream version 7.3.0~beta1
+  * Rebase patches for PHP 7.3.0beta1
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 03 Aug 2018 13:52:09 +0000
+
 php7.3 (7.3.0~alpha4-1) unstable; urgency=medium
 
   * Use cpuid.h instead of custom assembler
