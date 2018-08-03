@@ -12,7 +12,7 @@ php7.1 (7.1.19-1) unstable; urgency=medium
   * New upstream version 7.1.19
   * Rebased patches for PHP 7.1.19
   * Update Vcs-* links to salsa.d.o
-  * Update maintainer address to team+pkg-php@tracker.d.o
+  * Update maintainer address to team+pkg-php@tracker.d.o (Closes: #899656)
 
  -- Ondřej Surý <ondrej@debian.org>  Mon, 09 Jul 2018 13:07:27 +0000
 
