@@ -123,7 +123,7 @@ License: BSD-3-clause
 
 Files: ext/mbstring/oniguruma/src/st.h ext/mbstring/oniguruma/src/st.c
 Copyright: 1989 Peter Moore
-License public-domain
+License: public-domain
  This is a public domain general purpose hash table package.
 
 Files: ext/mbstring/oniguruma/
