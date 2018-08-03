@@ -7,10 +7,10 @@ Subject: zlib-largefile-function-renaming
  1 file changed, 12 insertions(+)
 
 diff --git a/ext/zlib/zlib.c b/ext/zlib/zlib.c
-index a5028a7..be3b78f 100644
+index 5fd396d..da29fdd 100644
 --- a/ext/zlib/zlib.c
 +++ b/ext/zlib/zlib.c
-@@ -49,6 +49,18 @@
+@@ -47,6 +47,18 @@
  int le_deflate;
  int le_inflate;
  

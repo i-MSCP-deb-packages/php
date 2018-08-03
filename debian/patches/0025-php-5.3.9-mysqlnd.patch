@@ -21,10 +21,10 @@ index 780526b..68f211f 100644
  		}
  		transport.l = mnd_sprintf(&transport.s, 0, "unix://%s", socket_or_pipe->s);
 diff --git a/ext/pdo_mysql/pdo_mysql.c b/ext/pdo_mysql/pdo_mysql.c
-index af7be2c..a3f485d 100644
+index 60813a6..fbba4c9 100644
 --- a/ext/pdo_mysql/pdo_mysql.c
 +++ b/ext/pdo_mysql/pdo_mysql.c
-@@ -53,7 +53,7 @@ ZEND_DECLARE_MODULE_GLOBALS(pdo_mysql)
+@@ -51,7 +51,7 @@ ZEND_DECLARE_MODULE_GLOBALS(pdo_mysql)
  #  define PDO_MYSQL_UNIX_ADDR PHP_MYSQL_UNIX_SOCK_ADDR
  # else
  #  if !PHP_WIN32

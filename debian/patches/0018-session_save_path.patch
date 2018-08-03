@@ -9,10 +9,10 @@ Subject: session_save_path
  3 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/ext/session/session.c b/ext/session/session.c
-index a86f7c2..d956121 100644
+index c7d54b0..50a18e4 100644
 --- a/ext/session/session.c
 +++ b/ext/session/session.c
-@@ -791,7 +791,7 @@ static PHP_INI_MH(OnUpdateRfc1867Freq) /* {{{ */
+@@ -789,7 +789,7 @@ static PHP_INI_MH(OnUpdateRfc1867Freq) /* {{{ */
  /* {{{ PHP_INI
   */
  PHP_INI_BEGIN()
@@ -22,10 +22,10 @@ index a86f7c2..d956121 100644
  	PHP_INI_ENTRY("session.save_handler",           "files",     PHP_INI_ALL, OnUpdateSaveHandler)
  	STD_PHP_INI_BOOLEAN("session.auto_start",       "0",         PHP_INI_PERDIR, OnUpdateBool,       auto_start,         php_ps_globals,    ps_globals)
 diff --git a/php.ini-development b/php.ini-development
-index a08ff35..1597f03 100644
+index b343f95..1bc11e6 100644
 --- a/php.ini-development
 +++ b/php.ini-development
-@@ -1336,7 +1336,7 @@ session.save_handler = files
+@@ -1346,7 +1346,7 @@ session.save_handler = files
  ; where MODE is the octal representation of the mode. Note that this
  ; does not overwrite the process's umask.
  ; http://php.net/session.save-path
@@ -35,10 +35,10 @@ index a08ff35..1597f03 100644
  ; Whether to use strict session mode.
  ; Strict session mode does not accept an uninitialized session ID, and
 diff --git a/php.ini-production b/php.ini-production
-index c98b022..6c1ed74 100644
+index fe78ae5..7461c7c 100644
 --- a/php.ini-production
 +++ b/php.ini-production
-@@ -1337,7 +1337,7 @@ session.save_handler = files
+@@ -1347,7 +1347,7 @@ session.save_handler = files
  ; where MODE is the octal representation of the mode. Note that this
  ; does not overwrite the process's umask.
  ; http://php.net/session.save-path

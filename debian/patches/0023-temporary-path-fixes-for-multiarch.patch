@@ -11,10 +11,10 @@ Subject: temporary-path-fixes-for-multiarch
  5 files changed, 16 insertions(+), 16 deletions(-)
 
 diff --git a/acinclude.m4 b/acinclude.m4
-index 7b2163d..1e6f210 100644
+index 11d3802..68fa51e 100644
 --- a/acinclude.m4
 +++ b/acinclude.m4
-@@ -2284,7 +2284,7 @@ AC_DEFUN([PHP_SETUP_KERBEROS],[
+@@ -2220,7 +2220,7 @@ AC_DEFUN([PHP_SETUP_KERBEROS],[
      fi
  
      for i in $PHP_KERBEROS; do
@@ -23,7 +23,7 @@ index 7b2163d..1e6f210 100644
          PHP_KERBEROS_DIR=$i
          break
        fi
-@@ -2363,7 +2363,7 @@ AC_DEFUN([PHP_SETUP_OPENSSL],[
+@@ -2299,7 +2299,7 @@ AC_DEFUN([PHP_SETUP_OPENSSL],[
        if test -r $i/include/openssl/evp.h; then
          OPENSSL_INCDIR=$i/include
        fi
@@ -33,10 +33,10 @@ index 7b2163d..1e6f210 100644
        fi
        test -n "$OPENSSL_INCDIR" && test -n "$OPENSSL_LIBDIR" && break
 diff --git a/ext/dba/config.m4 b/ext/dba/config.m4
-index c43cf91..90299e4 100644
+index 84ab6a9..ecb5cad 100644
 --- a/ext/dba/config.m4
 +++ b/ext/dba/config.m4
-@@ -273,7 +273,7 @@ AC_DEFUN([PHP_DBA_DB_CHECK],[
+@@ -271,7 +271,7 @@ AC_DEFUN([PHP_DBA_DB_CHECK],[
      AC_MSG_ERROR([DBA: Could not find necessary header file(s).])
    fi
    for LIB in $2; do
@@ -44,9 +44,9 @@ index c43cf91..90299e4 100644
 +    if test -f $THIS_PREFIX/$PHP_LIBDIR/lib$LIB.a || test -f $THIS_PREFIX/$PHP_LIBDIR/$DEB_HOST_MULTIARCH/lib$LIB.$SHLIB_SUFFIX_NAME || test -f $THIS_PREFIX/$PHP_LIBDIR/lib$LIB.$SHLIB_SUFFIX_NAME; then
        lib_found="";
        PHP_TEMP_LDFLAGS(-L$THIS_PREFIX/$PHP_LIBDIR, -l$LIB,[
-         AC_TRY_LINK([
+         AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 diff --git a/ext/gmp/config.m4 b/ext/gmp/config.m4
-index a1c565b..9d6db02 100644
+index 75ddf3f..cf1f197 100644
 --- a/ext/gmp/config.m4
 +++ b/ext/gmp/config.m4
 @@ -7,6 +7,7 @@ if test "$PHP_GMP" != "no"; then
@@ -66,10 +66,10 @@ index a1c565b..9d6db02 100644
  
    PHP_NEW_EXTENSION(gmp, gmp.c, $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
 diff --git a/ext/ldap/config.m4 b/ext/ldap/config.m4
-index 69651a8..9568760 100644
+index 6a34fb7..0219476 100644
 --- a/ext/ldap/config.m4
 +++ b/ext/ldap/config.m4
-@@ -117,16 +117,14 @@ if test "$PHP_LDAP" != "no"; then
+@@ -115,16 +115,14 @@ if test "$PHP_LDAP" != "no"; then
      LDAP_PTHREAD=
    fi
  
@@ -89,7 +89,7 @@ index 69651a8..9568760 100644
      if test -n "$LDAP_PTHREAD"; then
        PHP_ADD_LIBRARY($LDAP_PTHREAD)
      fi
-@@ -139,7 +137,7 @@ if test "$PHP_LDAP" != "no"; then
+@@ -137,7 +135,7 @@ if test "$PHP_LDAP" != "no"; then
      PHP_ADD_LIBRARY_WITH_PATH(ssl3, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
      AC_DEFINE(HAVE_NSLDAP,1,[ ])
  
@@ -98,7 +98,7 @@ index 69651a8..9568760 100644
      if test -n "$LDAP_PTHREAD"; then
        PHP_ADD_LIBRARY($LDAP_PTHREAD)
      fi
-@@ -149,35 +147,35 @@ if test "$PHP_LDAP" != "no"; then
+@@ -147,35 +145,35 @@ if test "$PHP_LDAP" != "no"; then
      PHP_ADD_LIBRARY_WITH_PATH(ldapssl41, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
      AC_DEFINE(HAVE_NSLDAP,1,[ ])
  
@@ -141,10 +141,10 @@ index 69651a8..9568760 100644
       AC_DEFINE(HAVE_ORALDAP,1,[ ])
       AC_DEFINE(HAVE_ORALDAP_10,1,[ ])
 diff --git a/ext/pdo_dblib/config.m4 b/ext/pdo_dblib/config.m4
-index 407c3fe..17eb11a 100644
+index 3f2bcc4..7bb9f2d 100644
 --- a/ext/pdo_dblib/config.m4
 +++ b/ext/pdo_dblib/config.m4
-@@ -46,7 +46,7 @@ if test "$PHP_PDO_DBLIB" != "no"; then
+@@ -44,7 +44,7 @@ if test "$PHP_PDO_DBLIB" != "no"; then
      PHP_LIBDIR=lib
    fi
  

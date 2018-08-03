@@ -7,10 +7,10 @@ Subject: Add patch to install php7 module directly to APXS_LIBEXEC
  1 file changed, 3 insertions(+), 12 deletions(-)
 
 diff --git a/sapi/apache2handler/config.m4 b/sapi/apache2handler/config.m4
-index 7bdbb1c..9be323b 100644
+index e54edae..8498b60 100644
 --- a/sapi/apache2handler/config.m4
 +++ b/sapi/apache2handler/config.m4
-@@ -59,18 +59,9 @@ if test "$PHP_APXS2" != "no"; then
+@@ -57,18 +57,9 @@ if test "$PHP_APXS2" != "no"; then
    APACHE_CFLAGS="$APACHE_CPPFLAGS -I$APXS_INCLUDEDIR $APR_CFLAGS $APU_CFLAGS -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
  
    APXS_LIBEXECDIR='$(INSTALL_ROOT)'`$APXS -q LIBEXECDIR`

@@ -45,4 +45,3 @@
 0045-Really-expand-libdir-datadir-into-EXPANDED_LIBDIR-DA.patch
 0046-Fix-ext-date-lib-parse_tz-PATH_MAX-HURD-FTBFS.patch
 0047-Revert-libxmlrc-uses-system-malloc-instead-of-PHP-al.patch
-fix-inconsistent-operand-constraints-in-an-asm.patch

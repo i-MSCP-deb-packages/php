@@ -16,7 +16,7 @@ Subject: php-5.3.9-gnusrc
  10 files changed, 5 insertions(+), 10 deletions(-)
 
 diff --git a/Zend/zend_language_parser.c b/Zend/zend_language_parser.c
-index 7168323..19fd55e 100644
+index 5191817..7ef8c72 100644
 --- a/Zend/zend_language_parser.c
 +++ b/Zend/zend_language_parser.c
 @@ -69,6 +69,8 @@
@@ -29,7 +29,7 @@ index 7168323..19fd55e 100644
  /*
     +----------------------------------------------------------------------+
 diff --git a/configure.ac b/configure.ac
-index 98bc893..8ed83f8 100644
+index bf8ab68..9edb9ec 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -124,6 +124,8 @@ AC_DEFUN([PHP_EXT_DIR],[$config_m4_dir])dnl
@@ -42,7 +42,7 @@ index 98bc893..8ed83f8 100644
  dnl -------------------------------------------------------------------------
  
 diff --git a/ext/interbase/interbase.c b/ext/interbase/interbase.c
-index 27cbb32..385be74 100644
+index 4781332..46f6a11 100644
 --- a/ext/interbase/interbase.c
 +++ b/ext/interbase/interbase.c
 @@ -22,7 +22,6 @@
@@ -66,10 +66,10 @@ index 6b77e31..ce852ba 100644
  #include "php.h"
  #include "zend_exceptions.h"
 diff --git a/ext/standard/file.c b/ext/standard/file.c
-index 9507ae5..dc16ce8 100644
+index 3304c64..f71f027 100644
 --- a/ext/standard/file.c
 +++ b/ext/standard/file.c
-@@ -107,9 +107,6 @@ php_file_globals file_globals;
+@@ -105,9 +105,6 @@ php_file_globals file_globals;
  #endif
  
  #if defined(HAVE_FNMATCH) && !defined(PHP_WIN32)
@@ -80,12 +80,12 @@ index 9507ae5..dc16ce8 100644
  #endif
  
 diff --git a/ext/zlib/zlib_fopen_wrapper.c b/ext/zlib/zlib_fopen_wrapper.c
-index 3544ada..2f960b3 100644
+index 433ba15..4eb56cd 100644
 --- a/ext/zlib/zlib_fopen_wrapper.c
 +++ b/ext/zlib/zlib_fopen_wrapper.c
-@@ -19,8 +19,6 @@
- 
- /* $Id$ */
+@@ -17,8 +17,6 @@
+    +----------------------------------------------------------------------+
+  */
  
 -#define _GNU_SOURCE
 -
@@ -93,10 +93,10 @@ index 3544ada..2f960b3 100644
  #include "php_zlib.h"
  #include "fopen_wrappers.h"
 diff --git a/main/php.h b/main/php.h
-index 945e2b3..9bb1dd4 100644
+index 697d3ff..768e973 100644
 --- a/main/php.h
 +++ b/main/php.h
-@@ -31,6 +31,7 @@
+@@ -29,6 +29,7 @@
  #define YYDEBUG 0
  #define PHP_DEFAULT_CHARSET "UTF-8"
  
@@ -105,36 +105,36 @@ index 945e2b3..9bb1dd4 100644
  #include "zend.h"
  #include "zend_sort.h"
 diff --git a/main/streams/cast.c b/main/streams/cast.c
-index 0c2510e..f810933 100644
+index 6cfa651..1fae8ff 100644
 --- a/main/streams/cast.c
 +++ b/main/streams/cast.c
-@@ -18,7 +18,6 @@
- 
- /* $Id$ */
+@@ -16,7 +16,6 @@
+    +----------------------------------------------------------------------+
+  */
  
 -#define _GNU_SOURCE
  #include "php.h"
  #include "php_globals.h"
  #include "php_network.h"
 diff --git a/main/streams/memory.c b/main/streams/memory.c
-index 99bbb12..60e0493 100644
+index d088f43..56d3a67 100644
 --- a/main/streams/memory.c
 +++ b/main/streams/memory.c
-@@ -18,7 +18,6 @@
- 
- /* $Id$ */
+@@ -16,7 +16,6 @@
+    +----------------------------------------------------------------------+
+  */
  
 -#define _GNU_SOURCE
  #include "php.h"
  #include "ext/standard/base64.h"
  
 diff --git a/main/streams/streams.c b/main/streams/streams.c
-index 6f77b29..cd02561 100644
+index df98bda..0afc2cd 100644
 --- a/main/streams/streams.c
 +++ b/main/streams/streams.c
-@@ -21,7 +21,6 @@
- 
- /* $Id$ */
+@@ -19,7 +19,6 @@
+    +----------------------------------------------------------------------+
+  */
  
 -#define _GNU_SOURCE
  #include "php.h"

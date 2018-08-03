@@ -7,10 +7,10 @@ Subject: qdbm-is-usr_include_qdbm
  1 file changed, 4 insertions(+)
 
 diff --git a/ext/dba/config.m4 b/ext/dba/config.m4
-index 519c233..c43cf91 100644
+index ef13306..84ab6a9 100644
 --- a/ext/dba/config.m4
 +++ b/ext/dba/config.m4
-@@ -116,6 +116,10 @@ if test "$PHP_QDBM" != "no"; then
+@@ -114,6 +114,10 @@ if test "$PHP_QDBM" != "no"; then
        THIS_PREFIX=$i
        THIS_INCLUDE=$i/include/depot.h
        break

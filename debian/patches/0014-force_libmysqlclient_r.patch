@@ -8,10 +8,10 @@ Subject: force_libmysqlclient_r
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/ext/mysqli/config.m4 b/ext/mysqli/config.m4
-index c700dac..8932005 100644
+index 38a130f..6038867 100644
 --- a/ext/mysqli/config.m4
 +++ b/ext/mysqli/config.m4
-@@ -59,7 +59,7 @@ elif test "$PHP_MYSQLI" != "no"; then
+@@ -57,7 +57,7 @@ elif test "$PHP_MYSQLI" != "no"; then
      MYSQL_LIB_CFG='--libmysqld-libs'
      dnl mysqlnd doesn't support embedded, so we have to add some extra stuff
      mysqli_extra_sources="mysqli_embedded.c"
@@ -21,10 +21,10 @@ index c700dac..8932005 100644
      MYSQL_LIB_NAME='mysqlclient_r'
    else
 diff --git a/ext/pdo_mysql/config.m4 b/ext/pdo_mysql/config.m4
-index f787cdf..f48dbc1 100755
+index 3e37a6a..17186b2 100755
 --- a/ext/pdo_mysql/config.m4
 +++ b/ext/pdo_mysql/config.m4
-@@ -67,7 +67,7 @@ if test "$PHP_PDO_MYSQL" != "no"; then
+@@ -66,7 +66,7 @@ if test "$PHP_PDO_MYSQL" != "no"; then
        if test "x$SED" = "x"; then
          AC_PATH_PROG(SED, sed)
        fi

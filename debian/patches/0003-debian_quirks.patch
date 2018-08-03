@@ -13,10 +13,10 @@ Subject: debian_quirks
  7 files changed, 20 insertions(+), 16 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 019179e..16fd570 100644
+index be24f46..7a9ab13 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1138,7 +1138,7 @@ if test "$PHP_CLI" = "no"; then
+@@ -1136,7 +1136,7 @@ if test "$PHP_CLI" = "no"; then
  fi
  
  PHP_ARG_WITH(pear, [whether to install PEAR],
@@ -25,7 +25,7 @@ index 019179e..16fd570 100644
    --without-pear          Do not install PEAR], DEFAULT, yes)
  
  if test "$PHP_PEAR" != "no"; then
-@@ -1175,6 +1175,7 @@ dnl
+@@ -1173,6 +1173,7 @@ dnl
    PHP_ADD_MAKEFILE_FRAGMENT($abs_srcdir/pear/Makefile.frag,$abs_srcdir/pear,pear)
  fi
  
@@ -33,7 +33,7 @@ index 019179e..16fd570 100644
  
  dnl Configuring Zend and TSRM.
  dnl -------------------------------------------------------------------------
-@@ -1247,6 +1248,8 @@ dnl Build extension directory path
+@@ -1245,6 +1246,8 @@ dnl Build extension directory path
  
  ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modules.h|$SED 's/#define ZEND_MODULE_API_NO //'`
  
@@ -43,10 +43,10 @@ index 019179e..16fd570 100644
    extbasedir=$ZEND_MODULE_API_NO
    if test "$oldstyleextdir" = "yes"; then
 diff --git a/php.ini-development b/php.ini-development
-index 3f45c08..ed5d897 100644
+index 9edeb07..6a39b7c 100644
 --- a/php.ini-development
 +++ b/php.ini-development
-@@ -712,7 +712,7 @@ default_charset = "UTF-8"
+@@ -722,7 +722,7 @@ default_charset = "UTF-8"
  ;;;;;;;;;;;;;;;;;;;;;;;;;
  
  ; UNIX: "/path1:/path2"
@@ -56,10 +56,10 @@ index 3f45c08..ed5d897 100644
  ; Windows: "\path1;\path2"
  ;include_path = ".;c:\php\includes"
 diff --git a/php.ini-production b/php.ini-production
-index 793174d..c98b022 100644
+index dbd4175..fe78ae5 100644
 --- a/php.ini-production
 +++ b/php.ini-production
-@@ -719,7 +719,7 @@ default_charset = "UTF-8"
+@@ -729,7 +729,7 @@ default_charset = "UTF-8"
  ;;;;;;;;;;;;;;;;;;;;;;;;;
  
  ; UNIX: "/path1:/path2"

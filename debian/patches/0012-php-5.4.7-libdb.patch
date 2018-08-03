@@ -8,10 +8,10 @@ Subject: php-5.4.7-libdb
  2 files changed, 10 insertions(+), 50 deletions(-)
 
 diff --git a/ext/dba/config.m4 b/ext/dba/config.m4
-index 37ecd76..519c233 100644
+index 86fa480..ef13306 100644
 --- a/ext/dba/config.m4
 +++ b/ext/dba/config.m4
-@@ -346,61 +346,13 @@ if test "$PHP_DB4" != "no"; then
+@@ -344,61 +344,13 @@ if test "$PHP_DB4" != "no"; then
    dbdp4="/usr/local/BerkeleyDB.4."
    dbdp5="/usr/local/BerkeleyDB.5."
    for i in $PHP_DB4 ${dbdp5}1 ${dbdp5}0 ${dbdp4}8 ${dbdp4}7 ${dbdp4}6 ${dbdp4}5 ${dbdp4}4 ${dbdp4}3 ${dbdp4}2 ${dbdp4}1 ${dbdp}0 /usr/local /usr; do
@@ -76,10 +76,10 @@ index 37ecd76..519c233 100644
  PHP_DBA_STD_RESULT(db4,Berkeley DB4)
  
 diff --git a/ext/dba/dba.c b/ext/dba/dba.c
-index 0e3dce4..90fa0e3 100644
+index c7bea22..0aca1a5 100644
 --- a/ext/dba/dba.c
 +++ b/ext/dba/dba.c
-@@ -53,6 +53,10 @@
+@@ -51,6 +51,10 @@
  #include "php_tcadb.h"
  #include "php_lmdb.h"
  
@@ -90,7 +90,7 @@ index 0e3dce4..90fa0e3 100644
  /* {{{ arginfo */
  ZEND_BEGIN_ARG_INFO_EX(arginfo_dba_popen, 0, 0, 2)
  	ZEND_ARG_INFO(0, path)
-@@ -558,6 +562,10 @@ PHP_MINFO_FUNCTION(dba)
+@@ -556,6 +560,10 @@ PHP_MINFO_FUNCTION(dba)
  
  	php_info_print_table_start();
   	php_info_print_table_row(2, "DBA support", "enabled");
