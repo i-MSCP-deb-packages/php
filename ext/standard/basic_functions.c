@@ -17,8 +17,6 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id$ */
-
 #include "php.h"
 #include "php_streams.h"
 #include "php_main.h"
@@ -1433,7 +1431,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_setcookie, 0, 0, 1)
 	ZEND_ARG_INFO(0, name)
 	ZEND_ARG_INFO(0, value)
-	ZEND_ARG_INFO(0, expires)
+	ZEND_ARG_INFO(0, expires_or_options)
 	ZEND_ARG_INFO(0, path)
 	ZEND_ARG_INFO(0, domain)
 	ZEND_ARG_INFO(0, secure)
@@ -1443,7 +1441,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_setrawcookie, 0, 0, 1)
 	ZEND_ARG_INFO(0, name)
 	ZEND_ARG_INFO(0, value)
-	ZEND_ARG_INFO(0, expires)
+	ZEND_ARG_INFO(0, expires_or_options)
 	ZEND_ARG_INFO(0, path)
 	ZEND_ARG_INFO(0, domain)
 	ZEND_ARG_INFO(0, secure)
@@ -3137,7 +3135,7 @@ static const zend_function_entry basic_functions[] = { /* {{{ */
 	PHP_FE(feof,															arginfo_feof)
 	PHP_FE(fgetc,															arginfo_fgetc)
 	PHP_FE(fgets,															arginfo_fgets)
-	PHP_FE(fgetss,															arginfo_fgetss)
+	PHP_DEP_FE(fgetss,														arginfo_fgetss)
 	PHP_FE(fread,															arginfo_fread)
 	PHP_NAMED_FE(fopen,				php_if_fopen,							arginfo_fopen)
 	PHP_FE(fpassthru,														arginfo_fpassthru)

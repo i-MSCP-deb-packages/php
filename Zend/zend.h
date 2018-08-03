@@ -17,8 +17,6 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id$ */
-
 #ifndef ZEND_H
 #define ZEND_H
 
@@ -139,7 +137,7 @@ struct _zend_class_entry {
 	union _zend_function *serialize_func;
 	union _zend_function *unserialize_func;
 
-	/* allocated only if class implements Itetrator or IteratorAggregate interface */
+	/* allocated only if class implements Iterator or IteratorAggregate interface */
 	zend_class_iterator_funcs *iterator_funcs_ptr;
 
 	/* handlers */

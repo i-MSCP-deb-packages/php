@@ -20,8 +20,6 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id$ */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -1302,12 +1300,10 @@ PHP_FUNCTION(odbc_execute)
 	unsigned char otype;
 	SQLSMALLINT ctype;
    	odbc_result *result;
-	int numArgs, i, ne;
+	int numArgs = ZEND_NUM_ARGS(), i, ne;
 	RETCODE rc;
 
-	numArgs = ZEND_NUM_ARGS();
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r|a", &pv_res, &pv_param_arr) == FAILURE) {
+	if (zend_parse_parameters(numArgs, "r|a", &pv_res, &pv_param_arr) == FAILURE) {
 		return;
 	}
 

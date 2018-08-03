@@ -18,8 +18,6 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id$ */
-
 #include <stdio.h>
 #include "php.h"
 #include "php_rand.h"
@@ -1881,6 +1879,10 @@ PHP_FUNCTION(stristr)
 		}
 		needle_char[1] = 0;
 
+		php_error_docref(NULL, E_DEPRECATED,
+			"Non-string needles will be interpreted as strings in the future. " \
+			"Use an explicit chr() call to preserve the current behavior");
+
 		found = php_stristr(haystack_dup, needle_char, ZSTR_LEN(haystack), 1);
 	}
 
@@ -1929,6 +1931,10 @@ PHP_FUNCTION(strstr)
 			RETURN_FALSE;
 		}
 		needle_char[1] = 0;
+
+		php_error_docref(NULL, E_DEPRECATED,
+			"Non-string needles will be interpreted as strings in the future. " \
+			"Use an explicit chr() call to preserve the current behavior");
 
 		found = php_memnstr(ZSTR_VAL(haystack), needle_char, 1, ZSTR_VAL(haystack) + ZSTR_LEN(haystack));
 	}
@@ -1990,6 +1996,10 @@ PHP_FUNCTION(strpos)
 		}
 		needle_char[1] = 0;
 
+		php_error_docref(NULL, E_DEPRECATED,
+			"Non-string needles will be interpreted as strings in the future. " \
+			"Use an explicit chr() call to preserve the current behavior");
+
 		found = (char*)php_memnstr(ZSTR_VAL(haystack) + offset,
 							needle_char,
 							1,
@@ -2047,6 +2057,11 @@ PHP_FUNCTION(stripos)
 		if (php_needle_char(needle, needle_char) != SUCCESS) {
 			RETURN_FALSE;
 		}
+
+		php_error_docref(NULL, E_DEPRECATED,
+			"Non-string needles will be interpreted as strings in the future. " \
+			"Use an explicit chr() call to preserve the current behavior");
+
 		haystack_dup = php_string_tolower(haystack);
 		needle_char[0] = tolower(needle_char[0]);
 		needle_char[1] = '\0';
@@ -2095,6 +2110,11 @@ PHP_FUNCTION(strrpos)
 		if (php_needle_char(zneedle, ord_needle) != SUCCESS) {
 			RETURN_FALSE;
 		}
+
+		php_error_docref(NULL, E_DEPRECATED,
+			"Non-string needles will be interpreted as strings in the future. " \
+			"Use an explicit chr() call to preserve the current behavior");
+
 		ord_needle[1] = '\0';
 		needle = ord_needle;
 		needle_len = 1;
@@ -2159,6 +2179,11 @@ PHP_FUNCTION(strripos)
 			ZSTR_ALLOCA_FREE(ord_needle, use_heap);
 			RETURN_FALSE;
 		}
+
+		php_error_docref(NULL, E_DEPRECATED,
+			"Non-string needles will be interpreted as strings in the future. " \
+			"Use an explicit chr() call to preserve the current behavior");
+
 		ZSTR_VAL(ord_needle)[1] = '\0';
 		needle = ord_needle;
 	}
@@ -2262,6 +2287,10 @@ PHP_FUNCTION(strrchr)
 		if (php_needle_char(needle, &needle_chr) != SUCCESS) {
 			RETURN_FALSE;
 		}
+
+		php_error_docref(NULL, E_DEPRECATED,
+			"Non-string needles will be interpreted as strings in the future. " \
+			"Use an explicit chr() call to preserve the current behavior");
 
 		found = zend_memrchr(ZSTR_VAL(haystack),  needle_chr, ZSTR_LEN(haystack));
 	}
