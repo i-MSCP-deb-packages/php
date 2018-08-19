@@ -3001,7 +3001,7 @@ static zend_always_inline int zend_is_callable_check_func(int check_flags, zval 
 		if (UNEXPECTED(Z_STRVAL_P(callable)[0] == '\\')) {
 			/* Skip leading \ */
 			ZSTR_ALLOCA_ALLOC(lmname, Z_STRLEN_P(callable) - 1, use_heap);
-			zend_str_tolower_copy(ZSTR_VAL(lmname), Z_STRVAL_P(callable) + 1, Z_STRLEN_P(callable));
+			zend_str_tolower_copy(ZSTR_VAL(lmname), Z_STRVAL_P(callable) + 1, Z_STRLEN_P(callable) - 1);
 			func = zend_fetch_function(lmname);
 			ZSTR_ALLOCA_FREE(lmname, use_heap);
 		} else {
@@ -4193,7 +4193,7 @@ ZEND_API zval *zend_read_static_property_ex(zend_class_entry *scope, zend_string
 ZEND_API zval *zend_read_static_property(zend_class_entry *scope, const char *name, size_t name_length, zend_bool silent) /* {{{ */
 {
 	zend_string *key = zend_string_init(name, name_length, 0);
-	zval *property = zend_std_get_static_property(scope, key, silent);
+	zval *property = zend_read_static_property_ex(scope, key, silent);
 	zend_string_efree(key);
 	return property;
 }

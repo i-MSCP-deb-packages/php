@@ -1,5 +1,47 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+16 Aug 2018, PHP 7.3.0beta2
+
+- Core:
+  . Fixed bug #76030 (RE2C_FLAGS rarely honoured) (Cristian Rodríguez)
+
+- Bz2:
+  . Fixed arginfo for bzcompress. (Tyson Andre)
+
+- DOM:
+  . Reverted fix for bug #76285 (DOMDocument::formatOutput attribute sometimes
+    ignored). (cmb)
+
+- gettext:
+  . Fixed bug #76517 (incorrect restoring of LDFLAGS). (sji)
+
+- intl:
+  . Fixed bug #74484 (MessageFormatter::formatMessage memory corruption with
+    11+ named placeholders). (Anatol)
+
+- mbstring:
+  . Fixed bug #76704 (mb_detect_order return value varies based on argument
+    type). (cmb)
+  . Fixed bug #76706 (mbstring.http_output_conv_mimetypes is ignored). (cmb)
+
+- phpdbg:
+  . Fixed bug #76595 (phpdbg man page contains outdated information).
+    (Kevin Abel)
+
+- Standard:
+  . Fixed bug #76688 (Disallow excessive parameters after options array).
+    (pmmaga)
+  . Fixed bug #76713 (Segmentation fault caused by property corruption).
+    (Laruence)
+
+- Tidy:
+  . Fixed arginfo for tidy::__construct(). (Tyson Andre)
+
+- zlib:
+  . Fixed bug #65988 (Zlib version check fails when an include/zlib/ style dir
+    is passed to the --with-zlib configure option). (Jay Bonci)
+  . Fixed bug #76709 (Minimal required zlib library is 1.2.0.4). (petk)
+
 02 Aug 2018, PHP 7.3.0beta1
 
 - Core:
@@ -19,6 +61,9 @@ PHP                                                                        NEWS
     keys in result). (Laruence)
   . Fixed bug #76643 (Segmentation fault when using `output_add_rewrite_var`).
     (cmb)
+  . Added support for the SameSite cookie directive, including an alternative
+    signature for setcookie(), setrawcookie() and session_set_cookie_params().
+    (Frederik Bosch, pmmaga)
 
 19 Jul 2018, PHP 7.3.0alpha4
 

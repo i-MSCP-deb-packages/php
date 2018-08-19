@@ -108,7 +108,7 @@ int zend_sprintf(char *buffer, const char *format, ...);
 PHP_MAJOR_VERSION=7
 PHP_MINOR_VERSION=3
 PHP_RELEASE_VERSION=0
-PHP_EXTRA_VERSION="beta1"
+PHP_EXTRA_VERSION="beta2"
 PHP_VERSION="$PHP_MAJOR_VERSION.$PHP_MINOR_VERSION.$PHP_RELEASE_VERSION$PHP_EXTRA_VERSION"
 PHP_VERSION_ID=`expr [$]PHP_MAJOR_VERSION \* 10000 + [$]PHP_MINOR_VERSION \* 100 + [$]PHP_RELEASE_VERSION`
 
@@ -1148,13 +1148,6 @@ if test "$PHP_PEAR" != "no"; then
     pear_error_msg="$pear_error_msg
                     PEAR requires XML to be enabled.     Add --enable-xml to the configure line. (or --without-pear)"
   fi
-
-dnl
-dnl  if test "$PHP_XMLRPC" = "no"; then
-dnl    pear_error_msg="$pear_error_msg
-dnl                    PEAR requires XML-RPC to be enabled. Add --with-xmlrpc to the configure line. (or --without-pear)"
-dnl  fi
-dnl
 
   if test "$pear_error_msg"; then
     AC_MSG_ERROR([$pear_error_msg])
