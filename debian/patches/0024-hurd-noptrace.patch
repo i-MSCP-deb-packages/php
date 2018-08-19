@@ -7,7 +7,7 @@ Subject: hurd-noptrace
  1 file changed, 5 insertions(+)
 
 diff --git a/sapi/fpm/config.m4 b/sapi/fpm/config.m4
-index 647b646..8ace94e 100644
+index 44d842b..b5f42c0 100644
 --- a/sapi/fpm/config.m4
 +++ b/sapi/fpm/config.m4
 @@ -145,6 +145,11 @@ AC_DEFUN([AC_FPM_TRACE],

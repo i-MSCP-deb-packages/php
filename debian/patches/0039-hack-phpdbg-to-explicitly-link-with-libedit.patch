@@ -7,7 +7,7 @@ Subject: hack-phpdbg-to-explicitly-link-with-libedit
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/sapi/phpdbg/config.m4 b/sapi/phpdbg/config.m4
-index 2d6f2c1..510c36a 100644
+index 56d4b21..74de87b 100644
 --- a/sapi/phpdbg/config.m4
 +++ b/sapi/phpdbg/config.m4
 @@ -24,7 +24,9 @@ if test "$BUILD_PHPDBG" = "" && test "$PHP_PHPDBG" != "no"; then
