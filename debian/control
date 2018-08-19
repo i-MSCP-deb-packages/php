@@ -45,7 +45,6 @@ Build-Depends: apache2-dev (>= 2.4),
                libonig-dev,
                libpam0g-dev,
 	       libpcre2-dev (>= 10.30),
-               libpcre3-dev (>= 2:8.35),
                libpng-dev,
                libpq-dev,
                libpspell-dev,
@@ -85,7 +84,6 @@ Package: libapache2-mod-php7.3
 Section: httpd
 Architecture: any
 Depends: libmagic1,
-         libpcre3 (>= 2:8.35),
          mime-support,
          php7.3-cli,
          php7.3-common (= ${binary:Version}),
@@ -113,7 +111,6 @@ Description: server-side, HTML-embedded scripting language (Apache 2 module)
 Package: libphp7.3-embed
 Architecture: any
 Depends: libmagic1,
-         libpcre3 (>= 2:8.35),
          mime-support,
          php7.3-cli,
          php7.3-common (= ${binary:Version}),
@@ -159,7 +156,6 @@ Description: server-side, HTML-embedded scripting language (metapackage)
 Package: php7.3-cgi
 Architecture: any
 Depends: libmagic1,
-         libpcre3 (>= 2:8.35),
          mime-support,
          php7.3-cli,
          php7.3-common (= ${binary:Version}),
@@ -188,7 +184,6 @@ Package: php7.3-cli
 Architecture: any
 Depends: libedit2 (>= 2.11-20080614-4),
          libmagic1,
-         libpcre3 (>= 2:8.35),
          mime-support,
          php7.3-common (= ${binary:Version}),
          php7.3-json,
@@ -214,7 +209,7 @@ Description: command-line interpreter for the PHP scripting language
 Package: php7.3-dev
 Depends: autoconf (>= 2.63),
          automake (>= 1.11),
-         libpcre3-dev (>= 2:8.35),
+	 libpcre2-dev (>= 10.30),
          libssl-dev,
          php7.3-cli (>= ${binary:Version}),
          php7.3-common (= ${binary:Version}),
@@ -237,7 +232,6 @@ Description: Files for PHP7.3 module development
 Package: php7.3-fpm
 Architecture: any
 Depends: libmagic1,
-         libpcre3 (>= 2:8.35),
          mime-support,
          php7.3-cli,
          php7.3-common (= ${binary:Version}),
@@ -265,7 +259,6 @@ Description: server-side, HTML-embedded scripting language (FPM-CGI binary)
 Package: php7.3-phpdbg
 Architecture: any
 Depends: libmagic1,
-         libpcre3 (>= 2:8.35),
          mime-support,
          php7.3-cli,
          php7.3-common (= ${binary:Version}),
