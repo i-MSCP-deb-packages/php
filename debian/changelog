@@ -1,3 +1,14 @@
+php7.2 (7.2.9-1) unstable; urgency=medium
+
+  [ Lior Kaplan ]
+  * Fix syntax typo
+
+  [ Ondřej Surý ]
+  * New upstream version 7.2.9
+  * Rebase patches for PHP 7.2.9
+
+ -- Ondřej Surý <ondrej@debian.org>  Sun, 19 Aug 2018 06:56:13 +0000
+
 php7.2 (7.2.8-2) unstable; urgency=medium
 
   * Build in a chroot which hasn't been usr-merged (Closes: #905187)
