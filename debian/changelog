@@ -1,3 +1,9 @@
+php5.6 (5.6.38-1) experimental; urgency=medium
+
+  * New upstream version 5.6.38
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 01 Oct 2018 11:11:25 +0000
+
 php5.6 (5.6.37-1) experimental; urgency=medium
 
   * Add nocheck Build Profile and don't install default-mysql-server when
