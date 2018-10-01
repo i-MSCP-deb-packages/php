@@ -6166,7 +6166,7 @@ yyreduce:
 
   case 389:
 
-    { (yyval.ast) = (yyvsp[0].ast); (yyval.ast)->attr = 1; }
+    { (yyval.ast) = (yyvsp[0].ast); (yyval.ast)->attr = ZEND_BIND_REF; }
 
     break;
 

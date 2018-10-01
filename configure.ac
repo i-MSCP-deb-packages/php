@@ -108,7 +108,7 @@ int zend_sprintf(char *buffer, const char *format, ...);
 PHP_MAJOR_VERSION=7
 PHP_MINOR_VERSION=3
 PHP_RELEASE_VERSION=0
-PHP_EXTRA_VERSION="beta2"
+PHP_EXTRA_VERSION="RC2"
 PHP_VERSION="$PHP_MAJOR_VERSION.$PHP_MINOR_VERSION.$PHP_RELEASE_VERSION$PHP_EXTRA_VERSION"
 PHP_VERSION_ID=`expr [$]PHP_MAJOR_VERSION \* 10000 + [$]PHP_MINOR_VERSION \* 100 + [$]PHP_RELEASE_VERSION`
 
@@ -503,6 +503,9 @@ immintrin.h
 PHP_FOPENCOOKIE
 PHP_BROKEN_GETCWD
 PHP_BROKEN_GLIBC_FOPEN_APPEND
+if test "$GCC" = "yes"; then
+  PHP_BROKEN_GCC_STRLEN_OPT
+fi
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 dnl -------------------------------------------------------------------------

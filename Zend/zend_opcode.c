@@ -256,8 +256,8 @@ ZEND_API void destroy_zend_class(zval *zv)
 						}
 					}
 				} ZEND_HASH_FOREACH_END();
-				zend_hash_destroy(&ce->constants_table);
 			}
+			zend_hash_destroy(&ce->constants_table);
 			if (ce->num_interfaces > 0 && ce->interfaces) {
 				efree(ce->interfaces);
 			}
@@ -546,6 +546,10 @@ ZEND_API int pass_two(zend_op_array *op_array)
 	CG(context).literals_size = op_array->last_literal;
 #endif
 
+	/* Needs to be set directly after the opcode/literal reallocation, to ensure destruction
+	 * happens correctly if any of the following fixups generate a fatal error. */
+	op_array->fn_flags |= ZEND_ACC_DONE_PASS_TWO;
+
 	opline = op_array->opcodes;
 	end = opline + op_array->last;
 	while (opline < end) {
@@ -674,7 +678,6 @@ ZEND_API int pass_two(zend_op_array *op_array)
 		}
 	}
 
-	op_array->fn_flags |= ZEND_ACC_DONE_PASS_TWO;
 	return 0;
 }
 

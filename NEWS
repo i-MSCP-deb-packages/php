@@ -1,9 +1,130 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+2? Sep 2018, PHP 7.3.0RC2
+
+- CURL:
+  . Fixed bug #76480 (Use curl_multi_wait() so that timeouts are respected).
+    (Pierrick)
+
+- Core:
+  . Fixed bug #76869 (Incorrect bypassing protected method accessibilty check).
+    (Dmitry)
+  . Fixed bug #76800 (foreach inconsistent if array modified during loop).
+    (Dmitry)
+  . Fixed bug #76901 (method_exists on SPL iterator passthrough method corrupts
+    memory). (Nikita)
+
+- iconv:
+  . Fixed bug #66828 (iconv_mime_encode Q-encoding longer than it should be).
+    (cmb)
+
+- Opcache:
+  . Fixed bug #76711 (OPcache enabled triggers false-positive "Illegal string
+   offset"). (Dmitry)
+
+- PCRE:
+  . Upgrade PCRE2 to 10.32. (Anatol)
+  . Fixed bug #76909 (preg_match difference between 7.3 and < 7.3). (Anatol)
+
+- Standard:
+  . Fixed bug #75533 (array_reduce is slow when $carry is large array).
+    (Manabu Matsui)
+
+- XMLRPC:
+  . Fixed bug #76886 (Can't build xmlrpc with expat). (Thomas Petazzoni, cmb)
+
+13 Sep 2018, PHP 7.3.0RC1
+
+- Core:
+  . Fixed bug #76825 (Undefined symbols ___cpuid_count). (Laruence)
+  . Fixed bug #76820 (Z_COPYABLE invalid definition). (mvdwerve, cmb)
+  . Fixed bug #76510 (file_exists() stopped working for phar://). (cmb)
+
+- intl:
+  . Fixed bug #76829 (Incorrect validation of domain on idn_to_utf8()
+    function). (Anatol)
+
+- MBString:
+  . Updated to Oniguruma 6.9.0. (cmb)
+
+- Opcache:
+  . Fixed bug #76832 (ZendOPcache.MemoryBase periodically deleted by the OS).
+    (Anatol)
+  . Fixed bug #76796 (Compile-time evaluation of disabled function in opcache
+    causes segfault). (Nikita)
+
+- POSIX:
+  Fixed bug #75696 (posix_getgrnam fails to print details of group). (cmb)
+
+- Reflection:
+  . Fixed bug #74454 (Wrong exception being thrown when using ReflectionMethod).
+    (cmb)
+
+- Standard:
+  . Fixed bug #76803 (ftruncate changes file pointer). (Anatol)
+  . Fixed bug #76818 (Memory corruption and segfault). (Remi)
+  . Fixed bug #73457 (Wrong error message when fopen FTP wrapped fails to open
+    data connection). (Ville Hukkamäki)
+
+- Zlib:
+  . Fixed bug #75273 (php_zlib_inflate_filter() may not update bytes_consumed).
+    (Martin Burke, cmb)
+
+30 Aug 2018, PHP 7.3.0beta3
+
+- Core:
+  . Fixed #76773 (Traits used on the parent are ignored for child classes).
+    (daverandom)
+  . Fixed #76767 (‘asm’ operand has impossible constraints in zend_operators.h).
+    (ondrej)
+  . Fixed bug #76754 (parent private constant in extends class memory leak).
+    (Laruence)
+  . Fixed bug #76752 (Crash in ZEND_COALESCE_SPEC_TMP_HANDLER - assertion in
+    _get_zval_ptr_tmp failed). (Laruence)
+
+- DOM:
+  . Fixed bug #76285 (DOMDocument::formatOutput attribute sometimes ignored).
+    (Andrew Nester, Laruence, Anatol)
+
+- iconv:
+  . Fixed bug #68180 (iconv_mime_decode can return extra characters in a 
+    header). (cmb)
+  . Fixed bug #63839 (iconv_mime_decode_headers function is skipping headers).
+    (cmb)
+  . Fixed bug #60494 (iconv_mime_decode does ignore special characters). (cmb)
+  . Fixed bug #55146 (iconv_mime_decode_headers() skips some headers). (cmb)
+  . Fixed bug #53891 (iconv_mime_encode() fails to Q-encode UTF-8 string). (cmb)
+
+- libxml:
+  . Fixed bug #76777 ("public id" parameter of libxml_set_external_entity_loader
+    callback undefined). (Ville Hukkamäki)
+
+- Opcache:
+  . Fixed bug #76747 (Opcache treats path containing "test.pharma.tld" as a phar
+    file). (Laruence)
+
+- SimpleXML:
+  . Fixed bug #76712 (Assignment of empty string creates extraneous text node).
+    (cmb)
+
+- SPL:
+  . Fixed bug #68825 (Exception in DirectoryIterator::getLinkTarget()). (cmb)
+  . Fixed bug #68175 (RegexIterator pregFlags are NULL instead of 0). (Tim
+    Siebels)
+
+- Standard:
+  . Fixed bug #76778 (array_reduce leaks memory if callback throws exception).
+    (cmb)
+  . Fixed bug #76755 (setcookie does not accept "double" type for expire time).
+    (Laruence)
+  . Fixed bug #76674 (improve array_* failure messages exposing what was passed
+    instead of an array). (carusogabriel)
+
 16 Aug 2018, PHP 7.3.0beta2
 
 - Core:
   . Fixed bug #76030 (RE2C_FLAGS rarely honoured) (Cristian Rodríguez)
+  . Fixed broken zend_read_static_property (Laruence)
 
 - Bz2:
   . Fixed arginfo for bzcompress. (Tyson Andre)
@@ -23,6 +144,10 @@ PHP                                                                        NEWS
   . Fixed bug #76704 (mb_detect_order return value varies based on argument
     type). (cmb)
   . Fixed bug #76706 (mbstring.http_output_conv_mimetypes is ignored). (cmb)
+
+- OpenSSL:
+  . Fixed bug #76705 (unusable ssl => peer_fingerprint in
+    stream_context_create()). (Jakub Zelenka)
 
 - phpdbg:
   . Fixed bug #76595 (phpdbg man page contains outdated information).

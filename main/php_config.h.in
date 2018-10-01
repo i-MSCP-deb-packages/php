@@ -508,6 +508,9 @@
 /* Compiler supports VLA */
 #undef HAVE_COMPILER_C99_VLA
 
+/* Define to 1 if you have the <cpuid.h> header file. */
+#undef HAVE_CPUID_H
+
 /* Define to 1 if you have the `CreateProcess' function. */
 #undef HAVE_CREATEPROCESS
 

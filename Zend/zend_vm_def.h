@@ -6527,7 +6527,7 @@ ZEND_VM_COLD_CONST_HANDLER(152, ZEND_JMP_SET, CONST|TMP|VAR|CV, JMP_ADDR)
 	ZEND_VM_NEXT_OPCODE();
 }
 
-ZEND_VM_COLD_CONST_HANDLER(169, ZEND_COALESCE, CONST|TMP|VAR|CV, JMP_ADDR)
+ZEND_VM_COLD_CONST_HANDLER(169, ZEND_COALESCE, CONST|TMPVAR|CV, JMP_ADDR)
 {
 	USE_OPLINE
 	zend_free_op free_op1;
@@ -6537,8 +6537,8 @@ ZEND_VM_COLD_CONST_HANDLER(169, ZEND_COALESCE, CONST|TMP|VAR|CV, JMP_ADDR)
 	SAVE_OPLINE();
 	value = GET_OP1_ZVAL_PTR(BP_VAR_IS);
 
-	if ((OP1_TYPE == IS_VAR || OP1_TYPE == IS_CV) && Z_ISREF_P(value)) {
-		if (OP1_TYPE == IS_VAR) {
+	if ((OP1_TYPE & (IS_VAR|IS_CV)) && Z_ISREF_P(value)) {
+		if (OP1_TYPE & IS_VAR) {
 			ref = value;
 		}
 		value = Z_REFVAL_P(value);
@@ -6551,7 +6551,7 @@ ZEND_VM_COLD_CONST_HANDLER(169, ZEND_COALESCE, CONST|TMP|VAR|CV, JMP_ADDR)
 			if (UNEXPECTED(Z_OPT_REFCOUNTED_P(result))) Z_ADDREF_P(result);
 		} else if (OP1_TYPE == IS_CV) {
 			if (Z_OPT_REFCOUNTED_P(result)) Z_ADDREF_P(result);
-		} else if (OP1_TYPE == IS_VAR && ref) {
+		} else if ((OP1_TYPE & IS_VAR) && ref) {
 			zend_reference *r = Z_REF_P(ref);
 
 			if (UNEXPECTED(GC_DELREF(r) == 0)) {
@@ -7725,7 +7725,7 @@ ZEND_VM_HANDLER(158, ZEND_CALL_TRAMPOLINE, ANY, ANY)
 	call = execute_data;
 	execute_data = EG(current_execute_data) = EX(prev_execute_data);
 
-	call->func = fbc->op_array.reserved[0];
+	call->func = (fbc->op_array.fn_flags & ZEND_ACC_STATIC) ? fbc->op_array.scope->__callstatic : fbc->op_array.scope->__call;
 	ZEND_ASSERT(zend_vm_calc_used_stack(2, call->func) <= (size_t)(((char*)EG(vm_stack_end)) - (char*)call));
 	ZEND_CALL_NUM_ARGS(call) = 2;
 
@@ -7827,10 +7827,9 @@ ZEND_VM_HANDLER(182, ZEND_BIND_LEXICAL, TMP, CV, REF)
 	USE_OPLINE
 	zend_free_op free_op1, free_op2;
 	zval *closure, *var;
-	zend_string *var_name;
 
 	closure = GET_OP1_ZVAL_PTR(BP_VAR_R);
-	if (opline->extended_value) {
+	if (opline->extended_value & ZEND_BIND_REF) {
 		/* By-ref binding */
 		var = GET_OP2_ZVAL_PTR(BP_VAR_W);
 		if (Z_ISREF_P(var)) {
@@ -7851,17 +7850,15 @@ ZEND_VM_HANDLER(182, ZEND_BIND_LEXICAL, TMP, CV, REF)
 		Z_TRY_ADDREF_P(var);
 	}
 
-	var_name = CV_DEF_OF(EX_VAR_TO_NUM(opline->op2.var));
-	zend_closure_bind_var(closure, var_name, var);
+	zend_closure_bind_var_ex(closure, (opline->extended_value & ~ZEND_BIND_REF), var);
 	ZEND_VM_NEXT_OPCODE();
 }
 
 ZEND_VM_HANDLER(183, ZEND_BIND_STATIC, CV, CONST, REF)
 {
 	USE_OPLINE
-	zend_free_op free_op1, free_op2;
+	zend_free_op free_op1;
 	HashTable *ht;
-	zval *varname;
 	zval *value;
 	zval *variable_ptr;
 
@@ -7877,10 +7874,9 @@ ZEND_VM_HANDLER(183, ZEND_BIND_STATIC, CV, CONST, REF)
 		EX(func)->op_array.static_variables = ht = zend_array_dup(ht);
 	}
 
-	varname = GET_OP2_ZVAL_PTR(BP_VAR_R);
-	value = zend_hash_find_ex(ht, Z_STR_P(varname), 1);
+	value = (zval*)((char*)ht->arData + (opline->extended_value & ~ZEND_BIND_REF));
 
-	if (opline->extended_value) {
+	if (opline->extended_value & ZEND_BIND_REF) {
 		if (Z_TYPE_P(value) == IS_CONSTANT_AST) {
 			SAVE_OPLINE();
 			if (UNEXPECTED(zval_update_constant_ex(value, EX(func)->op_array.scope) != SUCCESS)) {
