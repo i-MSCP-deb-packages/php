@@ -45,5 +45,3 @@
 0045-Really-expand-libdir-datadir-into-EXPANDED_LIBDIR-DA.patch
 0046-Fix-ext-date-lib-parse_tz-PATH_MAX-HURD-FTBFS.patch
 0047-Revert-libxmlrc-uses-system-malloc-instead-of-PHP-al.patch
-0048-Fix-phpdbg.1-installation-path-from-srcdir-to-buildd.patch
-0049-Disable-assembly-code-with-gcc-4.8-on-i386.patch
