@@ -1,6 +1,100 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-19 Jul 2018, PHP 7.1.20
+13 Sep 2018, PHP 7.1.22
+
+- Core:
+  . Fixed bug #76754 (parent private constant in extends class memory leak).
+    (Laruence)
+  . Fixed bug #72443 (Generate enabled extension). (petk)
+
+- Apache2:
+  . Fixed bug #76582 (Apache bucket brigade sometimes becomes invalid). (stas)
+
+- Bz2:
+  . Fixed arginfo for bzcompress. (Tyson Andre)
+
+- gettext:
+  . Fixed bug #76517 (incorrect restoring of LDFLAGS). (sji)
+
+- iconv:
+  . Fixed bug #68180 (iconv_mime_decode can return extra characters in a 
+    header). (cmb)
+  . Fixed bug #63839 (iconv_mime_decode_headers function is skipping headers).
+    (cmb)
+  . Fixed bug #60494 (iconv_mime_decode does ignore special characters). (cmb)
+  . Fixed bug #55146 (iconv_mime_decode_headers() skips some headers). (cmb)
+
+- intl:
+  . Fixed bug #74484 (MessageFormatter::formatMessage memory corruption with
+    11+ named placeholders). (Anatol)
+
+- libxml:
+  . Fixed bug #76777 ("public id" parameter of libxml_set_external_entity_loader
+    callback undefined). (Ville Hukkamäki)
+
+- mbstring:
+  . Fixed bug #76704 (mb_detect_order return value varies based on argument
+    type). (cmb)
+
+- Opcache:
+  . Fixed bug #76747 (Opcache treats path containing "test.pharma.tld" as a phar
+    file). (Laruence)
+
+- OpenSSL:
+  . Fixed bug #76705 (unusable ssl => peer_fingerprint in 
+    stream_context_create()). (Jakub Zelenka)
+
+- phpdbg:
+  . Fixed bug #76595 (phpdbg man page contains outdated information).
+    (Kevin Abel)
+
+- SPL:
+  . Fixed bug #68825 (Exception in DirectoryIterator::getLinkTarget()). (cmb)
+  . Fixed bug #68175 (RegexIterator pregFlags are NULL instead of 0). (Tim
+    Siebels)
+
+- Standard:
+  . Fixed bug #76778 (array_reduce leaks memory if callback throws exception).
+    (cmb)
+
+- zlib:
+  . Fixed bug #65988 (Zlib version check fails when an include/zlib/ style dir
+    is passed to the --with-zlib configure option). (Jay Bonci)
+  . Fixed bug #76709 (Minimal required zlib library is 1.2.0.4). (petk)
+
+16 Aug 2018, PHP 7.1.21
+
+- Calendar:
+  . Fixed bug #52974 (jewish.c: compile error under Windows with GBK charset).
+    (cmb)
+
+- Filter:
+  . Fixed bug #76366 (References in sub-array for filtering breaks the filter).
+    (ZiHang Gao)
+
+- PDO_Firebird:
+  . Fixed bug #76488 (Memory leak when fetching a BLOB field). (Simonov Denis)
+
+- PDO_PgSQL:
+  . Fixed bug #75402 (Possible Memory Leak using PDO::CURSOR_SCROLL option).
+    (Anatol)
+
+- SQLite3:
+  . Fixed #76665 (SQLite3Stmt::bindValue() with SQLITE3_FLOAT doesn't juggle).
+    (cmb)
+
+- Standard:
+  . Fixed bug #68553 (array_column: null values in $index_key become incrementing
+    keys in result). (Laruence)
+  . Fixed bug #73817 (Incorrect entries in get_html_translation_table). (cmb)
+  . Fixed bug #76643 (Segmentation fault when using `output_add_rewrite_var`).
+    (cmb)
+
+- Zip:
+  . Fixed bug #76524 (ZipArchive memory leak (OVERWRITE flag and empty archive)).
+    (Timur Ibragimov)
+
+07 Jul 2018, PHP 7.1.20
 
 - Core:
   . Fixed bug #76534 (PHP hangs on 'illegal string offset on string references
@@ -10,12 +104,6 @@ PHP                                                                        NEWS
 
 - Date:
   . Fixed bug #76462 (Undefined property: DateInterval::$f). (Anatol)
-
-- exif:
-  . Fixed bug #76423 (Int Overflow lead to Heap OverFlow in
-    exif_thumbnail_extract of exif.c). (Stas)
- . Fixed bug #76557 (heap-buffer-overflow (READ of size 48) while reading exif
-    data). (Stas)
 
 - FPM:
   . Fixed bug #73342 (Vulnerability in php-fpm by changing stdin to
@@ -50,10 +138,7 @@ PHP                                                                        NEWS
     (Laruence)
   . Fixed bug #71848 (getimagesize with $imageinfo returns false). (cmb)
 
-- Win32:
-  . Fixed bug #76459 (windows linkinfo lacks openbasedir check). (Anatol)
-
-22 Jun 2019, PHP 7.1.19
+22 Jun 2018, PHP 7.1.19
 
 - CLI Server:
   . Fixed bug #76333 (PHP built-in server does not find files if root path
