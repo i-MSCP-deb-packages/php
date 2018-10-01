@@ -7,7 +7,7 @@ Subject: hack-phpdbg-to-explicitly-link-with-libedit
  1 file changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/sapi/phpdbg/config.m4 b/sapi/phpdbg/config.m4
-index 9fb4e62..a55199a 100644
+index 223c182..83de105 100644
 --- a/sapi/phpdbg/config.m4
 +++ b/sapi/phpdbg/config.m4
 @@ -25,7 +25,9 @@ if test "$BUILD_PHPDBG" = "" && test "$PHP_PHPDBG" != "no"; then
@@ -17,7 +17,7 @@ index 9fb4e62..a55199a 100644
 -  	PHPDBG_EXTRA_LIBS="$PHP_READLINE_LIBS"
 +#  	PHPDBG_EXTRA_LIBS="$PHP_READLINE_LIBS"
 +# Temporary hack until this gets fixed
-+  	PHPDBG_EXTRA_LIBS="-ledit -ltermcap"
++	PHPDBG_EXTRA_LIBS="-ledit -ltermcap"
    fi
-   
+ 
    PHP_SUBST(PHP_PHPDBG_CFLAGS)
