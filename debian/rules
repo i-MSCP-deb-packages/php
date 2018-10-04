@@ -6,6 +6,8 @@ export DH_VERBOSE=1
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
 
+SANE_ARCHS := amd64 i386 arm64
+
 # Enable parallel builds
 PARALLEL=--parallel
 
@@ -101,9 +103,14 @@ else
     RUN_TESTS := no
   endif
 endif
-ifeq ($(DEB_HOST_ARCH),$(filter $(DEB_HOST_ARCH),hurd-i386 mips mipsel ppc64 ppc64el armel armhf arm64 kfreebsd-amd64 kfreebsd-i386))
+ifeq (,$(filter $(DEB_HOST_ARCH),$(SANE_ARCHS)))
   $(warning Disabling checks on $(DEB_HOST_ARCH))
   RUN_TESTS := no
+endif
+
+CONFIGURE_PCRE_JIT :=
+ifeq (,$(filter $(DEB_HOST_ARCH),$(SANE_ARCHS)))
+  CONFIGURE_PCRE_JIT := --without-pcre-jit
 endif
 
 ifeq (yes,$(RUN_TESTS))
@@ -198,7 +205,8 @@ COMMON_CONFIG := \
 		--with-zlib=/usr \
 		  --with-zlib-dir=/usr \
 		$(CONFIGURE_ZTS) \
-		$(CONFIGURE_DTRACE_ARGS)
+		$(CONFIGURE_DTRACE_ARGS) \
+		$(CONFIGURE_PCRE_JIT)
 
 # disable all SAPIs in extension build
 export ext_config = \
