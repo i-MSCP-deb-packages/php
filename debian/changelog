@@ -1,3 +1,12 @@
+php7.3 (7.3.0~rc2-2) unstable; urgency=medium
+
+  * Fix the Vcs-* links
+  * Apply upstream patch to allow disabling pcre jit and disable it on
+    mips and s390x archs
+  * Extra 'L' is gone (Closes: #909110)
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 04 Oct 2018 14:25:15 +0000
+
 php7.3 (7.3.0~rc2-1) unstable; urgency=medium
 
   * New upstream version 7.3.0~rc2
