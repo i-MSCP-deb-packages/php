@@ -1,3 +1,11 @@
+php7.3 (7.3.0~rc2-3) unstable; urgency=medium
+
+  * Remove ancient mv_conffile (from php5)
+  * Remove spurious L from phpize script (Closes: #909110)
+  * Downgrade dh-php from Recommends to Suggests (Closes: #910620)
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 09 Oct 2018 13:22:52 +0000
+
 php7.3 (7.3.0~rc2-2) unstable; urgency=medium
 
   * Fix the Vcs-* links
