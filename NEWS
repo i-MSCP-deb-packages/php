@@ -1,6 +1,47 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-2? Sep 2018, PHP 7.3.0RC2
+11 Oct 2018, PHP 7.3.0RC3
+
+- CURL:
+  . Expose curl constants from curl 7.50 to 7.61. (Pierrick)
+
+- Core:
+  . Fixed bug #76846 (Segfault in shutdown function after memory limit error).
+    (Nikita)
+  . Fixed bug #76946 (Cyclic reference in generator not detected). (Nikita)
+  . Fixed bug #72635 (Undefined class used by class constant in constexpr
+    generates fatal error). (Nikita)
+  . Fixed bug #76947 (file_put_contents() blocks the directory of the file
+    (__DIR__)). (Anatol)
+  . Fixed bug #76979 (define() error message does not mention resources as
+    valid values). (Michael Moravec)
+
+- Date:
+  . Fixed bug #75851 (Year component overflow with date formats "c", "o", "r"
+    and "y"). (Adam Saponara)
+
+- FCGI:
+  . Fixed #76948 (Failed shutdown/reboot or end session in Windows). (Anatol)
+  . Fixed bug #76954 (apache_response_headers removes last character from header
+    name). (stodorovic)
+
+- FTP:
+  . Fixed bug #76972 (Data truncation due to forceful ssl socket shutdown).
+    (Manuel Mausz)
+
+- intl:
+  . Fixed bug #76942 (U_ARGUMENT_TYPE_MISMATCH). (anthrax at unixuser dot org)
+
+- Mbstring:
+  . Fixed bug #76958 (Broken UTF7-IMAP conversion). (Nikita)
+
+- Reflection:
+  . Fixed bug #76936 (Objects cannot access their private attributes while
+    handling reflection errors). (Nikita)
+  . Fixed bug #66430 (ReflectionFunction::invoke does not invoke closure with
+    object scope). (Nikita)
+
+27 Sep 2018, PHP 7.3.0RC2
 
 - CURL:
   . Fixed bug #76480 (Use curl_multi_wait() so that timeouts are respected).
@@ -29,6 +70,8 @@ PHP                                                                        NEWS
 - Standard:
   . Fixed bug #75533 (array_reduce is slow when $carry is large array).
     (Manabu Matsui)
+  . Fixed bug #76965 (INI_SCANNER_RAW doesn't strip trailing whitespace).
+    (Pierrick)
 
 - XMLRPC:
   . Fixed bug #76886 (Can't build xmlrpc with expat). (Thomas Petazzoni, cmb)
