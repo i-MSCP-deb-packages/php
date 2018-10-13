@@ -1,14 +1,50 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+11 Oct 2018, PHP 7.1.23
+
+- Core:
+  . Fixed bug #76901 (method_exists on SPL iterator passthrough method corrupts
+    memory). (Nikita)
+  . Fixed bug #76846 (Segfault in shutdown function after memory limit error).
+    (Nikita)
+
+- CURL:
+  . Fixed bug #76480 (Use curl_multi_wait() so that timeouts are respected).
+    (Pierrick)
+
+- iconv:
+  . Fixed bug #66828 (iconv_mime_encode Q-encoding longer than it should be).
+    (cmb)
+
+- Opcache:
+  . Fixed bug #76832 (ZendOPcache.MemoryBase periodically deleted by the OS).
+    (Anatol)
+
+- POSIX:
+  . Fixed bug #75696 (posix_getgrnam fails to print details of group). (cmb)
+
+- Reflection:
+  . Fixed bug #74454 (Wrong exception being thrown when using ReflectionMethod).
+    (cmb)
+
+- Standard:
+  . Fixed bug #73457 (Wrong error message when fopen FTP wrapped fails to open
+    data connection). (Ville Hukkamäki)
+  . Fixed bug #74764 (Bindto IPv6 works with file_get_contents but fails with 
+    stream_socket_client). (Ville Hukkamäki)
+  . Fixed bug #75533 (array_reduce is slow when $carry is large array).
+    (Manabu Matsui)
+
+- Zlib:
+  . Fixed bug #75273 (php_zlib_inflate_filter() may not update bytes_consumed).
+    (Martin Burke, cmb)
+
 13 Sep 2018, PHP 7.1.22
 
 - Core:
   . Fixed bug #76754 (parent private constant in extends class memory leak).
     (Laruence)
   . Fixed bug #72443 (Generate enabled extension). (petk)
-
-- Apache2:
-  . Fixed bug #76582 (Apache bucket brigade sometimes becomes invalid). (stas)
 
 - Bz2:
   . Fixed arginfo for bzcompress. (Tyson Andre)
