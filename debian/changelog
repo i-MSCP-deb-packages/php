@@ -1,3 +1,11 @@
+php7.1 (7.1.23-1) unstable; urgency=medium
+
+  * Fix Vcs-* links
+  * New upstream version 7.1.23
+  * Rebase patches for PHP 7.1.23
+
+ -- Ondřej Surý <ondrej@debian.org>  Sat, 13 Oct 2018 13:26:22 +0000
+
 php7.1 (7.1.22-1) unstable; urgency=medium
 
   * New upstream version 7.1.22
