@@ -1862,6 +1862,11 @@ ZEND_METHOD(reflection_function, invoke)
 	fcc.called_scope = NULL;
 	fcc.object = NULL;
 
+	if (!Z_ISUNDEF(intern->obj)) {
+		Z_OBJ_HT(intern->obj)->get_closure(
+			&intern->obj, &fcc.called_scope, &fcc.function_handler, &fcc.object);
+	}
+
 	result = zend_call_function(&fci, &fcc);
 
 	if (result == FAILURE) {
@@ -1919,6 +1924,11 @@ ZEND_METHOD(reflection_function, invokeArgs)
 	fcc.function_handler = fptr;
 	fcc.called_scope = NULL;
 	fcc.object = NULL;
+
+	if (!Z_ISUNDEF(intern->obj)) {
+		Z_OBJ_HT(intern->obj)->get_closure(
+			&intern->obj, &fcc.called_scope, &fcc.function_handler, &fcc.object);
+	}
 
 	result = zend_call_function(&fci, &fcc);
 
@@ -3166,13 +3176,11 @@ static void reflection_method_invoke(INTERNAL_FUNCTION_PARAMETERS, int variadic)
 	fcc.called_scope = intern->ce;
 	fcc.object = object ? Z_OBJ_P(object) : NULL;
 
-	if (!variadic) {
-		/*
-		 * Copy the zend_function when calling via handler (e.g. Closure::__invoke())
-		 */
-		if ((mptr->internal_function.fn_flags & ZEND_ACC_CALL_VIA_TRAMPOLINE)) {
-			fcc.function_handler = _copy_function(mptr);
-		}
+	/*
+	 * Copy the zend_function when calling via handler (e.g. Closure::__invoke())
+	 */
+	if ((mptr->internal_function.fn_flags & ZEND_ACC_CALL_VIA_TRAMPOLINE)) {
+		fcc.function_handler = _copy_function(mptr);
 	}
 
 	result = zend_call_function(&fci, &fcc);
