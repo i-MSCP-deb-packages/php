@@ -1,3 +1,10 @@
+php7.3 (7.3.0~rc3-2) unstable; urgency=medium
+
+  * Disable the enabled modules in prerm, because in postrm the phpquery
+    script is not aware of already removed sapi (Closes: #911018)
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 15 Oct 2018 09:53:04 +0000
+
 php7.3 (7.3.0~rc3-1) unstable; urgency=medium
 
   * New upstream version 7.3.0~rc3
