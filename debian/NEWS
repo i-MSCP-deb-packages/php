@@ -9,7 +9,7 @@ php5.6 (5.6.18+dfsg-5) unstable; urgency=medium
   * The new packages are not installed automatically, so you will need to
     install them by hand, if you use the functions in those modules.
   * Most modules that have been builtin before are now included in
-    php7.0-common package and they are enabled by default for your
-    convenience.  You can disable unneede modules via phpdismod tool.
+    phpX.Y-common package and they are enabled by default for your
+    convenience.  You can disabled unneede modules via phpdismod tool.
 
  -- Ondřej Surý <ondrej@debian.org>  Mon, 22 Feb 2016 12:37:09 +0100
