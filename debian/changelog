@@ -1,3 +1,13 @@
+php7.0 (7.0.32-2) unstable; urgency=medium
+
+  * Fix Vcs-* links
+  * Remove ancient mv_conffile (from php5)
+  * Downgrade dh-php from Recommends to Suggests (Closes: #910620)
+  * Disable the enabled modules in prerm, because in postrm the phpquery
+    script is not aware of already removed sapi (Closes: #911018)
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 15 Oct 2018 11:34:31 +0000
+
 php7.0 (7.0.32-1) unstable; urgency=medium
 
   * New upstream version 7.0.32
