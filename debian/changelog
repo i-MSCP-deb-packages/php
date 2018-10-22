@@ -1,3 +1,10 @@
+php7.3 (7.3.0~rc3-3) unstable; urgency=medium
+
+  * Add patch to use pkg-config for FreeType2 library detection
+    (Closes: #911460)
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 22 Oct 2018 07:01:59 +0000
+
 php7.3 (7.3.0~rc3-2) unstable; urgency=medium
 
   * Disable the enabled modules in prerm, because in postrm the phpquery
