@@ -1,3 +1,9 @@
+php7.0 (7.0.32-3) unstable; urgency=medium
+
+  * Add patch to use pkg-config for FreeType2 detection
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 25 Oct 2018 06:40:46 +0000
+
 php7.0 (7.0.32-2) unstable; urgency=medium
 
   * Fix Vcs-* links
