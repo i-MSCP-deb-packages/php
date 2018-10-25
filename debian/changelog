@@ -2,8 +2,9 @@ php7.3 (7.3.0~rc3-3) unstable; urgency=medium
 
   * Add patch to use pkg-config for FreeType2 library detection
     (Closes: #911460)
+  * Remove libmcrypt-dev from Build-Depends
 
- -- Ondřej Surý <ondrej@debian.org>  Mon, 22 Oct 2018 07:01:59 +0000
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 25 Oct 2018 06:39:32 +0000
 
 php7.3 (7.3.0~rc3-2) unstable; urgency=medium
 
