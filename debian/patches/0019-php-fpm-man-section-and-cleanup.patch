@@ -7,7 +7,7 @@ Subject: php-fpm-man-section-and-cleanup
  1 file changed, 2 insertions(+), 20 deletions(-)
 
 diff --git a/sapi/fpm/php-fpm.8.in b/sapi/fpm/php-fpm.8.in
-index 4497e6e..a050cd4 100644
+index 86edaa8..19e66a0 100644
 --- a/sapi/fpm/php-fpm.8.in
 +++ b/sapi/fpm/php-fpm.8.in
 @@ -139,22 +139,8 @@ The configuration file for the php-fpm daemon.

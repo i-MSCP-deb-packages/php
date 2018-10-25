@@ -9,10 +9,10 @@ Subject: php-fpm-do-reload-on-SIGHUP
  3 files changed, 9 insertions(+), 1 deletion(-)
 
 diff --git a/sapi/fpm/fpm/fpm_events.c b/sapi/fpm/fpm/fpm_events.c
-index 818d7a7..45de05b 100644
+index 1750fab..8c5d4f1 100644
 --- a/sapi/fpm/fpm/fpm_events.c
 +++ b/sapi/fpm/fpm/fpm_events.c
-@@ -112,6 +112,11 @@ static void fpm_got_signal(struct fpm_event_s *ev, short which, void *arg) /* {{
+@@ -111,6 +111,11 @@ static void fpm_got_signal(struct fpm_event_s *ev, short which, void *arg) /* {{
  				zlog(ZLOG_NOTICE, "Reloading in progress ...");
  				fpm_pctl(FPM_PCTL_STATE_RELOADING, FPM_PCTL_ACTION_SET);
  				break;
@@ -25,10 +25,10 @@ index 818d7a7..45de05b 100644
  
  		if (fpm_globals.is_child) {
 diff --git a/sapi/fpm/fpm/fpm_signals.c b/sapi/fpm/fpm/fpm_signals.c
-index a244eb1..1f961d6 100644
+index 1b97025..c3f3b98 100644
 --- a/sapi/fpm/fpm/fpm_signals.c
 +++ b/sapi/fpm/fpm/fpm_signals.c
-@@ -159,6 +159,7 @@ static void sig_handler(int signo) /* {{{ */
+@@ -158,6 +158,7 @@ static void sig_handler(int signo) /* {{{ */
  		[SIGINT]  = 'I',
  		[SIGUSR1] = '1',
  		[SIGUSR2] = '2',
@@ -36,7 +36,7 @@ index a244eb1..1f961d6 100644
  		[SIGQUIT] = 'Q',
  		[SIGCHLD] = 'C'
  	};
-@@ -205,6 +206,7 @@ int fpm_signals_init_main() /* {{{ */
+@@ -204,6 +205,7 @@ int fpm_signals_init_main() /* {{{ */
  	    0 > sigaction(SIGINT,   &act, 0) ||
  	    0 > sigaction(SIGUSR1,  &act, 0) ||
  	    0 > sigaction(SIGUSR2,  &act, 0) ||
@@ -44,7 +44,7 @@ index a244eb1..1f961d6 100644
  	    0 > sigaction(SIGCHLD,  &act, 0) ||
  	    0 > sigaction(SIGQUIT,  &act, 0)) {
  
-@@ -234,6 +236,7 @@ int fpm_signals_init_child() /* {{{ */
+@@ -233,6 +235,7 @@ int fpm_signals_init_child() /* {{{ */
  	    0 > sigaction(SIGINT,   &act_dfl,  0) ||
  	    0 > sigaction(SIGUSR1,  &act_dfl,  0) ||
  	    0 > sigaction(SIGUSR2,  &act_dfl,  0) ||
@@ -53,7 +53,7 @@ index a244eb1..1f961d6 100644
  	    0 > sigaction(SIGQUIT,  &act,      0)) {
  
 diff --git a/sapi/fpm/php-fpm.8.in b/sapi/fpm/php-fpm.8.in
-index a050cd4..103051f 100644
+index 19e66a0..31cfff9 100644
 --- a/sapi/fpm/php-fpm.8.in
 +++ b/sapi/fpm/php-fpm.8.in
 @@ -150,7 +150,7 @@ Once started, php-fpm then responds to several POSIX signals:

@@ -7,10 +7,10 @@ Subject: php-fpm-m68k
  1 file changed, 34 insertions(+)
 
 diff --git a/sapi/fpm/fpm/fpm_atomic.h b/sapi/fpm/fpm/fpm_atomic.h
-index cd52d15..50ee3b0 100644
+index ec9e4f1..39dedc7 100644
 --- a/sapi/fpm/fpm/fpm_atomic.h
 +++ b/sapi/fpm/fpm/fpm_atomic.h
-@@ -4,6 +4,12 @@
+@@ -3,6 +3,12 @@
  #ifndef FPM_ATOMIC_H
  #define FPM_ATOMIC_H 1
  
@@ -23,7 +23,7 @@ index cd52d15..50ee3b0 100644
  #if HAVE_INTTYPES_H
  # include <inttypes.h>
  #else
-@@ -136,6 +142,34 @@ static inline atomic_uint_t atomic_cmp_set(atomic_t *lock, atomic_uint_t old, at
+@@ -135,6 +141,34 @@ static inline atomic_uint_t atomic_cmp_set(atomic_t *lock, atomic_uint_t old, at
  #error Sparc v8 and predecessors are not and will not be supported (see bug report 53310)
  #endif /* #if (__sparcv9 || __sparcv9__) */
  

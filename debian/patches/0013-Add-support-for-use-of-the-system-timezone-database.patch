@@ -35,7 +35,7 @@ r1: initial revision
  2 files changed, 546 insertions(+), 3 deletions(-)
 
 diff --git a/ext/date/lib/parse_tz.c b/ext/date/lib/parse_tz.c
-index 960e528..efd40fe 100644
+index 5986cd6..b18ef2e 100644
 --- a/ext/date/lib/parse_tz.c
 +++ b/ext/date/lib/parse_tz.c
 @@ -25,8 +25,21 @@
@@ -641,10 +641,10 @@ index 960e528..efd40fe 100644
  		*error_code = TIMELIB_ERROR_NO_SUCH_TIMEZONE;
  		tmp = NULL;
 diff --git a/ext/date/lib/timelib.m4 b/ext/date/lib/timelib.m4
-index e112380..de02ef5 100644
+index ad21eab..6c89cce 100644
 --- a/ext/date/lib/timelib.m4
 +++ b/ext/date/lib/timelib.m4
-@@ -81,3 +81,16 @@ io.h
+@@ -78,3 +78,16 @@ io.h
  
  dnl Check for strtoll, atoll
  AC_CHECK_FUNCS(strtoll atoll strftime gettimeofday)

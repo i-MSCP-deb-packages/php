@@ -7,11 +7,11 @@ Subject: php-5.6.0-noNO
  1 file changed, 8 insertions(+), 3 deletions(-)
 
 diff --git a/ext/standard/tests/strings/setlocale_variation2.phpt b/ext/standard/tests/strings/setlocale_variation2.phpt
-index 5ebdfe8..cadf7a3 100644
+index fad3298..3449b28 100644
 --- a/ext/standard/tests/strings/setlocale_variation2.phpt
 +++ b/ext/standard/tests/strings/setlocale_variation2.phpt
 @@ -55,6 +55,7 @@ $all_system_locales = list_system_locales();
- //try different locale names	
+ //try different locale names
  $failure_locale = array();
  $success_count = 0;
 +$expected = 0;
@@ -36,7 +36,7 @@ index 5ebdfe8..cadf7a3 100644
 -echo "Expected no of failures = 0\n";
 +echo "Expected no of failures = $expected\n";
  echo "Test ";
- // check if there were any failure of setlocale() function earlier, if any 
+ // check if there were any failure of setlocale() function earlier, if any
  // failure then dump the list of failing locales
 -if($success_count != count($all_system_locales)){
 +if(($success_count + $expected) != count($all_system_locales)){
