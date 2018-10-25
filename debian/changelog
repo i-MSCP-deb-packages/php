@@ -1,3 +1,10 @@
+php5.6 (5.6.38-3) experimental; urgency=medium
+
+  * Fix typo
+  * Add patch to use pkg-config for FreeType2 detection
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 25 Oct 2018 06:40:55 +0000
+
 php5.6 (5.6.38-2) experimental; urgency=medium
 
   * Fix Vcs-* links
