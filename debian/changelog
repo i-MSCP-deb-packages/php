@@ -1,3 +1,10 @@
+php7.2 (7.2.11-3) unstable; urgency=medium
+
+  * Remove libmcrypt-dev from Build-Depends
+  * Add patch to use pkg-config for FreeType2 detection (Closes: #911459)
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 25 Oct 2018 06:40:02 +0000
+
 php7.2 (7.2.11-2) unstable; urgency=medium
 
   * Remove ancient mv_conffile (from php5)
