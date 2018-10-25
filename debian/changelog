@@ -1,3 +1,9 @@
+php7.1 (7.1.23-3) unstable; urgency=medium
+
+  * Add patch to use pkg-config for FreeType2 detection
+
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 25 Oct 2018 06:40:30 +0000
+
 php7.1 (7.1.23-2) unstable; urgency=medium
 
   * Remove ancient mv_conffile (from php5)
