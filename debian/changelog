@@ -1,3 +1,10 @@
+php7.2 (7.2.11-4) unstable; urgency=medium
+
+  * Restore correct patch name for
+    0040-Add-patch-to-install-php7-module-directly-to-APXS_LI.patch
+
+ -- Ondřej Surý <ondrej@debian.org>  Sun, 04 Nov 2018 04:53:21 +0000
+
 php7.2 (7.2.11-3) unstable; urgency=medium
 
   * Remove libmcrypt-dev from Build-Depends
