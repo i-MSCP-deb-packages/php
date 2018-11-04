@@ -1,3 +1,11 @@
+php7.0 (7.0.32-4) unstable; urgency=medium
+
+  * Renamed 0041-Add-patch-to-remove-build-timestamps-from-generated-.patch
+    to actual contents of the patch
+  * Make the build reproducible (Courtesy of Chris Lamb)
+
+ -- Ondřej Surý <ondrej@debian.org>  Sun, 04 Nov 2018 04:44:01 +0000
+
 php7.0 (7.0.32-3) unstable; urgency=medium
 
   * Add patch to use pkg-config for FreeType2 detection
