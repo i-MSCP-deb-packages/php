@@ -46,3 +46,4 @@
 0046-Fix-ext-date-lib-parse_tz-PATH_MAX-HURD-FTBFS.patch
 0047-Adjust-tidy-extension-for-tidy-html5.patch
 0048-Use-pkg-config-for-FreeType2-detection.patch
+0049-Use-SOURCE_DATE_EPOCH-as-PHP_BUILD_DATE-if-available.patch
