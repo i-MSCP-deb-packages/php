@@ -37,7 +37,7 @@
 0038-php-5.6.0-oldpcre.patch
 0039-hack-phpdbg-to-explicitly-link-with-libedit.patch
 0040-Fix-ZEND_MM_ALIGNMENT-on-m64k.patch
-0041-Add-patch-to-remove-build-timestamps-from-generated-.patch
+0040-Add-patch-to-install-php7-module-directly-to-APXS_LI.patch
 0042-Remove-W3C-validation-icon-to-not-expose-the-reader-.patch
 0043-Don-t-put-INSTALL_ROOT-into-phar.phar-exec-stanza.patch
 0044-XMLRPC-EPI-library-has-to-be-linked-as-lxmlrpc-epi.patch
