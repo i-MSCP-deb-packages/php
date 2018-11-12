@@ -39,10 +39,10 @@ index 1a8476c..0cf8d4a 100644
 -bool(false)
 +bool(true)
 diff --git a/ext/pcre/tests/match_flags3.phpt b/ext/pcre/tests/match_flags3.phpt
-index 84deb0b..c1c9d56 100644
+index 695f0c1..05c62a0 100644
 --- a/ext/pcre/tests/match_flags3.phpt
 +++ b/ext/pcre/tests/match_flags3.phpt
-@@ -42,5 +42,5 @@ array(1) {
+@@ -41,5 +41,5 @@ array(1) {
    }
  }
  

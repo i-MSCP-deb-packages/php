@@ -7,10 +7,10 @@ Subject: XMLRPC-EPI library has to be linked as -lxmlrpc-epi
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/ext/xmlrpc/config.m4 b/ext/xmlrpc/config.m4
-index 6ed7a63..958a2e7 100644
+index 32042ba..9c2a68b 100644
 --- a/ext/xmlrpc/config.m4
 +++ b/ext/xmlrpc/config.m4
-@@ -116,7 +116,7 @@ dnl for xmlrpc-epi because of this.
+@@ -117,7 +117,7 @@ dnl for xmlrpc-epi because of this.
    fi
  
    PHP_ADD_INCLUDE($XMLRPC_DIR)
