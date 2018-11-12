@@ -16,7 +16,7 @@ Subject: php-5.3.9-gnusrc
  10 files changed, 5 insertions(+), 10 deletions(-)
 
 diff --git a/Zend/zend_language_parser.c b/Zend/zend_language_parser.c
-index 4766c4b..7c66eaf 100644
+index 1d49c69..21339a9 100644
 --- a/Zend/zend_language_parser.c
 +++ b/Zend/zend_language_parser.c
 @@ -69,6 +69,8 @@
@@ -29,7 +29,7 @@ index 4766c4b..7c66eaf 100644
  /*
     +----------------------------------------------------------------------+
 diff --git a/configure.ac b/configure.ac
-index f6442f3..584466b 100644
+index 8920b02..6c80cfc 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -124,6 +124,8 @@ AC_DEFUN([PHP_EXT_DIR],[$config_m4_dir])dnl
@@ -66,7 +66,7 @@ index 6b77e31..ce852ba 100644
  #include "php.h"
  #include "zend_exceptions.h"
 diff --git a/ext/standard/file.c b/ext/standard/file.c
-index 3304c64..f71f027 100644
+index c2fd7d4..a49fd88 100644
 --- a/ext/standard/file.c
 +++ b/ext/standard/file.c
 @@ -105,9 +105,6 @@ php_file_globals file_globals;
@@ -93,7 +93,7 @@ index 433ba15..4eb56cd 100644
  #include "php_zlib.h"
  #include "fopen_wrappers.h"
 diff --git a/main/php.h b/main/php.h
-index 697d3ff..768e973 100644
+index 0b5a904..c933188 100644
 --- a/main/php.h
 +++ b/main/php.h
 @@ -29,6 +29,7 @@
