@@ -1,3 +1,10 @@
+php7.3 (7.3.0~rc5-1) unstable; urgency=medium
+
+  * New upstream version 7.3.0~rc5
+  * Enable lmdb support in dba extension
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 12 Nov 2018 09:54:24 +0000
+
 php7.3 (7.3.0~rc4-2) unstable; urgency=medium
 
   * Restore correct patch name for
