@@ -1,5 +1,35 @@
 PHP                                                                        NEWS
 |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+08 Nov 2018, PHP 7.3.0RC5
+
+- Core:
+  . Fixed bug #76825 (Undefined symbols ___cpuid_count). (Laruence, cmb)
+  . Fixed bug #77110 (undefined symbol zend_string_equal_val in C++ build).
+    (Remi)
+
+- Fileinfo:
+  . Fixed bug #77095 (slowness regression in 7.2/7.3 (compared to 7.1)).
+    (Anatol)
+
+- ODBC:
+  . Fixed bug #77079 (odbc_fetch_object has incorrect type signature).
+    (Jon Allen)
+
+- Opcache:
+  . Fixed bug #77058 (Type inference in opcache causes side effects). (Nikita)
+  . Fixed bug #77092 (array_diff_key() - segmentation fault). (Nikita)
+
+- SOAP:
+  . Fixed bug #50675 (SoapClient can't handle object references correctly).
+    (Cameron Porter)
+  . Fixed bug #76348 (WSDL_CACHE_MEMORY causes Segmentation fault). (cmb)
+
+- Standard:
+  . Fixed bug #77081 (ftruncate() changes seek pointer in c mode). (cmb, Anatol)
+
+- XML:
+  . Fixed bug 71592 (External entity processing never fails). (cmb)
+
 25 Oct 2018, PHP 7.3.0RC4
 
 - Core:
@@ -114,7 +144,6 @@ PHP                                                                        NEWS
 13 Sep 2018, PHP 7.3.0RC1
 
 - Core:
-  . Fixed bug #76825 (Undefined symbols ___cpuid_count). (Laruence)
   . Fixed bug #76820 (Z_COPYABLE invalid definition). (mvdwerve, cmb)
   . Fixed bug #76510 (file_exists() stopped working for phar://). (cmb)
 
