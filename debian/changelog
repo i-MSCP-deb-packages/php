@@ -1,3 +1,9 @@
+php7.1 (7.1.24-1) unstable; urgency=medium
+
+  * New upstream version 7.1.24
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 12 Nov 2018 09:19:03 +0000
+
 php7.1 (7.1.23-4) unstable; urgency=medium
 
   * Restore correct patch name for
