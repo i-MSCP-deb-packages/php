@@ -6,6 +6,7 @@ dba_config = \
 	--with-db4=/usr \
 	--without-gdbm \
 	--with-qdbm=/usr \
+	--with-lmdb=/usr \
 	--enable-inifile \
 	--enable-flatfile
 export dba_EXTENSIONS
