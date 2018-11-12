@@ -508,6 +508,9 @@
 /* Compiler supports VLA */
 #undef HAVE_COMPILER_C99_VLA
 
+/* whether __cpuid_count is available */
+#undef HAVE_CPUID_COUNT
+
 /* Define to 1 if you have the <cpuid.h> header file. */
 #undef HAVE_CPUID_H
 

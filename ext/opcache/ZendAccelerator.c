@@ -12,10 +12,10 @@
    | obtain it through the world-wide-web, please send a note to          |
    | license@php.net so we can mail you a copy immediately.               |
    +----------------------------------------------------------------------+
-   | Authors: Andi Gutmans <andi@zend.com>                                |
-   |          Zeev Suraski <zeev@zend.com>                                |
+   | Authors: Andi Gutmans <andi@php.net>                                 |
+   |          Zeev Suraski <zeev@php.net>                                 |
    |          Stanislav Malyshev <stas@zend.com>                          |
-   |          Dmitry Stogov <dmitry@zend.com>                             |
+   |          Dmitry Stogov <dmitry@php.net>                              |
    +----------------------------------------------------------------------+
 */
 
@@ -379,6 +379,9 @@ static void accel_interned_strings_restore_state(void)
 	/* clear removed content */
 	memset(ZCSG(interned_strings).saved_top,
 			0, (char*)ZCSG(interned_strings).top - (char*)ZCSG(interned_strings).saved_top);
+
+	/* Reset "top" */
+	ZCSG(interned_strings).top = ZCSG(interned_strings).saved_top;
 
 	/* rehash */
 	memset((char*)&ZCSG(interned_strings) + sizeof(zend_string_table),
