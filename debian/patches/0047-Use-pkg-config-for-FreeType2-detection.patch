@@ -7,7 +7,7 @@ Subject: Use pkg-config for FreeType2 detection
  1 file changed, 19 insertions(+), 11 deletions(-)
 
 diff --git a/ext/gd/config.m4 b/ext/gd/config.m4
-index 1bc5f98..ebddfb4 100644
+index 7ed155e..0f527fe 100644
 --- a/ext/gd/config.m4
 +++ b/ext/gd/config.m4
 @@ -189,21 +189,29 @@ AC_DEFUN([PHP_GD_XPM],[

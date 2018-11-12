@@ -14,7 +14,7 @@ Subject: debian_quirks
  8 files changed, 22 insertions(+), 17 deletions(-)
 
 diff --git a/configure.in b/configure.in
-index da13d95..0c39f46 100644
+index 183f413..dc4b988 100644
 --- a/configure.in
 +++ b/configure.in
 @@ -1095,7 +1095,7 @@ if test "$PHP_CLI" = "no"; then
@@ -52,7 +52,7 @@ index da13d95..0c39f46 100644
  
  dnl
 diff --git a/ext/ext_skel b/ext/ext_skel
-index 63563e7..56559fb 100755
+index 88b10e9..e317816 100755
 --- a/ext/ext_skel
 +++ b/ext/ext_skel
 @@ -70,7 +70,7 @@ if test -d "$extname" ; then
@@ -91,7 +91,7 @@ index dafdded..a09b232 100644
  ; Windows: "\path1;\path2"
  ;include_path = ".;c:\php\includes"
 diff --git a/sapi/cli/php.1.in b/sapi/cli/php.1.in
-index 5d82093..1316f1b 100644
+index 88a43d3..a202630 100644
 --- a/sapi/cli/php.1.in
 +++ b/sapi/cli/php.1.in
 @@ -365,13 +365,14 @@ Shows configuration for extension
@@ -103,7 +103,7 @@ index 5d82093..1316f1b 100644
  The configuration file for the CLI version of PHP.
  .TP
 -.B php.ini
--The standard configuration file will only be used when 
+-The standard configuration file will only be used when
 -.B php\-cli.ini
 -cannot be found.
 +.B /etc/php/@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@/cgi/php.ini
@@ -115,10 +115,10 @@ index 5d82093..1316f1b 100644
  .TP 5
  \fI@program_prefix@php \-r 'echo "Hello World\\n";'\fP
 diff --git a/scripts/Makefile.frag b/scripts/Makefile.frag
-index d3f8bb2..6c432f3 100644
+index 06be3af..ca1cd7c 100644
 --- a/scripts/Makefile.frag
 +++ b/scripts/Makefile.frag
-@@ -3,8 +3,8 @@
+@@ -2,8 +2,8 @@
  # Build environment install
  #
  
@@ -150,7 +150,7 @@ index d6c62cc..fa25dc7 100644
  program_prefix="@program_prefix@"
  program_suffix="@program_suffix@"
 diff --git a/scripts/phpize.in b/scripts/phpize.in
-index 240590d..13c2c74 100644
+index 99250da..9bd18c0 100644
 --- a/scripts/phpize.in
 +++ b/scripts/phpize.in
 @@ -4,8 +4,8 @@

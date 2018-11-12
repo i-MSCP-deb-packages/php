@@ -8,12 +8,12 @@ Subject: libtool_fixes
  2 files changed, 5 deletions(-)
 
 diff --git a/TSRM/configure.in b/TSRM/configure.in
-index 6f10f5a..2bcff8d 100644
+index c4f2ce6..321a043 100644
 --- a/TSRM/configure.in
 +++ b/TSRM/configure.in
 @@ -17,9 +17,6 @@ TSRM_BASIC_CHECKS
  TSRM_THREADS_CHECKS
- 	
+ 
  AM_PROG_LIBTOOL
 -if test "$enable_debug" != "yes"; then
 -  AM_SET_LIBTOOL_VARIABLE([--silent])
@@ -22,7 +22,7 @@ index 6f10f5a..2bcff8d 100644
  dnl TSRM_PTHREAD
  
 diff --git a/configure.in b/configure.in
-index 48f21d0..da13d95 100644
+index c6e22e2..183f413 100644
 --- a/configure.in
 +++ b/configure.in
 @@ -1431,8 +1431,6 @@ AC_PROVIDE_IFELSE([PHP_REQUIRE_CXX], [], [

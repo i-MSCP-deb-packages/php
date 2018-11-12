@@ -8,7 +8,7 @@ Subject: php-5.4.7-libdb
  2 files changed, 10 insertions(+), 50 deletions(-)
 
 diff --git a/ext/dba/config.m4 b/ext/dba/config.m4
-index 740cf14..1e8d51b 100644
+index ced02de..64e1661 100644
 --- a/ext/dba/config.m4
 +++ b/ext/dba/config.m4
 @@ -312,61 +312,13 @@ if test "$PHP_DB4" != "no"; then

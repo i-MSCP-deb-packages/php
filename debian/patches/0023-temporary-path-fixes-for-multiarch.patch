@@ -12,7 +12,7 @@ Subject: temporary-path-fixes-for-multiarch
  6 files changed, 17 insertions(+), 17 deletions(-)
 
 diff --git a/acinclude.m4 b/acinclude.m4
-index 92482c2..38bf6a2 100644
+index 6f22770..374e29a 100644
 --- a/acinclude.m4
 +++ b/acinclude.m4
 @@ -2289,7 +2289,7 @@ AC_DEFUN([PHP_SETUP_KERBEROS],[
@@ -34,7 +34,7 @@ index 92482c2..38bf6a2 100644
        fi
        test -n "$OPENSSL_INCDIR" && test -n "$OPENSSL_LIBDIR" && break
 diff --git a/ext/dba/config.m4 b/ext/dba/config.m4
-index d2e6fd9..f3aec83 100644
+index edc7d11..2dcfddb 100644
 --- a/ext/dba/config.m4
 +++ b/ext/dba/config.m4
 @@ -239,7 +239,7 @@ AC_DEFUN([PHP_DBA_DB_CHECK],[
@@ -47,7 +47,7 @@ index d2e6fd9..f3aec83 100644
        PHP_TEMP_LDFLAGS(-L$THIS_PREFIX/$PHP_LIBDIR, -l$LIB,[
          AC_TRY_LINK([
 diff --git a/ext/gmp/config.m4 b/ext/gmp/config.m4
-index 22cca7e..0047402 100644
+index 1567d30..a094763 100644
 --- a/ext/gmp/config.m4
 +++ b/ext/gmp/config.m4
 @@ -7,6 +7,7 @@ if test "$PHP_GMP" != "no"; then
@@ -142,7 +142,7 @@ index 4d5cb8c..1e26976 100644
       AC_DEFINE(HAVE_ORALDAP,1,[ ])
       AC_DEFINE(HAVE_ORALDAP_10,1,[ ])
 diff --git a/ext/pcre/config0.m4 b/ext/pcre/config0.m4
-index 35fc585..b34c9a8 100644
+index 0ea6a17..e7e1963 100644
 --- a/ext/pcre/config0.m4
 +++ b/ext/pcre/config0.m4
 @@ -21,7 +21,7 @@ PHP_ARG_WITH(pcre-regex,,
@@ -153,9 +153,9 @@ index 35fc585..b34c9a8 100644
 +    for j in $PHP_PCRE_REGEX $PHP_PCRE_REGEX/$PHP_LIBDIR/$DEB_HOST_MULTIARCH $PHP_PCRE_REGEX/$PHP_LIBDIR; do
        test -f $j/libpcre.a || test -f $j/libpcre.$SHLIB_SUFFIX_NAME && PCRE_LIBDIR=$j
      done
-     
+ 
 diff --git a/ext/pdo_dblib/config.m4 b/ext/pdo_dblib/config.m4
-index 407c3fe..17eb11a 100644
+index 6f21fa7..3f4c784 100644
 --- a/ext/pdo_dblib/config.m4
 +++ b/ext/pdo_dblib/config.m4
 @@ -46,7 +46,7 @@ if test "$PHP_PDO_DBLIB" != "no"; then
