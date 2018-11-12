@@ -9,10 +9,10 @@ session.cookie_lifetime=3600
 
 ob_start();
 
-/* 
+/*
  * Prototype : void session_set_cookie_params(int $lifetime [, string $path [, string $domain [, bool $secure [, bool $httponly]]]])
  * Description : Set the session cookie parameters
- * Source code : ext/session/session.c 
+ * Source code : ext/session/session.c
  */
 
 echo "*** Testing session_set_cookie_params() : variation ***\n";
@@ -46,4 +46,3 @@ string(4) "1800"
 NULL
 string(10) "1234567890"
 Done
-

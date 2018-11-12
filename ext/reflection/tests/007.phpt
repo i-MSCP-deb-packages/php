@@ -29,7 +29,7 @@ function test($class)
 	{
 		echo "Exception: " . $e->getMessage() . "\n";
 	}
-	
+
 	echo "====>newInstance(25)\n";
 	try
 	{
@@ -49,7 +49,7 @@ function test($class)
 	{
 		var_dump($e->getMessage());
 	}
-	
+
 	echo "\n";
 }
 
@@ -92,7 +92,6 @@ test('WithCtorWithArgs');
 ===DONE===
 <?php exit(0); ?>
 --EXPECTF--
-
 ====>Class_does_not_exist
 __autoload(Class_does_not_exist)
 string(41) "Class Class_does_not_exist does not exist"

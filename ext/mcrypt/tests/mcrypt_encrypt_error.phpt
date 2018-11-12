@@ -1,17 +1,17 @@
 --TEST--
-Test mcrypt_encrypt() function : error conditions 
+Test mcrypt_encrypt() function : error conditions
 --SKIPIF--
-<?php 
+<?php
 if (!extension_loaded("mcrypt")) {
-	print "skip - mcrypt extension not loaded"; 
-}	 
+	print "skip - mcrypt extension not loaded";
+}
 ?>
 --FILE--
 <?php
 /* Prototype  : string mcrypt_encrypt(string cipher, string key, string data, string mode, string iv)
- * Description: OFB crypt/decrypt data using key key with cipher cipher starting with iv 
+ * Description: OFB crypt/decrypt data using key key with cipher cipher starting with iv
  * Source code: ext/mcrypt/mcrypt.c
- * Alias to functions: 
+ * Alias to functions:
  */
 
 echo "*** Testing mcrypt_encrypt() : error conditions ***\n";
@@ -53,4 +53,3 @@ Deprecated: Function mcrypt_encrypt() is deprecated in %s%emcrypt_encrypt_error.
 Warning: mcrypt_encrypt() expects at least 4 parameters, 3 given in %s on line %d
 NULL
 ===DONE===
-
