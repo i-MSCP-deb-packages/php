@@ -56,7 +56,7 @@ for more detail on this issue.
   [
     PHP_ADD_EXTENSION_DEP(pdo, spl, true)
   ])
-  
+
   ifdef([PHP_INSTALL_HEADERS],
   [
     dnl Sadly, this is a complete NOP for pecl extensions
@@ -66,4 +66,3 @@ for more detail on this issue.
   dnl so we always include the known-good working hack.
   PHP_ADD_MAKEFILE_FRAGMENT
 fi
-

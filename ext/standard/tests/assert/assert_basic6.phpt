@@ -8,7 +8,7 @@ assert.quiet_eval = 1
 assert.bail = 0
 --FILE--
 <?php
-function f1($message) 
+function f1($message)
 {
 	echo "f1 called\n";
 }
@@ -23,4 +23,3 @@ int(0)
 f1 called
 
 Warning: assert(): 0 is 0: "0 != 0" failed in %s on line 10
-

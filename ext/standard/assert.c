@@ -275,7 +275,7 @@ PHP_FUNCTION(assert)
 	if (ASSERTG(bail)) {
 		zend_bailout();
 	}
-	
+
 	RETURN_FALSE;
 }
 /* }}} */
@@ -386,4 +386,3 @@ PHP_FUNCTION(assert_options)
  * vim600: sw=4 ts=4 fdm=marker
  * vim<600: sw=4 ts=4
  */
-
