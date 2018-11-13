@@ -1,3 +1,10 @@
+php7.3 (7.3.0~rc5-2) unstable; urgency=medium
+
+  * Don't use sed found by configure, use the sed command as available in
+    the host system (Closes: #913620)
+
+ -- Ondřej Surý <ondrej@debian.org>  Tue, 13 Nov 2018 09:10:56 +0000
+
 php7.3 (7.3.0~rc5-1) unstable; urgency=medium
 
   * New upstream version 7.3.0~rc5
