@@ -2,10 +2,6 @@ Source: php5.3
 Section: php
 Priority: optional
 Maintainer: Laurent Declercq <l.declercq@nuxwin.com>
-Uploaders: Ondřej Surý <ondrej@debian.org>,
-	   Sean Finney <seanius@debian.org>,
-	   Thijs Kinkhorst <thijs@debian.org>,
-	   Raphael Geissert <geissert@debian.org>
 Build-Depends: apache2-prefork-dev,
 	       autoconf (>= 2.63),
 	       automake (>= 1.11) | automake1.11,
