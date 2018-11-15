@@ -31,19 +31,19 @@ echo "\nmemory stream (close after):\n";
 fclose(do_stuff("php://memory"));
 
 echo "\nDone.\n";
---EXPECT--
+--EXPECTF--
 temp stream (close after):
 About to rewind!
-* About to connect() to 127.0.0.1 port 37349 (#0)
-*   Trying 127.0.0.1... * Connection refused
-* couldn't connect to host
+* About to connect() to 127.0.0.1 port 37349%r.*%r
+*   Trying 127.0.0.1...%A* Connection refused
+* couldn't connect to host%S
 * Closing connection #0
 
 memory stream (close after):
 About to rewind!
-* About to connect() to 127.0.0.1 port 37349 (#0)
-*   Trying 127.0.0.1... * Connection refused
-* couldn't connect to host
+* About to connect() to 127.0.0.1 port 37349%r.*%r
+*   Trying 127.0.0.1...%A* Connection refused
+* couldn't connect to host%S
 * Closing connection #0
 
 Done.

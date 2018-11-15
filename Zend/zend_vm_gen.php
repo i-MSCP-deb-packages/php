@@ -3,7 +3,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2013 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
    | Authors: Dmitry Stogov <dmitry@zend.com>                             |
    +----------------------------------------------------------------------+
 
-	 $Id: zend_vm_gen.php 321634 2012-01-01 13:15:04Z felipe $
+	 $Id$
 */
 
 $header_text = <<< DATA
@@ -24,7 +24,7 @@ $header_text = <<< DATA
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2013 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -848,6 +848,13 @@ function gen_executor($f, $skl, $spec, $kind, $executor_name, $initializer_name,
 						}
 					} else {
 						skip_blanks($f, $m[1], $m[3]."\n");
+					}
+					break;
+				case "EXECUTION_STATUS":
+					if ($kind != ZEND_VM_KIND_GOTO) {
+						out($f, $m[1] . "zend_bool original_in_execution = EG(in_execution);\n");
+					} else {
+						out($f, $m[1] . "zend_bool original_in_execution = op_array? EG(in_execution) : 0;\n");
 					}
 					break;
 				case "INTERNAL_LABELS":

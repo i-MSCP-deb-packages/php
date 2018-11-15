@@ -14,7 +14,7 @@
 #  | Author: Sascha Schumann <sascha@schumann.cx>                         |
 #  +----------------------------------------------------------------------+
 #
-# $Id: build2.mk 226204 2007-01-01 19:32:10Z iliaa $ 
+# $Id$ 
 #
 
 include generated_lists

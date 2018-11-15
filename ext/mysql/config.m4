@@ -1,5 +1,5 @@
 dnl
-dnl $Id: config.m4 291501 2009-11-30 15:11:29Z jani $
+dnl $Id$
 dnl
 
 AC_DEFUN([MYSQL_LIB_CHK], [
@@ -97,6 +97,13 @@ Note that the MySQL client library is not bundled anymore!])
   for i in $PHP_LIBDIR $PHP_LIBDIR/mysql; do
     MYSQL_LIB_CHK($i)
   done
+
+  if test -z "$MYSQL_LIB_DIR"; then
+    MYSQL_LIB_CHK(lib/x86_64-linux-gnu)
+  fi
+  if test -z "$MYSQL_LIB_DIR"; then
+    MYSQL_LIB_CHK(lib/i386-linux-gnu)
+  fi
 
   if test -z "$MYSQL_LIB_DIR"; then
     AC_MSG_ERROR([Cannot find lib$MYSQL_LIBNAME under $MYSQL_DIR.

@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -18,7 +18,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: tsrm_virtual_cwd.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -38,6 +38,10 @@
 #include "tsrm_win32.h"
 # ifndef IO_REPARSE_TAG_SYMLINK
 #  define IO_REPARSE_TAG_SYMLINK 0xA000000C
+# endif
+
+# ifndef IO_REPARSE_TAG_DEDUP
+#  define IO_REPARSE_TAG_DEDUP   0x80000013
 # endif
 
 # ifndef VOLUME_NAME_NT
@@ -773,6 +777,9 @@ static int tsrm_realpath_r(char *path, int start, int len, int *ll, time_t *t, i
 
 	while (1) {
 		if (len <= start) {
+			if (link_is_dir) {
+				*link_is_dir = 1;
+			}
 			return start;
 		}
 
@@ -789,6 +796,10 @@ static int tsrm_realpath_r(char *path, int start, int len, int *ll, time_t *t, i
 			continue;
 		} else if (i == len - 2 && path[i] == '.' && path[i+1] == '.') {
 			/* remove '..' and previous directory */
+			is_dir = 1;
+			if (link_is_dir) {
+				*link_is_dir = 1;
+			}
 			if (i - 1 <= start) {
 				return start ? start : len;
 			}
@@ -951,6 +962,11 @@ static int tsrm_realpath_r(char *path, int start, int len, int *ll, time_t *t, i
 					return -1;
 				};
 				substitutename[substitutename_len] = 0;
+			}
+			else if (pbuffer->ReparseTag == IO_REPARSE_TAG_DEDUP) {
+				isabsolute = 1;
+				memcpy(substitutename, path, len + 1);
+				substitutename_len = len;
 			} else {
 				tsrm_free_alloca(pbuffer, use_heap_large);
 				return -1;
@@ -1214,9 +1230,14 @@ CWD_API int virtual_file_ex(cwd_state *state, const char *path, verify_path_func
 				return 1;
 			}
 			memcpy(resolved_path, state->cwd, state_cwd_length);
-			resolved_path[state_cwd_length] = DEFAULT_SLASH;
-			memcpy(resolved_path + state_cwd_length + 1, path, path_length + 1);
-			path_length += state_cwd_length + 1;
+			if (resolved_path[state_cwd_length-1] == DEFAULT_SLASH) {
+				memcpy(resolved_path + state_cwd_length, path, path_length + 1);
+				path_length += state_cwd_length;
+			} else {
+				resolved_path[state_cwd_length] = DEFAULT_SLASH;
+				memcpy(resolved_path + state_cwd_length + 1, path, path_length + 1);
+				path_length += state_cwd_length + 1;
+			}
 		}
 	} else {
 #ifdef TSRM_WIN32

@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
   +----------------------------------------------------------------------+
 */
 
-/* $Id: streamsfuncs.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "php.h"
 #include "php_globals.h"
@@ -51,7 +51,7 @@ PHP_FUNCTION(stream_socket_pair)
 {
 	long domain, type, protocol;
 	php_stream *s1, *s2;
-	int pair[2];
+	php_socket_t pair[2];
 
 	if (FAILURE == zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lll",
 			&domain, &type, &protocol)) {
@@ -105,10 +105,6 @@ PHP_FUNCTION(stream_socket_client)
 	}
 
 	context = php_stream_context_from_zval(zcontext, flags & PHP_FILE_NO_DEFAULT_CONTEXT);
-
-	if (context) {
-		zend_list_addref(context->rsrc_id);
-	}
 
 	if (flags & PHP_STREAM_CLIENT_PERSISTENT) {
 		spprintf(&hashkey, 0, "stream_socket_client__%s", host);
@@ -615,7 +611,6 @@ static int stream_array_to_fd_set(zval *stream_array, fd_set *fds, php_socket_t 
 {
 	zval **elem;
 	php_stream *stream;
-	php_socket_t this_fd;
 	int cnt = 0;
 
 	if (Z_TYPE_P(stream_array) != IS_ARRAY) {
@@ -624,6 +619,11 @@ static int stream_array_to_fd_set(zval *stream_array, fd_set *fds, php_socket_t 
 	for (zend_hash_internal_pointer_reset(Z_ARRVAL_P(stream_array));
 		 zend_hash_get_current_data(Z_ARRVAL_P(stream_array), (void **) &elem) == SUCCESS;
 		 zend_hash_move_forward(Z_ARRVAL_P(stream_array))) {
+
+		/* Temporary int fd is needed for the STREAM data type on windows, passing this_fd directly to php_stream_cast()
+		   would eventually bring a wrong result on x64. php_stream_cast() casts to int internally, and this will leave
+		   the higher bits of a SOCKET variable uninitialized on systems with little endian. */
+		int tmp_fd;
 
 		php_stream_from_zval_no_verify(stream, elem);
 		if (stream == NULL) {
@@ -634,7 +634,9 @@ static int stream_array_to_fd_set(zval *stream_array, fd_set *fds, php_socket_t 
 		 * when casting.  It is only used here so that the buffered data warning
 		 * is not displayed.
 		 * */
-		if (SUCCESS == php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&this_fd, 1) && this_fd != -1) {
+		if (SUCCESS == php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&tmp_fd, 1) && tmp_fd != -1) {
+
+			php_socket_t this_fd = (php_socket_t)tmp_fd;
 
 			PHP_SAFE_FD_SET(this_fd, fds);
 
@@ -652,7 +654,6 @@ static int stream_array_from_fd_set(zval *stream_array, fd_set *fds TSRMLS_DC)
 	zval **elem, **dest_elem;
 	php_stream *stream;
 	HashTable *new_hash;
-	php_socket_t this_fd;
 	int ret = 0;
 
 	if (Z_TYPE_P(stream_array) != IS_ARRAY) {
@@ -665,6 +666,11 @@ static int stream_array_from_fd_set(zval *stream_array, fd_set *fds TSRMLS_DC)
 		 zend_hash_get_current_data(Z_ARRVAL_P(stream_array), (void **) &elem) == SUCCESS;
 		 zend_hash_move_forward(Z_ARRVAL_P(stream_array))) {
 
+		/* Temporary int fd is needed for the STREAM data type on windows, passing this_fd directly to php_stream_cast()
+		   would eventually bring a wrong result on x64. php_stream_cast() casts to int internally, and this will leave
+		   the higher bits of a SOCKET variable uninitialized on systems with little endian. */
+		int tmp_fd;
+
 		php_stream_from_zval_no_verify(stream, elem);
 		if (stream == NULL) {
 			continue;
@@ -674,7 +680,10 @@ static int stream_array_from_fd_set(zval *stream_array, fd_set *fds TSRMLS_DC)
 		 * when casting.  It is only used here so that the buffered data warning
 		 * is not displayed.
 		 */
-		if (SUCCESS == php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&this_fd, 1) && this_fd != -1) {
+		if (SUCCESS == php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&tmp_fd, 1) && tmp_fd != -1) {
+
+			php_socket_t this_fd = (php_socket_t)tmp_fd;
+
 			if (PHP_SAFE_FD_ISSET(this_fd, fds)) {
 				zend_hash_next_index_insert(new_hash, (void *)elem, sizeof(zval *), (void **)&dest_elem);
 				if (dest_elem) {

@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: multi.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #define ZEND_INCLUDE_FULL_WINDOWS_HEADERS
 
@@ -191,6 +191,9 @@ PHP_FUNCTION(curl_multi_select)
 	FD_ZERO(&exceptfds);
 
 	curl_multi_fdset(mh->multi, &readfds, &writefds, &exceptfds, &maxfd);
+	if (maxfd == -1) {
+		RETURN_LONG(-1);
+	}
 	RETURN_LONG(select(maxfd + 1, &readfds, &writefds, &exceptfds, &to));
 }
 /* }}} */

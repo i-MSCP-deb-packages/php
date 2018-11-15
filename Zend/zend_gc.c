@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2013 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: zend_gc.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "zend.h"
 #include "zend_API.h"
@@ -553,7 +553,8 @@ tail_call:
 			struct _store_object *obj = &EG(objects_store).object_buckets[Z_OBJ_HANDLE_P(pz)].bucket.obj;
 
 			if (obj->buffered == (gc_root_buffer*)GC_WHITE) {
-				GC_SET_BLACK(obj->buffered);
+				/* PURPLE instead of BLACK to prevent buffering in nested gc calls */
+				GC_SET_PURPLE(obj->buffered);
 
 				if (EXPECTED(EG(objects_store).object_buckets[Z_OBJ_HANDLE_P(pz)].valid &&
 				             Z_OBJ_HANDLER_P(pz, get_properties) != NULL)) {
@@ -598,7 +599,8 @@ static void zobj_collect_white(zval *pz TSRMLS_DC)
 		struct _store_object *obj = &EG(objects_store).object_buckets[Z_OBJ_HANDLE_P(pz)].bucket.obj;
 
 		if (obj->buffered == (gc_root_buffer*)GC_WHITE) {
-			GC_SET_BLACK(obj->buffered);
+			/* PURPLE instead of BLACK to prevent buffering in nested gc calls */
+			GC_SET_PURPLE(obj->buffered);
 
 			if (EXPECTED(EG(objects_store).object_buckets[Z_OBJ_HANDLE_P(pz)].valid &&
 			             Z_OBJ_HANDLER_P(pz, get_properties) != NULL)) {

@@ -1,5 +1,5 @@
 dnl
-dnl $Id: config.m4 292081 2009-12-13 17:06:47Z felipe $
+dnl $Id$
 dnl
 
 PHP_ARG_WITH(libedit,for libedit readline replacement, 

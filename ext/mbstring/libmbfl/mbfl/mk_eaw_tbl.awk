@@ -1,6 +1,6 @@
 #!/usr/bin/awk -f
 #
-# $Id: mk_eaw_tbl.awk 180252 2005-02-20 22:18:09Z moriyoshi $
+# $Id$
 #
 # Description: a script to generate east asian width table.
 #

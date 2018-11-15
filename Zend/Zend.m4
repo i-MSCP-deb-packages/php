@@ -1,5 +1,5 @@
 dnl
-dnl $Id: Zend.m4 286859 2009-08-06 01:33:54Z scottmac $
+dnl $Id$
 dnl
 dnl This file contains Zend specific autoconf functions.
 dnl

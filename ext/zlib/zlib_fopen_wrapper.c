@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: zlib_fopen_wrapper.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #define _GNU_SOURCE
 
@@ -109,7 +109,7 @@ static php_stream_ops php_stream_gzio_ops = {
 php_stream *php_stream_gzopen(php_stream_wrapper *wrapper, char *path, char *mode, int options, 
 							  char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC)
 {
-	struct php_gz_stream_data_t *self = {0};
+	struct php_gz_stream_data_t *self;
 	php_stream *stream = NULL, *innerstream = NULL;
 
 	/* sanity check the stream: it can be either read-only or write-only */
@@ -120,8 +120,6 @@ php_stream *php_stream_gzopen(php_stream_wrapper *wrapper, char *path, char *mod
 		return NULL;
 	}
 	
-	self = emalloc(sizeof(*self));
-
 	if (strncasecmp("compress.zlib://", path, 16) == 0) {
 		path += 16;
 	} else if (strncasecmp("zlib:", path, 5) == 0) {
@@ -134,32 +132,29 @@ php_stream *php_stream_gzopen(php_stream_wrapper *wrapper, char *path, char *mod
 		int fd;
 
 		if (SUCCESS == php_stream_cast(innerstream, PHP_STREAM_AS_FD, (void **) &fd, REPORT_ERRORS)) {
-			self->gz_file = gzdopen(dup(fd), mode);
+			self = emalloc(sizeof(*self));
 			self->stream = innerstream;
-			if (self->gz_file)	{
+			self->gz_file = gzdopen(dup(fd), mode);
+
+			if (self->gz_file) {
 				stream = php_stream_alloc_rel(&php_stream_gzio_ops, self, 0, mode);
 				if (stream) {
 					stream->flags |= PHP_STREAM_FLAG_NO_BUFFER;
 					return stream;
 				}
+
 				gzclose(self->gz_file);
 			}
+
+			efree(self);
 			if (options & REPORT_ERRORS) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "gzopen failed");
 			}
-		} else if (innerstream) {
-			php_stream_close(innerstream);
 		}
+
+		php_stream_close(innerstream);
 	}
 
-	if (stream) {
-		php_stream_close(stream);
-	}
-	
-	if (self) {
-		efree(self);
-	}
-	
 	return NULL;
 }
 

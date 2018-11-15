@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: php_sqlite3_structs.h 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #ifndef PHP_SQLITE_STRUCTS_H
 #define PHP_SQLITE_STRUCTS_H
@@ -62,12 +62,23 @@ typedef struct _php_sqlite3_func {
 	struct php_sqlite3_fci afunc, astep, afini;
 } php_sqlite3_func;
 
+/* Structure for SQLite collation function */
+typedef struct _php_sqlite3_collation {
+	struct _php_sqlite3_collation *next;
+
+	const char *collation_name;
+	zval *cmp_func;
+	struct php_sqlite3_fci fci;
+} php_sqlite3_collation;
+
 /* Structure for SQLite Database object. */
 typedef struct _php_sqlite3_db_object  {
 	zend_object zo;
 	int initialised;
 	sqlite3 *db;
 	php_sqlite3_func *funcs;
+	php_sqlite3_collation *collations;
+
 	zend_bool exception;
 
 	zend_llist free_list;

@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: php_variables.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include <stdio.h>
 #include "php.h"
@@ -138,10 +138,10 @@ PHPAPI void php_register_variable_ex(char *var_name, zval *val, zval *track_vars
 
 				if (track_vars_array) {
 					ht = Z_ARRVAL_P(track_vars_array);
-					zend_hash_del(ht, var, var_len + 1);
+					zend_symtable_del(ht, var, var_len + 1);
 				} else if (PG(register_globals)) {
 					ht = EG(active_symbol_table);
-					zend_hash_del(ht, var, var_len + 1);
+					zend_symtable_del(ht, var, var_len + 1);
 				}
 
 				zval_dtor(val);
@@ -182,7 +182,12 @@ PHPAPI void php_register_variable_ex(char *var_name, zval *val, zval *track_vars
 			if (!index) {
 				MAKE_STD_ZVAL(gpc_element);
 				array_init(gpc_element);
-				zend_hash_next_index_insert(symtable1, &gpc_element, sizeof(zval *), (void **) &gpc_element_p);
+				if (zend_hash_next_index_insert(symtable1, &gpc_element, sizeof(zval *), (void **) &gpc_element_p) == FAILURE) {
+					zval_ptr_dtor(&gpc_element);
+					zval_dtor(val);
+					efree(var_orig);
+					return;
+				}
 			} else {
 				if (PG(magic_quotes_gpc)) {
 					escaped_index = php_addslashes(index, index_len, &index_len, 0 TSRMLS_CC);
@@ -191,14 +196,9 @@ PHPAPI void php_register_variable_ex(char *var_name, zval *val, zval *track_vars
 				}
 				if (zend_symtable_find(symtable1, escaped_index, index_len + 1, (void **) &gpc_element_p) == FAILURE
 					|| Z_TYPE_PP(gpc_element_p) != IS_ARRAY) {
-					if (zend_hash_num_elements(symtable1) <= PG(max_input_vars)) {
-						if (zend_hash_num_elements(symtable1) == PG(max_input_vars)) {
-							php_error_docref(NULL TSRMLS_CC, E_WARNING, "Input variables exceeded %ld. To increase the limit change max_input_vars in php.ini.", PG(max_input_vars));
-						}
-						MAKE_STD_ZVAL(gpc_element);
-						array_init(gpc_element);
-						zend_symtable_update(symtable1, escaped_index, index_len + 1, &gpc_element, sizeof(zval *), (void **) &gpc_element_p);
-					}
+					MAKE_STD_ZVAL(gpc_element);
+					array_init(gpc_element);
+					zend_symtable_update(symtable1, escaped_index, index_len + 1, &gpc_element, sizeof(zval *), (void **) &gpc_element_p);
 				}
 				if (index != escaped_index) {
 					efree(escaped_index);
@@ -223,7 +223,9 @@ plain_var:
 		gpc_element->value = val->value;
 		Z_TYPE_P(gpc_element) = Z_TYPE_P(val);
 		if (!index) {
-			zend_hash_next_index_insert(symtable1, &gpc_element, sizeof(zval *), (void **) &gpc_element_p);
+			if (zend_hash_next_index_insert(symtable1, &gpc_element, sizeof(zval *), (void **) &gpc_element_p) == FAILURE) {
+				zval_ptr_dtor(&gpc_element);
+			}
 		} else {
 			if (PG(magic_quotes_gpc)) { 
 				escaped_index = php_addslashes(index, index_len, &index_len, 0 TSRMLS_CC);
@@ -241,14 +243,7 @@ plain_var:
 				zend_symtable_exists(symtable1, escaped_index, index_len + 1)) {
 				zval_ptr_dtor(&gpc_element);
 			} else {
-				if (zend_hash_num_elements(symtable1) <= PG(max_input_vars)) {
-					if (zend_hash_num_elements(symtable1) == PG(max_input_vars)) {
-						php_error_docref(NULL TSRMLS_CC, E_WARNING, "Input variables exceeded %ld. To increase the limit change max_input_vars in php.ini.", PG(max_input_vars));
-					}
-					zend_symtable_update(symtable1, escaped_index, index_len + 1, &gpc_element, sizeof(zval *), (void **) &gpc_element_p);
-				} else {
-					zval_ptr_dtor(&gpc_element);
-				}
+				zend_symtable_update(symtable1, escaped_index, index_len + 1, &gpc_element, sizeof(zval *), (void **) &gpc_element_p);
 			}
 			if (escaped_index != index) {
 				efree(escaped_index);
@@ -262,6 +257,7 @@ SAPI_API SAPI_POST_HANDLER_FUNC(php_std_post_handler)
 {
 	char *var, *val, *e, *s, *p;
 	zval *array_ptr = (zval *) arg;
+	long count = 0;
 
 	if (SG(request_info).post_data == NULL) {
 		return;
@@ -275,6 +271,10 @@ last_value:
 		if ((val = memchr(s, '=', (p - s)))) { /* have a value */
 			unsigned int val_len, new_val_len;
 
+			if (++count > PG(max_input_vars)) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Input variables exceeded %ld. To increase the limit change max_input_vars in php.ini.", PG(max_input_vars));
+				return;
+			}
 			var = s;
 
 			php_url_decode(var, (val - s));
@@ -308,6 +308,7 @@ SAPI_API SAPI_TREAT_DATA_FUNC(php_default_treat_data)
 	zval *array_ptr;
 	int free_buffer = 0;
 	char *strtok_buf = NULL;
+	long count = 0;
 	
 	switch (arg) {
 		case PARSE_POST:
@@ -397,6 +398,11 @@ SAPI_API SAPI_TREAT_DATA_FUNC(php_default_treat_data)
 			}
 		}
 
+		if (++count > PG(max_input_vars)) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Input variables exceeded %ld. To increase the limit change max_input_vars in php.ini.", PG(max_input_vars));
+			break;
+		}
+
 		if (val) { /* have a value */
 			int val_len;
 			unsigned int new_val_len;
@@ -443,7 +449,10 @@ void _php_import_environment_variables(zval *array_ptr TSRMLS_DC)
 
 	/* turn off magic_quotes while importing environment variables */
 	int magic_quotes_gpc = PG(magic_quotes_gpc);
-	PG(magic_quotes_gpc) = 0;
+
+	if (magic_quotes_gpc) {
+		zend_alter_ini_entry_ex("magic_quotes_gpc", sizeof("magic_quotes_gpc"), "0", 1, ZEND_INI_SYSTEM, ZEND_INI_STAGE_ACTIVATE, 1 TSRMLS_CC);
+	}
 
 	for (env = environ; env != NULL && *env != NULL; env++) {
 		p = strchr(*env, '=');
@@ -462,7 +471,10 @@ void _php_import_environment_variables(zval *array_ptr TSRMLS_DC)
 	if (t != buf && t != NULL) {
 		efree(t);
 	}
-	PG(magic_quotes_gpc) = magic_quotes_gpc;
+
+	if (magic_quotes_gpc) {
+		zend_alter_ini_entry_ex("magic_quotes_gpc", sizeof("magic_quotes_gpc"), "1", 1, ZEND_INI_SYSTEM, ZEND_INI_STAGE_ACTIVATE, 1 TSRMLS_CC);
+	}
 }
 
 zend_bool php_std_auto_global_callback(char *name, uint name_len TSRMLS_DC)
@@ -586,7 +598,9 @@ static inline void php_register_server_variables(TSRMLS_D)
 		zval_ptr_dtor(&PG(http_globals)[TRACK_VARS_SERVER]);
 	}
 	PG(http_globals)[TRACK_VARS_SERVER] = array_ptr;
-	PG(magic_quotes_gpc) = 0;
+	if (magic_quotes_gpc) {
+		zend_alter_ini_entry_ex("magic_quotes_gpc", sizeof("magic_quotes_gpc"), "0", 1, ZEND_INI_SYSTEM, ZEND_INI_STAGE_ACTIVATE, 1 TSRMLS_CC);
+	}
 
 	/* Server variables */
 	if (sapi_module.register_server_variables) {
@@ -611,7 +625,9 @@ static inline void php_register_server_variables(TSRMLS_D)
 		php_register_variable_ex("REQUEST_TIME", &new_entry, array_ptr TSRMLS_CC);
 	}
 
-	PG(magic_quotes_gpc) = magic_quotes_gpc;
+	if (magic_quotes_gpc) {
+		zend_alter_ini_entry_ex("magic_quotes_gpc", sizeof("magic_quotes_gpc"), "1", 1, ZEND_INI_SYSTEM, ZEND_INI_STAGE_ACTIVATE, 1 TSRMLS_CC);
+	}
 }
 /* }}} */
 

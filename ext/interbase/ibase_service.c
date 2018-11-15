@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: ibase_service.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -321,8 +321,9 @@ query_loop:
 					heap_p = heap_buf + res_size;
 				}
 				result += 2;
-				snprintf(heap_p, heap_buf_size - (heap_buf - heap_p), "%s\n", result);
-				heap_p += line_len +2;
+				*(result+line_len) = 0;
+				snprintf(heap_p, heap_buf_size - (heap_p - heap_buf), "%s\n", result);
+				heap_p += line_len +1;
 				goto query_loop; /* repeat until result is exhausted */
 
 			case isc_info_svc_server_version:

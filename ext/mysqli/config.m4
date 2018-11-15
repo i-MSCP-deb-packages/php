@@ -1,5 +1,5 @@
 dnl
-dnl $Id: config.m4 302549 2010-08-20 12:25:17Z andrey $
+dnl $Id$
 dnl config.m4 for extension mysqli
 
 PHP_ARG_WITH(mysqli, for MySQLi support,

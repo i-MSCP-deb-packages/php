@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -21,7 +21,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: file.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 /* Synced with php 3.0 revision 1.218 1999-06-16 [ssb] */
 
@@ -162,6 +162,7 @@ static void file_globals_ctor(php_file_globals *file_globals_p TSRMLS_DC)
 	FG(pclose_ret) = 0;
 	FG(user_stream_current_filename) = NULL;
 	FG(def_chunk_size) = PHP_SOCK_CHUNK_SIZE;
+	FG(wrapper_errors) = NULL;
 }
 
 static void file_globals_dtor(php_file_globals *file_globals_p TSRMLS_DC)

@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: spl_array.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #ifdef HAVE_CONFIG_H
 # include "config.h"
@@ -174,7 +174,7 @@ static zend_object_value spl_array_object_new_ex(zend_class_entry *class_type, s
 	ALLOC_INIT_ZVAL(intern->retval);
 
 	zend_object_std_init(&intern->std, class_type TSRMLS_CC);
-	zend_hash_copy(intern->std.properties, &class_type->default_properties, (copy_ctor_func_t) zval_add_ref, (void *) &tmp, sizeof(zval *));
+	zend_hash_copy(intern->std.properties, &class_type->default_properties, (copy_ctor_func_t) zval_property_ctor, (void *) &tmp, sizeof(zval *));
 
 	intern->ar_flags = 0;
 	intern->serialize_data   = NULL;
@@ -312,38 +312,41 @@ static zval **spl_array_get_dimension_ptr_ptr(int check_inherited, zval *object,
 	long index;
 	HashTable *ht = spl_array_get_hash_table(intern, 0 TSRMLS_CC);
 
-/*  We cannot get the pointer pointer so we don't allow it here for now
-	if (check_inherited && intern->fptr_offset_get) {
-		return zend_call_method_with_1_params(&object, Z_OBJCE_P(object), &intern->fptr_offset_get, "offsetGet", NULL, offset);
-	}*/
-
 	if (!offset) {
 		return &EG(uninitialized_zval_ptr);
 	}
 	
 	if ((type == BP_VAR_W || type == BP_VAR_RW) && (ht->nApplyCount > 0)) {
 		zend_error(E_WARNING, "Modification of ArrayObject during sorting is prohibited");
-		return &EG(uninitialized_zval_ptr);;
+		return &EG(error_zval_ptr);;
 	}
 
 	switch(Z_TYPE_P(offset)) {
+	case IS_NULL:
+		Z_STRVAL_P(offset) = "";
+		Z_STRLEN_P(offset) = 0;
 	case IS_STRING:
 		if (zend_symtable_find(ht, Z_STRVAL_P(offset), Z_STRLEN_P(offset)+1, (void **) &retval) == FAILURE) {
-			if (type == BP_VAR_W || type == BP_VAR_RW) {
-				zval *value;
-				ALLOC_INIT_ZVAL(value);
-				zend_symtable_update(ht, Z_STRVAL_P(offset), Z_STRLEN_P(offset)+1, (void**)&value, sizeof(void*), NULL);
-				zend_symtable_find(ht, Z_STRVAL_P(offset), Z_STRLEN_P(offset)+1, (void **) &retval);
-				return retval;
-			} else {
-				zend_error(E_NOTICE, "Undefined index:  %s", Z_STRVAL_P(offset));
-				return &EG(uninitialized_zval_ptr);
+			switch (type) {
+				case BP_VAR_R:
+					zend_error(E_NOTICE, "Undefined index:  %s", Z_STRVAL_P(offset));
+				case BP_VAR_UNSET:
+				case BP_VAR_IS:
+					retval = &EG(uninitialized_zval_ptr);
+					break;
+				case BP_VAR_RW:
+					zend_error(E_NOTICE,"Undefined index:  %s", Z_STRVAL_P(offset));
+				case BP_VAR_W: {
+				    zval *value;
+				    ALLOC_INIT_ZVAL(value);
+				    zend_symtable_update(ht, Z_STRVAL_P(offset), Z_STRLEN_P(offset)+1, (void**)&value, sizeof(void*), (void **)&retval);
+				}
 			}
-		} else {
-			return retval;
 		}
-	case IS_DOUBLE:
+		return retval;
 	case IS_RESOURCE:
+		zend_error(E_STRICT, "Resource ID#%ld used as offset, casting to integer (%ld)", Z_LVAL_P(offset), Z_LVAL_P(offset));
+	case IS_DOUBLE:
 	case IS_BOOL: 
 	case IS_LONG: 
 		if (offset->type == IS_DOUBLE) {
@@ -352,23 +355,27 @@ static zval **spl_array_get_dimension_ptr_ptr(int check_inherited, zval *object,
 			index = Z_LVAL_P(offset);
 		}
 		if (zend_hash_index_find(ht, index, (void **) &retval) == FAILURE) {
-			if (type == BP_VAR_W || type == BP_VAR_RW) {
-				zval *value;
-				ALLOC_INIT_ZVAL(value);
-				zend_hash_index_update(ht, index, (void**)&value, sizeof(void*), NULL);
-				zend_hash_index_find(ht, index, (void **) &retval);
-				return retval;
-			} else {
-				zend_error(E_NOTICE, "Undefined offset:  %ld", index);
-				return &EG(uninitialized_zval_ptr);
+			switch (type) {
+				case BP_VAR_R:
+					zend_error(E_NOTICE, "Undefined offset:  %ld", index);
+				case BP_VAR_UNSET:
+				case BP_VAR_IS:
+					retval = &EG(uninitialized_zval_ptr);
+					break;
+				case BP_VAR_RW:
+					zend_error(E_NOTICE, "Undefined offset:  %ld", index);
+				case BP_VAR_W: {
+				    zval *value;
+				    ALLOC_INIT_ZVAL(value);
+					zend_hash_index_update(ht, index, (void**)&value, sizeof(void*), (void **)&retval);
+			   }
 			}
-		} else {
-			return retval;
 		}
-		break;
+		return retval;
 	default:
 		zend_error(E_WARNING, "Illegal offset type");
-		return &EG(uninitialized_zval_ptr);
+		return (type == BP_VAR_W || type == BP_VAR_RW) ?
+			&EG(error_zval_ptr) : &EG(uninitialized_zval_ptr);
 	}
 } /* }}} */
 
@@ -380,7 +387,11 @@ static zval *spl_array_read_dimension_ex(int check_inherited, zval *object, zval
 		spl_array_object *intern = (spl_array_object*)zend_object_store_get_object(object TSRMLS_CC);
 		if (intern->fptr_offset_get) {
 			zval *rv;
-			SEPARATE_ARG_IF_REF(offset);
+			if (!offset) {
+				ALLOC_INIT_ZVAL(offset);
+			} else {
+				SEPARATE_ARG_IF_REF(offset);
+			}
 			zend_call_method_with_1_params(&object, Z_OBJCE_P(object), &intern->fptr_offset_get, "offsetGet", &rv, offset);	
 			zval_ptr_dtor(&offset);
 			if (rv) {
@@ -397,7 +408,7 @@ static zval *spl_array_read_dimension_ex(int check_inherited, zval *object, zval
 	/* When in a write context,
 	 * ZE has to be fooled into thinking this is in a reference set
 	 * by separating (if necessary) and returning as an is_ref=1 zval (even if refcount == 1) */
-	if ((type == BP_VAR_W || type == BP_VAR_RW) && !Z_ISREF_PP(ret)) {
+	if ((type == BP_VAR_W || type == BP_VAR_RW || type == BP_VAR_UNSET) && !Z_ISREF_PP(ret) && ret != &EG(uninitialized_zval_ptr)) {
 		if (Z_REFCOUNT_PP(ret) > 1) {
 			zval *newval;
 
@@ -578,49 +589,46 @@ static int spl_array_has_dimension_ex(int check_inherited, zval *object, zval *o
 	}
 	
 	switch(Z_TYPE_P(offset)) {
-	case IS_STRING:
-		if (check_empty) {
-			if (zend_symtable_find(spl_array_get_hash_table(intern, 0 TSRMLS_CC), Z_STRVAL_P(offset), Z_STRLEN_P(offset)+1, (void **) &tmp) != FAILURE) {
-				switch (check_empty) {
-					case 0:
-						return Z_TYPE_PP(tmp) != IS_NULL;
-					case 2:
-						return 1;
-					default:
-						return zend_is_true(*tmp);
+		case IS_STRING:
+			{
+				HashTable *ht = spl_array_get_hash_table(intern, 0 TSRMLS_CC);
+				if (zend_symtable_find(ht, Z_STRVAL_P(offset), Z_STRLEN_P(offset)+1, (void **) &tmp) != FAILURE) {
+					switch (check_empty) {
+						case 0:
+							return Z_TYPE_PP(tmp) != IS_NULL;
+						case 2:
+							return 1;
+						default:
+							return zend_is_true(*tmp);
+					}
 				}
+				return 0;
 			}
-			return 0;
-		} else {
-			return zend_symtable_exists(spl_array_get_hash_table(intern, 0 TSRMLS_CC), Z_STRVAL_P(offset), Z_STRLEN_P(offset)+1);
-		}
-	case IS_DOUBLE:
-	case IS_RESOURCE:
-	case IS_BOOL: 
-	case IS_LONG: 
-		if (offset->type == IS_DOUBLE) {
-			index = (long)Z_DVAL_P(offset);
-		} else {
-			index = Z_LVAL_P(offset);
-		}
-		if (check_empty) {
-			HashTable *ht = spl_array_get_hash_table(intern, 0 TSRMLS_CC);
-			if (zend_hash_index_find(ht, index, (void **)&tmp) != FAILURE) {
-				switch (check_empty) {
-					case 0:
-						return Z_TYPE_PP(tmp) != IS_NULL;
-					case 2:
-						return 1;
-					default:
-						return zend_is_true(*tmp);
+		case IS_DOUBLE:
+		case IS_RESOURCE:
+		case IS_BOOL: 
+		case IS_LONG: 
+			{
+				HashTable *ht = spl_array_get_hash_table(intern, 0 TSRMLS_CC);
+				if (offset->type == IS_DOUBLE) {
+					index = (long)Z_DVAL_P(offset);
+				} else {
+					index = Z_LVAL_P(offset);
 				}
+				if (zend_hash_index_find(ht, index, (void **)&tmp) != FAILURE) {
+					switch (check_empty) {
+						case 0:
+							return Z_TYPE_PP(tmp) != IS_NULL;
+						case 2:
+							return 1;
+						default:
+							return zend_is_true(*tmp);
+					}
+				}
+				return 0;
 			}
-			return 0;
-		} else {
-			return zend_hash_index_exists(spl_array_get_hash_table(intern, 0 TSRMLS_CC), index);
-		}
-	default:
-		zend_error(E_WARNING, "Illegal offset type");
+		default:
+			zend_error(E_WARNING, "Illegal offset type");
 	}
 	return 0;
 } /* }}} */
@@ -639,7 +647,7 @@ SPL_METHOD(Array, offsetExists)
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &index) == FAILURE) {
 		return;
 	}
-	RETURN_BOOL(spl_array_has_dimension_ex(0, getThis(), index, 0 TSRMLS_CC));
+	RETURN_BOOL(spl_array_has_dimension_ex(0, getThis(), index, 2 TSRMLS_CC));
 } /* }}} */
 
 /* {{{ proto mixed ArrayObject::offsetGet(mixed $index)
@@ -666,7 +674,6 @@ SPL_METHOD(Array, offsetSet)
 	}
 	spl_array_write_dimension_ex(0, getThis(), index, value TSRMLS_CC);
 } /* }}} */
-
 
 void spl_array_iterator_append(zval *object, zval *append_value TSRMLS_DC) /* {{{ */
 {
@@ -834,6 +841,30 @@ static void spl_array_unset_property(zval *object, zval *member TSRMLS_DC) /* {{
 		return;
 	}
 	std_object_handlers.unset_property(object, member TSRMLS_CC);
+} /* }}} */
+
+static int spl_array_compare_objects(zval *o1, zval *o2 TSRMLS_DC) /* {{{ */
+{
+	HashTable			*ht1,
+						*ht2;
+	spl_array_object	*intern1,
+						*intern2;
+	int					result	= 0;
+	zval				temp_zv;
+
+	intern1	= (spl_array_object*)zend_object_store_get_object(o1 TSRMLS_CC);
+	intern2	= (spl_array_object*)zend_object_store_get_object(o2 TSRMLS_CC);
+	ht1		= spl_array_get_hash_table(intern1, 0 TSRMLS_CC);
+	ht2		= spl_array_get_hash_table(intern2, 0 TSRMLS_CC);
+
+	zend_compare_symbol_tables(&temp_zv, ht1, ht2 TSRMLS_CC);
+	result = (int)Z_LVAL(temp_zv);
+	/* if we just compared std.properties, don't do it again */
+	if (result == 0 &&
+			!(ht1 == intern1->std.properties && ht2 == intern2->std.properties)) {
+		result = std_object_handlers.compare_objects(o1, o2 TSRMLS_CC);
+	}
+	return result;
 } /* }}} */
 
 static int spl_array_skip_protected(spl_array_object *intern, HashTable *aht TSRMLS_DC) /* {{{ */
@@ -1785,7 +1816,7 @@ void spl_array_unserialize_helper(spl_array_object *intern, const unsigned char 
 	++p;
 
 	ALLOC_INIT_ZVAL(pmembers);
-	if (!php_var_unserialize(&pmembers, &p, s + buf_len, var_hash_p TSRMLS_CC)) {
+	if (!php_var_unserialize(&pmembers, &p, s + buf_len, var_hash_p TSRMLS_CC) || Z_TYPE_P(pmembers) != IS_ARRAY) {
 		zval_ptr_dtor(&pmembers);
 		goto outexcept;
 	}
@@ -1984,6 +2015,7 @@ PHP_MINIT_FUNCTION(spl_array)
 	REGISTER_SPL_IMPLEMENTS(ArrayObject, Aggregate);
 	REGISTER_SPL_IMPLEMENTS(ArrayObject, ArrayAccess);
 	REGISTER_SPL_IMPLEMENTS(ArrayObject, Serializable);
+	REGISTER_SPL_IMPLEMENTS(ArrayObject, Countable);
 	spl_ce_ArrayObject->serialize   = spl_array_serialize;
 	spl_ce_ArrayObject->unserialize = spl_array_unserialize;
 	memcpy(&spl_handler_ArrayObject, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
@@ -2003,11 +2035,14 @@ PHP_MINIT_FUNCTION(spl_array)
 	spl_handler_ArrayObject.has_property = spl_array_has_property;
 	spl_handler_ArrayObject.unset_property = spl_array_unset_property;
 
+	spl_handler_ArrayObject.compare_objects = spl_array_compare_objects;
+
 	REGISTER_SPL_STD_CLASS_EX(ArrayIterator, spl_array_object_new, spl_funcs_ArrayIterator);
 	REGISTER_SPL_IMPLEMENTS(ArrayIterator, Iterator);
 	REGISTER_SPL_IMPLEMENTS(ArrayIterator, ArrayAccess);
 	REGISTER_SPL_IMPLEMENTS(ArrayIterator, SeekableIterator);
 	REGISTER_SPL_IMPLEMENTS(ArrayIterator, Serializable);
+	REGISTER_SPL_IMPLEMENTS(ArrayIterator, Countable);
 	spl_ce_ArrayIterator->serialize   = spl_array_serialize;
 	spl_ce_ArrayIterator->unserialize = spl_array_unserialize;
 	memcpy(&spl_handler_ArrayIterator, &spl_handler_ArrayObject, sizeof(zend_object_handlers));
@@ -2016,9 +2051,6 @@ PHP_MINIT_FUNCTION(spl_array)
 	REGISTER_SPL_SUB_CLASS_EX(RecursiveArrayIterator, ArrayIterator, spl_array_object_new, spl_funcs_RecursiveArrayIterator);
 	REGISTER_SPL_IMPLEMENTS(RecursiveArrayIterator, RecursiveIterator);
 	spl_ce_RecursiveArrayIterator->get_iterator = spl_array_get_iterator;
-
-	REGISTER_SPL_IMPLEMENTS(ArrayObject, Countable);
-	REGISTER_SPL_IMPLEMENTS(ArrayIterator, Countable);
 
 	REGISTER_SPL_CLASS_CONST_LONG(ArrayObject,   "STD_PROP_LIST",    SPL_ARRAY_STD_PROP_LIST);
 	REGISTER_SPL_CLASS_CONST_LONG(ArrayObject,   "ARRAY_AS_PROPS",   SPL_ARRAY_ARRAY_AS_PROPS);

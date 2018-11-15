@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -18,7 +18,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: output.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "php.h"
 #include "ext/standard/head.h"
@@ -224,6 +224,17 @@ PHPAPI void php_end_ob_buffer(zend_bool send_buffer, zend_bool just_flush TSRMLS
 		zval **params[2];
 		zval *orig_buffer;
 		zval *z_status;
+
+		if(OG(ob_lock)) {
+			if (SG(headers_sent) && !SG(request_info).headers_only) {
+				OG(php_body_write) = php_ub_body_write_no_header;
+			} else {
+				OG(php_body_write) = php_ub_body_write;
+			}
+			OG(ob_nesting_level) = 0;
+			php_error_docref("ref.outcontrol" TSRMLS_CC, E_ERROR, "Cannot use output buffering in output buffering display handlers");
+			return;
+		}
 
 		ALLOC_INIT_ZVAL(orig_buffer);
 		ZVAL_STRINGL(orig_buffer, OG(active_ob_buffer).buffer, OG(active_ob_buffer).text_length, 1);
@@ -596,7 +607,7 @@ PHPAPI int php_ob_handler_used(char *handler_name TSRMLS_DC)
 static inline void php_ob_append(const char *text, uint text_length TSRMLS_DC)
 {
 	char *target;
-	int original_ob_text_length;
+	uint original_ob_text_length;
 
 	original_ob_text_length=OG(active_ob_buffer).text_length;
 

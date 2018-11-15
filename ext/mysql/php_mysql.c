@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -18,7 +18,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: php_mysql.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 /* TODO:
  *
@@ -690,7 +690,7 @@ PHP_MINFO_FUNCTION(mysql)
 static void php_mysql_do_connect(INTERNAL_FUNCTION_PARAMETERS, int persistent)
 {
 	char *user=NULL, *passwd=NULL, *host_and_port=NULL, *socket=NULL, *tmp=NULL, *host=NULL;
-	int  user_len, passwd_len, host_len;
+	int  user_len = 0, passwd_len = 0, host_len = 0;
 	char *hashed_details=NULL;
 	int hashed_details_length, port = MYSQL_PORT;
 	long client_flags = 0;

@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: winutil.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "php.h"
 #include <wincrypt.h>
@@ -62,8 +62,10 @@ void php_win32_init_rng_lock()
 void php_win32_free_rng_lock()
 {
 	tsrm_mutex_lock(php_lock_win32_cryptoctx);
-	CryptReleaseContext(hCryptProv, 0);
-	has_crypto_ctx = 0;
+	if (has_crypto_ctx == 1) {
+		CryptReleaseContext(hCryptProv, 0);
+		has_crypto_ctx = 0;
+	}
 	tsrm_mutex_unlock(php_lock_win32_cryptoctx);
 	tsrm_mutex_free(php_lock_win32_cryptoctx);
 

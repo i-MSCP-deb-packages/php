@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2013 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -21,7 +21,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: zend_language_scanner.l 321655 2012-01-01 22:45:58Z nlopess $ */
+/* $Id$ */
 
 #if 0
 # define YYDEBUG(s, c) printf("state: %d char: %c\n", s, c)
@@ -285,7 +285,7 @@ ZEND_API int open_file_for_scanning(zend_file_handle *file_handle TSRMLS_DC)
 		zend_multibyte_set_filter(NULL TSRMLS_CC);
 
 		if (!SCNG(input_filter)) {
-			SCNG(script_filtered) = (unsigned char*)emalloc(SCNG(script_org_size)+1);
+			SCNG(script_filtered) = (unsigned char*)emalloc(SCNG(script_org_size)+2);
 			memcpy(SCNG(script_filtered), SCNG(script_org), SCNG(script_org_size)+1);
 			SCNG(script_filtered_size) = SCNG(script_org_size);
 		} else {
@@ -443,7 +443,7 @@ ZEND_API int zend_prepare_string_for_scanning(zval *str, char *filename TSRMLS_D
 	zend_multibyte_set_filter(CG(internal_encoding) TSRMLS_CC);
 
 	if (!SCNG(input_filter)) {
-		SCNG(script_filtered) = (unsigned char*)emalloc(SCNG(script_org_size)+1);
+		SCNG(script_filtered) = (unsigned char*)emalloc(SCNG(script_org_size)+2);
 		memcpy(SCNG(script_filtered), SCNG(script_org), SCNG(script_org_size)+1);
 		SCNG(script_filtered_size) = SCNG(script_org_size);
 	} else {
@@ -1361,7 +1361,11 @@ NEWLINE ("\r"|"\n"|"\r\n")
 	}
 
 	if (len < SIZEOF_LONG * 2 || (len == SIZEOF_LONG * 2 && *hex <= '7')) {
-		zendlval->value.lval = strtol(hex, NULL, 16);
+		if (len == 0) {
+			zendlval->value.lval = 0;
+		} else {
+			zendlval->value.lval = strtol(hex, NULL, 16);
+		}
 		zendlval->type = IS_LONG;
 		return T_LNUMBER;
 	} else {

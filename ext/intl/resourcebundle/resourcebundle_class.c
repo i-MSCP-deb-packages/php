@@ -252,7 +252,14 @@ PHP_FUNCTION( resourcebundle_get )
 /* {{{ resourcebundle_array_count */
 int resourcebundle_array_count(zval *object, long *count TSRMLS_DC) 
 {
-	ResourceBundle_object *rb = (ResourceBundle_object *) zend_object_store_get_object( object TSRMLS_CC);
+	ResourceBundle_object *rb;
+	RESOURCEBUNDLE_METHOD_FETCH_OBJECT_NO_CHECK;
+
+	if (rb->me == NULL) {
+		intl_errors_set(&rb->error, U_ILLEGAL_ARGUMENT_ERROR,
+				"Found unconstructed ResourceBundle", 0 TSRMLS_CC);
+		return 0;
+	}
 
 	*count = ures_getSize( rb->me );
 
@@ -427,6 +434,8 @@ void resourcebundle_register_class( TSRMLS_D )
 	ResourceBundle_object_handlers.clone_obj	  = NULL; /* ICU ResourceBundle has no clone implementation */
 	ResourceBundle_object_handlers.read_dimension = resourcebundle_array_get;
 	ResourceBundle_object_handlers.count_elements = resourcebundle_array_count;
+
+	zend_class_implements(ResourceBundle_ce_ptr TSRMLS_CC, 1, zend_ce_traversable);
 }
 /* }}} */
 

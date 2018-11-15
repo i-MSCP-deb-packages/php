@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
    +----------------------------------------------------------------------+
  */
  
-/* $Id: recode.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 /* {{{ includes & prototypes */
 
@@ -63,7 +63,7 @@ ZEND_END_MODULE_GLOBALS(recode)
 # define ReSG(v) (recode_globals.v)
 #endif
     
-ZEND_DECLARE_MODULE_GLOBALS(recode);
+ZEND_DECLARE_MODULE_GLOBALS(recode)
 static PHP_GINIT_FUNCTION(recode);
 
 /* {{{ arginfo */
@@ -135,7 +135,7 @@ PHP_MINFO_FUNCTION(recode)
 {
 	php_info_print_table_start();
 	php_info_print_table_row(2, "Recode Support", "enabled");
-	php_info_print_table_row(2, "Revision", "$Revision: 321634 $");
+	php_info_print_table_row(2, "Revision", "$Id$");
 	php_info_print_table_end();
 }
 

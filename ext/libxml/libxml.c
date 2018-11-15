@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: libxml.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #define IS_EXT_MODULE
 
@@ -82,8 +82,8 @@ ZEND_GET_MODULE(libxml)
 static PHP_MINIT_FUNCTION(libxml);
 static PHP_RINIT_FUNCTION(libxml);
 static PHP_MSHUTDOWN_FUNCTION(libxml);
-static PHP_RSHUTDOWN_FUNCTION(libxml);
 static PHP_MINFO_FUNCTION(libxml);
+static int php_libxml_post_deactivate();
 
 /* }}} */
 
@@ -129,13 +129,13 @@ zend_module_entry libxml_module_entry = {
 	PHP_MINIT(libxml),       /* extension-wide startup function */
 	PHP_MSHUTDOWN(libxml),   /* extension-wide shutdown function */
 	PHP_RINIT(libxml),       /* per-request startup function */
-	PHP_RSHUTDOWN(libxml),   /* per-request shutdown function */
+	NULL,                    /* per-request shutdown function */
 	PHP_MINFO(libxml),       /* information function */
 	NO_VERSION_YET,
 	PHP_MODULE_GLOBALS(libxml), /* globals descriptor */
 	PHP_GINIT(libxml),          /* globals ctor */
 	NULL,                       /* globals dtor */
-	NULL,                       /* post deactivate */
+	php_libxml_post_deactivate, /* post deactivate */
 	STANDARD_MODULE_PROPERTIES_EX
 };
 
@@ -261,6 +261,7 @@ static PHP_GINIT_FUNCTION(libxml)
 	libxml_globals->stream_context = NULL;
 	libxml_globals->error_buffer.c = NULL;
 	libxml_globals->error_list = NULL;
+	libxml_globals->entity_loader_disabled = 0;
 }
 
 /* Channel libxml file io layer through the PHP streams subsystem.
@@ -348,16 +349,15 @@ static int php_libxml_streams_IO_close(void *context)
 }
 
 static xmlParserInputBufferPtr
-php_libxml_input_buffer_noload(const char *URI, xmlCharEncoding enc)
-{
-	return NULL;
-}
-
-static xmlParserInputBufferPtr
 php_libxml_input_buffer_create_filename(const char *URI, xmlCharEncoding enc)
 {
 	xmlParserInputBufferPtr ret;
 	void *context = NULL;
+	TSRMLS_FETCH();
+
+	if (LIBXML(entity_loader_disabled)) {
+		return NULL;
+	}
 
 	if (URI == NULL)
 		return(NULL);
@@ -655,9 +655,9 @@ static PHP_MSHUTDOWN_FUNCTION(libxml)
 	return SUCCESS;
 }
 
-
-static PHP_RSHUTDOWN_FUNCTION(libxml)
+static int php_libxml_post_deactivate()
 {
+	TSRMLS_FETCH();
 	/* reset libxml generic error handling */
 	xmlSetGenericErrorFunc(NULL, NULL);
 	xmlSetStructuredErrorFunc(NULL, NULL);
@@ -666,7 +666,8 @@ static PHP_RSHUTDOWN_FUNCTION(libxml)
 	xmlOutputBufferCreateFilenameDefault(NULL);
 
 	if (LIBXML(stream_context)) {
-		zval_ptr_dtor(&LIBXML(stream_context));
+		/* the steam_context resource will be released by resource list destructor */
+		efree(LIBXML(stream_context));
 		LIBXML(stream_context) = NULL;
 	}
 	smart_str_free(&LIBXML(error_buffer));
@@ -698,7 +699,7 @@ static PHP_FUNCTION(libxml_set_streams_context)
 {
 	zval *arg;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &arg) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &arg) == FAILURE) {
 		return;
 	}
 	if (LIBXML(stream_context)) {
@@ -833,28 +834,25 @@ static PHP_FUNCTION(libxml_clear_errors)
 }
 /* }}} */
 
+PHP_LIBXML_API zend_bool php_libxml_disable_entity_loader(zend_bool disable TSRMLS_DC)
+{
+	zend_bool old = LIBXML(entity_loader_disabled);
+
+	LIBXML(entity_loader_disabled) = disable;
+	return old;
+}
+
 /* {{{ proto bool libxml_disable_entity_loader([boolean disable]) 
    Disable/Enable ability to load external entities */
 static PHP_FUNCTION(libxml_disable_entity_loader)
 {
 	zend_bool disable = 1;
-	xmlParserInputBufferCreateFilenameFunc old;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|b", &disable) == FAILURE) {
 		return;
 	}
 
-	if (disable == 0) {
-		old = xmlParserInputBufferCreateFilenameDefault(php_libxml_input_buffer_create_filename);
-	} else {
-		old = xmlParserInputBufferCreateFilenameDefault(php_libxml_input_buffer_noload);
-	}
-
-	if (old == php_libxml_input_buffer_noload) {
-		RETURN_TRUE;
-	}
-
-	RETURN_FALSE;
+	RETURN_BOOL(php_libxml_disable_entity_loader(disable TSRMLS_CC));
 }
 /* }}} */
 

@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: filestat.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "php.h"
 #include "safe_mode.h"
@@ -1160,7 +1160,12 @@ PHP_FUNCTION(realpath_cache_get)
 			MAKE_STD_ZVAL(entry);
 			array_init(entry);
 
-			add_assoc_long(entry, "key", bucket->key);
+			/* bucket->key is unsigned long */
+			if (LONG_MAX >= bucket->key) {
+				add_assoc_long(entry, "key", bucket->key);
+			} else {
+				add_assoc_double(entry, "key", (double)bucket->key);
+			}
 			add_assoc_bool(entry, "is_dir", bucket->is_dir);
 			add_assoc_stringl(entry, "realpath", bucket->realpath, bucket->realpath_len, 1);
 			add_assoc_long(entry, "expires", bucket->expires);

@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: readline.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 /* {{{ includes & prototypes */
 
@@ -369,6 +369,10 @@ PHP_FUNCTION(readline_read_history)
 		return;
 	}
 
+	if (php_check_open_basedir(arg TSRMLS_CC)) {
+		RETURN_FALSE;
+	}
+
 	/* XXX from & to NYI */
 	if (read_history(arg)) {
 		RETURN_FALSE;
@@ -387,6 +391,10 @@ PHP_FUNCTION(readline_write_history)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &arg, &arg_len) == FAILURE) {
 		return;
+	}
+
+	if (php_check_open_basedir(arg TSRMLS_CC)) {
+		RETURN_FALSE;
 	}
 
 	if (write_history(arg)) {
@@ -561,9 +569,8 @@ PHP_FUNCTION(readline_callback_handler_install)
 		FREE_ZVAL(_prepped_callback);
 	}
 
-	MAKE_STD_ZVAL(_prepped_callback);
-	*_prepped_callback = *callback;
-	zval_copy_ctor(_prepped_callback);
+	ALLOC_ZVAL(_prepped_callback);
+	MAKE_COPY_ZVAL(&callback, _prepped_callback);
 
 	rl_callback_handler_install(prompt, php_rl_callback_handler);
 

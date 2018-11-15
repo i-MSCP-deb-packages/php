@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
   |          Dmitry Stogov <dmitry@zend.com>                             |
   +----------------------------------------------------------------------+
 */
-/* $Id: php_encoding.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include <time.h>
 
@@ -1834,11 +1834,12 @@ static int model_to_xml_object(xmlNodePtr node, sdlContentModelPtr model, zval *
 
 			zend_hash_internal_pointer_reset_ex(model->u.content, &pos);
 			while (zend_hash_get_current_data_ex(model->u.content, (void**)&tmp, &pos) == SUCCESS) {
-				if (!model_to_xml_object(node, *tmp, object, style, (*tmp)->min_occurs > 0 TSRMLS_CC)) {
-					if ((*tmp)->min_occurs > 0) {
+				if (!model_to_xml_object(node, *tmp, object, style, strict && ((*tmp)->min_occurs > 0) TSRMLS_CC)) {
+					if (!strict || (*tmp)->min_occurs > 0) {
 						return 0;
 					}
 				}
+				strict = 1;
 				zend_hash_move_forward_ex(model->u.content, &pos);
 			}
 			return 1;
@@ -1861,7 +1862,7 @@ static int model_to_xml_object(xmlNodePtr node, sdlContentModelPtr model, zval *
 			return ret;
 		}
 		case XSD_CONTENT_GROUP: {
-			return model_to_xml_object(node, model->u.group->model, object, style, model->min_occurs > 0 TSRMLS_CC);
+			return model_to_xml_object(node, model->u.group->model, object, style, strict && model->min_occurs > 0 TSRMLS_CC);
 		}
 		default:
 		  break;

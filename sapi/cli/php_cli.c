@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -20,7 +20,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: php_cli.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "php.h"
 #include "php_globals.h"
@@ -648,7 +648,7 @@ int main(int argc, char *argv[])
 	int orig_optind=php_optind;
 	char *orig_optarg=php_optarg;
 	char *arg_free=NULL, **arg_excp=&arg_free;
-	char *script_file=NULL;
+	char *script_file=NULL, *translated_path = NULL;
 	int interactive=0;
 	volatile int module_started = 0;
 	volatile int request_started = 0;
@@ -826,7 +826,7 @@ int main(int argc, char *argv[])
 				}
 
 				request_started = 1;
-				php_printf("PHP %s (%s) (built: %s %s) %s\nCopyright (c) 1997-2012 The PHP Group\n%s",
+				php_printf("PHP %s (%s) (built: %s %s) %s\nCopyright (c) 1997-2014 The PHP Group\n%s",
 					PHP_VERSION, sapi_module.name, __DATE__, __TIME__,
 #if ZEND_DEBUG && defined(HAVE_GCOV)
 					"(DEBUG GCOV)",
@@ -1053,8 +1053,13 @@ int main(int argc, char *argv[])
 		if (script_file) {
 			if (cli_seek_file_begin(&file_handle, script_file, &lineno TSRMLS_CC) != SUCCESS) {
 				goto err;
+			} else {
+				char real_path[MAXPATHLEN];
+				if (VCWD_REALPATH(script_file, real_path)) {
+					translated_path = strdup(real_path);
+				}
+				script_filename = script_file;
 			}
-			script_filename = script_file;
 		} else {
 			/* We could handle PHP_MODE_PROCESS_STDIN in a different manner  */
 			/* here but this would make things only more complicated. And it */
@@ -1073,7 +1078,7 @@ int main(int argc, char *argv[])
 		SG(request_info).argc=argc-php_optind+1;
 		arg_excp = argv+php_optind-1;
 		arg_free = argv[php_optind-1];
-		SG(request_info).path_translated = file_handle.filename;
+		SG(request_info).path_translated = translated_path? translated_path : file_handle.filename;
 		argv[php_optind-1] = file_handle.filename;
 		SG(request_info).argv=argv+php_optind-1;
 
@@ -1361,6 +1366,9 @@ int main(int argc, char *argv[])
 out:
 	if (request_started) {
 		php_request_shutdown((void *) 0);
+	}
+	if (translated_path) {
+		free(translated_path);
 	}
 	if (exit_status == 0) {
 		exit_status = EG(exit_status);

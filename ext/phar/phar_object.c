@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | phar php single-file executable PHP extension                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 2005-2012 The PHP Group                                |
+  | Copyright (c) 2005-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
   +----------------------------------------------------------------------+
 */
 
-/* $Id: phar_object.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "phar_internal.h"
 #include "func_interceptors.h"
@@ -58,9 +58,6 @@ static int phar_file_type(HashTable *mimes, char *file, char **mime_type TSRMLS_
 
 static void phar_mung_server_vars(char *fname, char *entry, int entry_len, char *basename, int request_uri_len TSRMLS_DC) /* {{{ */
 {
-#if PHP_MAJOR_VERSION >= 6
-	int is_unicode = 0;
-#endif
 	HashTable *_SERVER;
 	zval **stuff;
 	char *path_info;
@@ -76,18 +73,7 @@ static void phar_mung_server_vars(char *fname, char *entry, int entry_len, char 
 	_SERVER = Z_ARRVAL_P(PG(http_globals)[TRACK_VARS_SERVER]);
 
 	/* PATH_INFO and PATH_TRANSLATED should always be munged */
-#if PHP_MAJOR_VERSION >= 6
-	if (phar_find_key(_SERVER, "PATH_INFO", sizeof("PATH_INFO"), (void **) &stuff TSRMLS_CC)) {
-		if (Z_TYPE_PP(stuff) == IS_UNICODE) {
-			is_unicode = 1;
-			zval_unicode_to_string(*stuff TSRMLS_CC);
-		} else {
-			is_unicode = 0;
-		}
-#else
 	if (SUCCESS == zend_hash_find(_SERVER, "PATH_INFO", sizeof("PATH_INFO"), (void **) &stuff)) {
-#endif
-
 		path_info = Z_STRVAL_PP(stuff);
 		code = Z_STRLEN_PP(stuff);
 
@@ -96,38 +82,19 @@ static void phar_mung_server_vars(char *fname, char *entry, int entry_len, char 
 
 			MAKE_STD_ZVAL(temp);
 			ZVAL_STRINGL(temp, path_info, code, 0);
-#if PHP_MAJOR_VERSION >= 6
-			if (is_unicode) {
-				zval_string_to_unicode(*stuff TSRMLS_CC);
-			}
-#endif
+
 			zend_hash_update(_SERVER, "PHAR_PATH_INFO", sizeof("PHAR_PATH_INFO"), &temp, sizeof(zval **), NULL);
 		}
 	}
 
-#if PHP_MAJOR_VERSION >= 6
-	if (phar_find_key(_SERVER, "PATH_TRANSLATED", sizeof("PATH_TRANSLATED"), (void **) &stuff TSRMLS_CC)) {
-		if (Z_TYPE_PP(stuff) == IS_UNICODE) {
-			is_unicode = 1;
-			zval_unicode_to_string(*stuff TSRMLS_CC);
-		} else {
-			is_unicode = 0;
-		}
-#else
 	if (SUCCESS == zend_hash_find(_SERVER, "PATH_TRANSLATED", sizeof("PATH_TRANSLATED"), (void **) &stuff)) {
-#endif
-
 		path_info = Z_STRVAL_PP(stuff);
 		code = Z_STRLEN_PP(stuff);
 		Z_STRLEN_PP(stuff) = spprintf(&(Z_STRVAL_PP(stuff)), 4096, "phar://%s%s", fname, entry);
 
 		MAKE_STD_ZVAL(temp);
 		ZVAL_STRINGL(temp, path_info, code, 0);
-#if PHP_MAJOR_VERSION >= 6
-		if (is_unicode) {
-			zval_string_to_unicode(*stuff TSRMLS_CC);
-		}
-#endif
+
 		zend_hash_update(_SERVER, "PHAR_PATH_TRANSLATED", sizeof("PHAR_PATH_TRANSLATED"), (void *) &temp, sizeof(zval **), NULL);
 	}
 
@@ -136,18 +103,7 @@ static void phar_mung_server_vars(char *fname, char *entry, int entry_len, char 
 	}
 
 	if (PHAR_GLOBALS->phar_SERVER_mung_list & PHAR_MUNG_REQUEST_URI) {
-#if PHP_MAJOR_VERSION >= 6
-		if (phar_find_key(_SERVER, "REQUEST_URI", sizeof("REQUEST_URI"), (void **) &stuff TSRMLS_CC)) {
-		if (Z_TYPE_PP(stuff) == IS_UNICODE) {
-			is_unicode = 1;
-			zval_unicode_to_string(*stuff TSRMLS_CC);
-		} else {
-			is_unicode = 0;
-		}
-#else
 		if (SUCCESS == zend_hash_find(_SERVER, "REQUEST_URI", sizeof("REQUEST_URI"), (void **) &stuff)) {
-#endif
-
 			path_info = Z_STRVAL_PP(stuff);
 			code = Z_STRLEN_PP(stuff);
 
@@ -156,29 +112,14 @@ static void phar_mung_server_vars(char *fname, char *entry, int entry_len, char 
 
 				MAKE_STD_ZVAL(temp);
 				ZVAL_STRINGL(temp, path_info, code, 0);
-#if PHP_MAJOR_VERSION >= 6
-				if (is_unicode) {
-					zval_string_to_unicode(*stuff TSRMLS_CC);
-				}
-#endif
+
 				zend_hash_update(_SERVER, "PHAR_REQUEST_URI", sizeof("PHAR_REQUEST_URI"), (void *) &temp, sizeof(zval **), NULL);
 			}
 		}
 	}
 
 	if (PHAR_GLOBALS->phar_SERVER_mung_list & PHAR_MUNG_PHP_SELF) {
-#if PHP_MAJOR_VERSION >= 6
-		if (phar_find_key(_SERVER, "PHP_SELF", sizeof("PHP_SELF"), (void **) &stuff TSRMLS_CC)) {
-		if (Z_TYPE_PP(stuff) == IS_UNICODE) {
-			is_unicode = 1;
-			zval_unicode_to_string(*stuff TSRMLS_CC);
-		} else {
-			is_unicode = 0;
-		}
-#else
 		if (SUCCESS == zend_hash_find(_SERVER, "PHP_SELF", sizeof("PHP_SELF"), (void **) &stuff)) {
-#endif
-
 			path_info = Z_STRVAL_PP(stuff);
 			code = Z_STRLEN_PP(stuff);
 
@@ -187,68 +128,34 @@ static void phar_mung_server_vars(char *fname, char *entry, int entry_len, char 
 
 				MAKE_STD_ZVAL(temp);
 				ZVAL_STRINGL(temp, path_info, code, 0);
-#if PHP_MAJOR_VERSION >= 6
-				if (is_unicode) {
-					zval_string_to_unicode(*stuff TSRMLS_CC);
-				}
-#endif
+
 				zend_hash_update(_SERVER, "PHAR_PHP_SELF", sizeof("PHAR_PHP_SELF"), (void *) &temp, sizeof(zval **), NULL);
 			}
 		}
 	}
 
 	if (PHAR_GLOBALS->phar_SERVER_mung_list & PHAR_MUNG_SCRIPT_NAME) {
-#if PHP_MAJOR_VERSION >= 6
-		if (phar_find_key(_SERVER, "SCRIPT_NAME", sizeof("SCRIPT_NAME"), (void **) &stuff TSRMLS_CC)) {
-		if (Z_TYPE_PP(stuff) == IS_UNICODE) {
-			is_unicode = 1;
-			zval_unicode_to_string(*stuff TSRMLS_CC);
-		} else {
-			is_unicode = 0;
-		}
-#else
 		if (SUCCESS == zend_hash_find(_SERVER, "SCRIPT_NAME", sizeof("SCRIPT_NAME"), (void **) &stuff)) {
-#endif
-
 			path_info = Z_STRVAL_PP(stuff);
 			code = Z_STRLEN_PP(stuff);
 			ZVAL_STRINGL(*stuff, entry, entry_len, 1);
 
 			MAKE_STD_ZVAL(temp);
 			ZVAL_STRINGL(temp, path_info, code, 0);
-#if PHP_MAJOR_VERSION >= 6
-			if (is_unicode) {
-				zval_string_to_unicode(*stuff TSRMLS_CC);
-			}
-#endif
+
 			zend_hash_update(_SERVER, "PHAR_SCRIPT_NAME", sizeof("PHAR_SCRIPT_NAME"), (void *) &temp, sizeof(zval **), NULL);
 		}
 	}
 
 	if (PHAR_GLOBALS->phar_SERVER_mung_list & PHAR_MUNG_SCRIPT_FILENAME) {
-#if PHP_MAJOR_VERSION >= 6
-		if (phar_find_key(_SERVER, "SCRIPT_FILENAME", sizeof("SCRIPT_FILENAME"), (void **) &stuff TSRMLS_CC)) {
-		if (Z_TYPE_PP(stuff) == IS_UNICODE) {
-			is_unicode = 1;
-			zval_unicode_to_string(*stuff TSRMLS_CC);
-		} else {
-			is_unicode = 0;
-		}
-#else
 		if (SUCCESS == zend_hash_find(_SERVER, "SCRIPT_FILENAME", sizeof("SCRIPT_FILENAME"), (void **) &stuff)) {
-#endif
-
 			path_info = Z_STRVAL_PP(stuff);
 			code = Z_STRLEN_PP(stuff);
 			Z_STRLEN_PP(stuff) = spprintf(&(Z_STRVAL_PP(stuff)), 4096, "phar://%s%s", fname, entry);
 
 			MAKE_STD_ZVAL(temp);
 			ZVAL_STRINGL(temp, path_info, code, 0);
-#if PHP_MAJOR_VERSION >= 6
-			if (is_unicode) {
-				zval_string_to_unicode(*stuff TSRMLS_CC);
-			}
-#endif
+
 			zend_hash_update(_SERVER, "PHAR_SCRIPT_FILENAME", sizeof("PHAR_SCRIPT_FILENAME"), (void *) &temp, sizeof(zval **), NULL);
 		}
 	}
@@ -427,7 +334,7 @@ static void phar_do_403(char *entry, int entry_len TSRMLS_DC) /* {{{ */
 	sapi_header_line ctr = {0};
 
 	ctr.response_code = 403;
-	ctr.line_len = sizeof("HTTP/1.0 403 Access Denied");
+	ctr.line_len = sizeof("HTTP/1.0 403 Access Denied")-1;
 	ctr.line = "HTTP/1.0 403 Access Denied";
 	sapi_header_op(SAPI_HEADER_REPLACE, &ctr TSRMLS_CC);
 	sapi_send_headers(TSRMLS_C);
@@ -452,7 +359,7 @@ static void phar_do_404(phar_archive_data *phar, char *fname, int fname_len, cha
 	}
 
 	ctr.response_code = 404;
-	ctr.line_len = sizeof("HTTP/1.0 404 Not Found")+1;
+	ctr.line_len = sizeof("HTTP/1.0 404 Not Found")-1;
 	ctr.line = "HTTP/1.0 404 Not Found";
 	sapi_header_op(SAPI_HEADER_REPLACE, &ctr TSRMLS_CC);
 	sapi_send_headers(TSRMLS_C);
@@ -891,7 +798,7 @@ PHP_METHOD(Phar, webPhar)
 			char *tmp = NULL, sa = '\0';
 			sapi_header_line ctr = {0};
 			ctr.response_code = 301;
-			ctr.line_len = sizeof("HTTP/1.1 301 Moved Permanently")+1;
+			ctr.line_len = sizeof("HTTP/1.1 301 Moved Permanently")-1;
 			ctr.line = "HTTP/1.1 301 Moved Permanently";
 			sapi_header_op(SAPI_HEADER_REPLACE, &ctr TSRMLS_CC);
 
@@ -940,11 +847,7 @@ PHP_METHOD(Phar, webPhar)
 		if (ext) {
 			++ext;
 
-#if PHP_MAJOR_VERSION >= 6
-			if (phar_find_key(Z_ARRVAL_P(mimeoverride), ext, strlen(ext)+1, (void **) &val TSRMLS_CC)) {
-#else
 			if (SUCCESS == zend_hash_find(Z_ARRVAL_P(mimeoverride), ext, strlen(ext)+1, (void **) &val)) {
-#endif
 				switch (Z_TYPE_PP(val)) {
 					case IS_LONG:
 						if (Z_LVAL_PP(val) == PHAR_MIME_PHP || Z_LVAL_PP(val) == PHAR_MIME_PHPS) {
@@ -958,11 +861,6 @@ PHP_METHOD(Phar, webPhar)
 							RETURN_FALSE;
 						}
 						break;
-#if PHP_MAJOR_VERSION >= 6
-					case IS_UNICODE:
-						zval_unicode_to_string(*(val) TSRMLS_CC);
-						/* break intentionally omitted */
-#endif
 					case IS_STRING:
 						mime_type = Z_STRVAL_PP(val);
 						code = PHAR_MIME_OTHER;
@@ -1013,25 +911,11 @@ PHP_METHOD(Phar, mungServer)
 
 	for (zend_hash_internal_pointer_reset(Z_ARRVAL_P(mungvalues)); SUCCESS == zend_hash_has_more_elements(Z_ARRVAL_P(mungvalues)); zend_hash_move_forward(Z_ARRVAL_P(mungvalues))) {
 		zval **data = NULL;
-#if PHP_MAJOR_VERSION >= 6
-		zval *unicopy = NULL;
-#endif
 
 		if (SUCCESS != zend_hash_get_current_data(Z_ARRVAL_P(mungvalues), (void **) &data)) {
 			zend_throw_exception_ex(phar_ce_PharException, 0 TSRMLS_CC, "unable to retrieve array value in Phar::mungServer()");
 			return;
 		}
-
-#if PHP_MAJOR_VERSION >= 6
-		if (Z_TYPE_PP(data) == IS_UNICODE) {
-			MAKE_STD_ZVAL(unicopy);
-			*unicopy = **data;
-			zval_copy_ctor(unicopy);
-			INIT_PZVAL(unicopy);
-			zval_unicode_to_string(unicopy TSRMLS_CC);
-			data = &unicopy;
-		}
-#endif
 
 		if (Z_TYPE_PP(data) != IS_STRING) {
 			zend_throw_exception_ex(phar_ce_PharException, 0 TSRMLS_CC, "Non-string value passed to Phar::mungServer(), expecting an array of any of these strings: PHP_SELF, REQUEST_URI, SCRIPT_FILENAME, SCRIPT_NAME");
@@ -1054,11 +938,6 @@ PHP_METHOD(Phar, mungServer)
 		if (Z_STRLEN_PP(data) == sizeof("SCRIPT_FILENAME")-1 && !strncmp(Z_STRVAL_PP(data), "SCRIPT_FILENAME", sizeof("SCRIPT_FILENAME")-1)) {
 			PHAR_GLOBALS->phar_SERVER_mung_list |= PHAR_MUNG_SCRIPT_FILENAME;
 		}
-#if PHP_MAJOR_VERSION >= 6
-		if (unicopy) {
-			zval_ptr_dtor(&unicopy);
-		}
-#endif
 	}
 }
 /* }}} */
@@ -2018,6 +1897,10 @@ PHP_METHOD(Phar, buildFromDirectory)
 	pass.count = 0;
 	pass.ret = return_value;
 	pass.fp = php_stream_fopen_tmpfile();
+	if (pass.fp == NULL) {
+		zend_throw_exception_ex(phar_ce_PharException, 0 TSRMLS_CC, "phar \"%s\" unable to create temporary file", phar_obj->arc.archive->fname);
+		return;
+	}
 
 	if (phar_obj->arc.archive->is_persistent && FAILURE == phar_copy_on_write(&(phar_obj->arc.archive) TSRMLS_CC)) {
 		zval_ptr_dtor(&iteriter);
@@ -2098,6 +1981,10 @@ PHP_METHOD(Phar, buildFromIterator)
 	pass.ret = return_value;
 	pass.count = 0;
 	pass.fp = php_stream_fopen_tmpfile();
+	if (pass.fp == NULL) {
+		zend_throw_exception_ex(phar_ce_PharException, 0 TSRMLS_CC, "phar \"%s\": unable to create temporary file", phar_obj->arc.archive->fname);
+		return;
+	}
 
 	if (SUCCESS == spl_iterator_apply(obj, (spl_iterator_apply_func_t) phar_build, (void *) &pass TSRMLS_CC)) {
 		phar_obj->arc.archive->ufp = pass.fp;
@@ -2429,6 +2316,10 @@ static zval *phar_convert_to_other(phar_archive_data *source, int convert, char 
 		zend_get_hash_value, NULL, 0);
 
 	phar->fp = php_stream_fopen_tmpfile();
+	if (phar->fp == NULL) {
+		zend_throw_exception_ex(phar_ce_PharException, 0 TSRMLS_CC, "unable to create temporary file");
+		return NULL;
+	}
 	phar->fname = source->fname;
 	phar->fname_len = source->fname_len;
 	phar->is_temporary_alias = source->is_temporary_alias;
@@ -5033,11 +4924,7 @@ PHP_METHOD(PharFileInfo, getContent)
 
 	phar_seek_efp(link, 0, SEEK_SET, 0, 0 TSRMLS_CC);
 	Z_TYPE_P(return_value) = IS_STRING;
-#if PHP_MAJOR_VERSION >= 6
-	Z_STRLEN_P(return_value) = php_stream_copy_to_mem(fp, (void **) &(Z_STRVAL_P(return_value)), link->uncompressed_filesize, 0);
-#else
 	Z_STRLEN_P(return_value) = php_stream_copy_to_mem(fp, &(Z_STRVAL_P(return_value)), link->uncompressed_filesize, 0);
-#endif
 
 	if (!Z_STRVAL_P(return_value)) {
 		Z_STRVAL_P(return_value) = estrndup("", 0);

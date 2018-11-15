@@ -1,5 +1,5 @@
 // vim:ft=javascript
-// $Id: config.w32 146968 2003-12-19 23:19:19Z wez $
+// $Id$
 
 ARG_ENABLE('embed', 'Embedded SAPI library', 'no');
 

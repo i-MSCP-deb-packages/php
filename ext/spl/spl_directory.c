@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: spl_directory.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #ifdef HAVE_CONFIG_H
 # include "config.h"
@@ -120,6 +120,16 @@ static void spl_filesystem_object_free_storage(void *object TSRMLS_DC) /* {{{ */
 		spl_filesystem_file_free_line(intern TSRMLS_CC);
 		break;
 	}
+
+	{
+		zend_object_iterator *iterator;
+		iterator = (zend_object_iterator*)
+				spl_filesystem_object_to_iterator(intern);
+		if (iterator->data != NULL) {
+			iterator->data = NULL;
+			iterator->funcs->dtor(iterator TSRMLS_CC);
+		}
+	}
 	efree(object);
 } /* }}} */
 
@@ -148,7 +158,7 @@ static zend_object_value spl_filesystem_object_new_ex(zend_class_entry *class_ty
 	if (obj) *obj = intern;
 
 	zend_object_std_init(&intern->std, class_type TSRMLS_CC);
-	zend_hash_copy(intern->std.properties, &class_type->default_properties, (copy_ctor_func_t) zval_add_ref, (void *) &tmp, sizeof(zval *));
+	zend_hash_copy(intern->std.properties, &class_type->default_properties, (copy_ctor_func_t) zval_property_ctor, (void *) &tmp, sizeof(zval *));
 
 	retval.handle = zend_objects_store_put(intern, (zend_objects_store_dtor_t) zend_objects_destroy_object, (zend_objects_free_object_storage_t) spl_filesystem_object_free_storage, NULL TSRMLS_CC);
 	retval.handlers = &spl_filesystem_object_handlers;
@@ -261,7 +271,18 @@ static void spl_filesystem_dir_open(spl_filesystem_object* intern, char *path TS
 
 static int spl_filesystem_file_open(spl_filesystem_object *intern, int use_include_path, int silent TSRMLS_DC) /* {{{ */
 {
+	zval  tmp;
+
 	intern->type = SPL_FS_FILE;
+
+	php_stat(intern->file_name, intern->file_name_len, FS_IS_DIR, &tmp TSRMLS_CC);
+	if (Z_LVAL(tmp)) {
+		intern->u.file.open_mode = NULL;
+		intern->file_name = NULL;
+		zend_throw_exception_ex(spl_ce_LogicException, 0 TSRMLS_CC, "Cannot use SplFileObject with directories");
+		return FAILURE;
+	}
+
 	intern->u.file.context = php_stream_context_from_zval(intern->u.file.zcontext, 0);
 	intern->u.file.stream = php_stream_open_wrapper_ex(intern->file_name, intern->u.file.open_mode, (use_include_path ? USE_PATH : 0) | ENFORCE_SAFE_MODE | REPORT_ERRORS, NULL, intern->u.file.context);
 
@@ -366,6 +387,10 @@ static zend_object_value spl_filesystem_object_clone(zval *zobject TSRMLS_DC)
 void spl_filesystem_info_set_filename(spl_filesystem_object *intern, char *path, int len, int use_copy TSRMLS_DC) /* {{{ */
 {
 	char *p1, *p2;
+	
+	if (intern->file_name) {
+		efree(intern->file_name);
+	}
 
 	intern->file_name = use_copy ? estrndup(path, len) : path;
 	intern->file_name_len = len;
@@ -386,7 +411,10 @@ void spl_filesystem_info_set_filename(spl_filesystem_object *intern, char *path,
 	} else {
 		intern->_path_len = 0;
 	}
-
+	
+	if (intern->_path) {
+		efree(intern->_path);
+	}
 	intern->_path = estrndup(path, intern->_path_len);
 } /* }}} */
 
@@ -406,7 +434,6 @@ static spl_filesystem_object * spl_filesystem_object_create_info(spl_filesystem_
 		if (file_path && !use_copy) {
 			efree(file_path);
 		}
-		use_copy = 1;
 		file_path_len = 1;
 		file_path = "/";
 #endif
@@ -792,6 +819,7 @@ SPL_METHOD(DirectoryIterator, seek)
 		zend_call_method_with_0_params(&this_ptr, Z_OBJCE_P(getThis()), &intern->u.dir.func_rewind, "rewind", &retval);
 		if (retval) {
 			zval_ptr_dtor(&retval);
+			retval = NULL;
 		}
 	}
 
@@ -801,6 +829,7 @@ SPL_METHOD(DirectoryIterator, seek)
 		if (retval) {
 			valid = zend_is_true(retval);
 			zval_ptr_dtor(&retval);
+			retval = NULL;
 		}
 		if (!valid) {
 			break;
@@ -1404,6 +1433,7 @@ SPL_METHOD(FilesystemIterator, __construct)
 SPL_METHOD(FilesystemIterator, rewind)
 {
 	spl_filesystem_object *intern = (spl_filesystem_object*)zend_object_store_get_object(getThis() TSRMLS_CC);
+	int skip_dots = SPL_HAS_FLAG(intern->flags, SPL_FILE_DIR_SKIPDOTS);
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -1415,7 +1445,7 @@ SPL_METHOD(FilesystemIterator, rewind)
 	}
 	do {
 		spl_filesystem_dir_read(intern TSRMLS_CC);
-	} while (spl_filesystem_is_dot(intern->u.dir.entry.d_name));
+	} while (skip_dots && spl_filesystem_is_dot(intern->u.dir.entry.d_name));
 }
 /* }}} */
 
@@ -1620,10 +1650,15 @@ zend_object_iterator *spl_filesystem_dir_get_iterator(zend_class_entry *ce, zval
 	dir_object = (spl_filesystem_object*)zend_object_store_get_object(object TSRMLS_CC);
 	iterator   = spl_filesystem_object_to_iterator(dir_object);
 
-	Z_SET_REFCOUNT_P(object, Z_REFCOUNT_P(object) + 2);
-	iterator->intern.data = (void*)object;
-	iterator->intern.funcs = &spl_filesystem_dir_it_funcs;
-	iterator->current = object;
+	/* initialize iterator if it wasn't gotten before */
+	if (iterator->intern.data == NULL) {
+		iterator->intern.data = object;
+		iterator->intern.funcs = &spl_filesystem_dir_it_funcs;
+		/* ->current must be initialized; rewind doesn't set it and valid
+		 * doesn't check whether it's set */
+		iterator->current = object;
+	}
+	zval_add_ref(&object);
 	
 	return (zend_object_iterator*)iterator;
 }
@@ -1633,13 +1668,16 @@ zend_object_iterator *spl_filesystem_dir_get_iterator(zend_class_entry *ce, zval
 static void spl_filesystem_dir_it_dtor(zend_object_iterator *iter TSRMLS_DC)
 {
 	spl_filesystem_iterator *iterator = (spl_filesystem_iterator *)iter;
-	zval *zfree = (zval*)iterator->intern.data;
 
-	iterator->intern.data = NULL; /* mark as unused */
-	zval_ptr_dtor(&iterator->current);
-	if (zfree) {
-		zval_ptr_dtor(&zfree);
+	if (iterator->intern.data) {
+		zval *object =  iterator->intern.data;
+		zval_ptr_dtor(&object);
 	}
+	/* Otherwise we were called from the owning object free storage handler as
+	 * it sets
+	 * iterator->intern.data to NULL.
+	 * We don't even need to destroy iterator->current as we didn't add a
+	 * reference to it in move_forward or get_iterator */
 }
 /* }}} */
 
@@ -1702,15 +1740,15 @@ static void spl_filesystem_dir_it_rewind(zend_object_iterator *iter TSRMLS_DC)
 static void spl_filesystem_tree_it_dtor(zend_object_iterator *iter TSRMLS_DC)
 {
 	spl_filesystem_iterator *iterator = (spl_filesystem_iterator *)iter;
-	zval *zfree = (zval*)iterator->intern.data;
 
-	if (iterator->current) {
-		zval_ptr_dtor(&iterator->current);
+	if (iterator->intern.data) {
+		zval *object = 	iterator->intern.data;
+		zval_ptr_dtor(&object);
+	} else {
+		if (iterator->current) {
+			zval_ptr_dtor(&iterator->current);
+		}
 	}
-	iterator->intern.data = NULL; /* mark as unused */
-	/* free twice as we add ref twice */
-	zval_ptr_dtor(&zfree);
-	zval_ptr_dtor(&zfree);
 }
 /* }}} */
 
@@ -1821,10 +1859,12 @@ zend_object_iterator *spl_filesystem_tree_get_iterator(zend_class_entry *ce, zva
 	dir_object = (spl_filesystem_object*)zend_object_store_get_object(object TSRMLS_CC);
 	iterator   = spl_filesystem_object_to_iterator(dir_object);
 
-	Z_SET_REFCOUNT_P(object, Z_REFCOUNT_P(object) + 2);
-	iterator->intern.data = (void*)object;
-	iterator->intern.funcs = &spl_filesystem_tree_it_funcs;
-	iterator->current = NULL;
+	/* initialize iterator if wasn't gotten before */
+	if (iterator->intern.data == NULL) {
+		iterator->intern.data = object;
+		iterator->intern.funcs = &spl_filesystem_tree_it_funcs;
+	}
+	zval_add_ref(&object);
 	
 	return (zend_object_iterator*)iterator;
 }
@@ -1836,6 +1876,10 @@ static int spl_filesystem_object_cast(zval *readobj, zval *writeobj, int type TS
 	spl_filesystem_object *intern = (spl_filesystem_object*)zend_object_store_get_object(readobj TSRMLS_CC);
 
 	if (type == IS_STRING) {
+		if (Z_OBJCE_P(readobj)->__tostring) {
+			return std_object_handlers.cast_object(readobj, writeobj, type TSRMLS_CC);
+		}
+
 		switch (intern->type) {
 		case SPL_FS_INFO:
 		case SPL_FS_FILE:

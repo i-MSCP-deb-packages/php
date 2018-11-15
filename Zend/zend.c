@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2013 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: zend.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "zend.h"
 #include "zend_extensions.h"
@@ -114,7 +114,7 @@ ZEND_API zval zval_used_for_init; /* True global variable */
 /* version information */
 static char *zend_version_info;
 static uint zend_version_info_length;
-#define ZEND_CORE_VERSION_INFO	"Zend Engine v" ZEND_VERSION ", Copyright (c) 1998-2012 Zend Technologies\n"
+#define ZEND_CORE_VERSION_INFO	"Zend Engine v" ZEND_VERSION ", Copyright (c) 1998-2014 Zend Technologies\n"
 #define PRINT_ZVAL_INDENT 4
 
 static void print_hash(zend_write_func_t write_func, HashTable *ht, int indent, zend_bool is_object TSRMLS_DC) /* {{{ */
@@ -996,6 +996,29 @@ ZEND_API void zend_error(int type, const char *format, ...) /* {{{ */
 	zend_stack list_stack;
 	zend_stack labels_stack;
 	TSRMLS_FETCH();
+
+	/* Report about uncaught exception in case of fatal errors */
+	if (EG(exception)) {
+		switch (type) {
+			case E_CORE_ERROR:
+			case E_ERROR:
+			case E_RECOVERABLE_ERROR:
+			case E_PARSE:
+			case E_COMPILE_ERROR:
+			case E_USER_ERROR:
+				if (zend_is_executing(TSRMLS_C)) {
+					error_lineno = zend_get_executed_lineno(TSRMLS_C);
+				}
+				zend_exception_error(EG(exception), E_WARNING TSRMLS_CC);
+				EG(exception) = NULL;
+				if (zend_is_executing(TSRMLS_C) && EG(opline_ptr)) {
+					active_opline->lineno = error_lineno;
+				}
+				break;
+			default:
+				break;
+		}
+	}
 
 	/* Obtain relevant filename and lineno */
 	switch (type) {

@@ -7,6 +7,8 @@ if ((stristr(PHP_OS, 'freebsd')))  {
     die('skip.. this test causes the run-tests.php to hang on Freebsd, see #60186');
 }
 ?>
+--INI--
+allow_call_time_pass_reference = Off
 --FILE--
 <?php
 $test = array();
@@ -18,4 +20,4 @@ $test['a'] = $test['b'];
 --EXPECTF--
 Deprecated: Call-time pass-by-reference has been deprecated in %sbug60082.php on line %d
 
-Fatal error: main(): Array was modified outside object and made a recursive object in %sbug60082.php on line %d
+Fatal error: main(): Nesting level too deep - recursive dependency? in %sbug60082.php on line %d

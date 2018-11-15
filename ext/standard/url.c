@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -15,7 +15,7 @@
    | Author: Jim Winstead <jimw@php.net>                                  |
    +----------------------------------------------------------------------+
  */
-/* $Id: url.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -220,14 +220,14 @@ PHPAPI php_url *php_url_parse_ex(char const *str, int length)
 
 		if (query && fragment) {
 			if (query > fragment) {
-				p = e = fragment;
+				e = fragment;
 			} else {
-				p = e = query;
+				e = query;
 			}
 		} else if (query) {
-			p = e = query;
+			e = query;
 		} else if (fragment) {
-			p = e = fragment;
+			e = fragment;
 		}
 	} else {
 		e = p;

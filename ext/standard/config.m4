@@ -1,4 +1,4 @@
-dnl $Id: config.m4 300511 2010-06-17 10:22:03Z pajoye $ -*- autoconf -*-
+dnl $Id$ -*- autoconf -*-
 
 divert(3)dnl
 

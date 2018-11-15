@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -20,7 +20,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: openssl.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -644,18 +644,28 @@ static time_t asn1_time_to_time_t(ASN1_UTCTIME * timestr TSRMLS_DC) /* {{{ */
 	char * thestr;
 	long gmadjust = 0;
 
-	if (timestr->length < 13) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "extension author too lazy to parse %s correctly", timestr->data);
+	if (ASN1_STRING_type(timestr) != V_ASN1_UTCTIME) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "illegal ASN1 data type for timestamp");
 		return (time_t)-1;
 	}
 
-	strbuf = estrdup((char *)timestr->data);
+	if (ASN1_STRING_length(timestr) != strlen((char*)ASN1_STRING_data(timestr))) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "illegal length in timestamp");
+		return (time_t)-1;
+	}
+
+	if (ASN1_STRING_length(timestr) < 13) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "unable to parse time string %s correctly", timestr->data);
+		return (time_t)-1;
+	}
+
+	strbuf = estrdup((char *)ASN1_STRING_data(timestr));
 
 	memset(&thetime, 0, sizeof(thetime));
 
 	/* we work backwards so that we can use atoi more easily */
 
-	thestr = strbuf + timestr->length - 3;
+	thestr = strbuf + ASN1_STRING_length(timestr) - 3;
 
 	thetime.tm_sec = atoi(thestr);
 	*thestr = '\0';
@@ -755,13 +765,13 @@ static int add_oid_section(struct php_x509_request * req TSRMLS_DC) /* {{{ */
 			req->config_filename, req->var, req->req_config TSRMLS_CC) == FAILURE) return FAILURE
 
 #define SET_OPTIONAL_STRING_ARG(key, varname, defval)	\
-	if (optional_args && zend_hash_find(Z_ARRVAL_P(optional_args), key, sizeof(key), (void**)&item) == SUCCESS) \
+	if (optional_args && zend_hash_find(Z_ARRVAL_P(optional_args), key, sizeof(key), (void**)&item) == SUCCESS && Z_TYPE_PP(item) == IS_STRING) \
 		varname = Z_STRVAL_PP(item); \
 	else \
 		varname = defval
 
 #define SET_OPTIONAL_LONG_ARG(key, varname, defval)	\
-	if (optional_args && zend_hash_find(Z_ARRVAL_P(optional_args), key, sizeof(key), (void**)&item) == SUCCESS) \
+	if (optional_args && zend_hash_find(Z_ARRVAL_P(optional_args), key, sizeof(key), (void**)&item) == SUCCESS && Z_TYPE_PP(item) == IS_LONG) \
 		varname = Z_LVAL_PP(item); \
 	else \
 		varname = defval
@@ -803,7 +813,7 @@ static int php_openssl_parse_config(struct php_x509_request * req, zval * option
 
 	SET_OPTIONAL_LONG_ARG("private_key_type", req->priv_key_type, OPENSSL_KEYTYPE_DEFAULT);
 
-	if (optional_args && zend_hash_find(Z_ARRVAL_P(optional_args), "encrypt_key", sizeof("encrypt_key"), (void**)&item) == SUCCESS) {
+	if (optional_args && zend_hash_find(Z_ARRVAL_P(optional_args), "encrypt_key", sizeof("encrypt_key"), (void**)&item) == SUCCESS && Z_TYPE_PP(item) == IS_BOOL) {
 		req->priv_key_encrypt = Z_BVAL_PP(item);
 	} else {
 		str = CONF_get_string(req->req_config, req->section_name, "encrypt_rsa_key");
@@ -1326,6 +1336,74 @@ PHP_FUNCTION(openssl_x509_check_private_key)
 }
 /* }}} */
 
+/* Special handling of subjectAltName, see CVE-2013-4073
+ * Christian Heimes
+ */
+
+static int openssl_x509v3_subjectAltName(BIO *bio, X509_EXTENSION *extension)
+{
+	GENERAL_NAMES *names;
+	const X509V3_EXT_METHOD *method = NULL;
+	long i, length, num;
+	const unsigned char *p;
+
+	method = X509V3_EXT_get(extension);
+	if (method == NULL) {
+		return -1;
+	}
+
+	p = extension->value->data;
+	length = extension->value->length;
+	if (method->it) {
+		names = (GENERAL_NAMES*)(ASN1_item_d2i(NULL, &p, length,
+						       ASN1_ITEM_ptr(method->it)));
+	} else {
+		names = (GENERAL_NAMES*)(method->d2i(NULL, &p, length));
+	}
+	if (names == NULL) {
+		return -1;
+	}
+
+	num = sk_GENERAL_NAME_num(names);
+	for (i = 0; i < num; i++) {
+			GENERAL_NAME *name;
+			ASN1_STRING *as;
+			name = sk_GENERAL_NAME_value(names, i);
+			switch (name->type) {
+				case GEN_EMAIL:
+					BIO_puts(bio, "email:");
+					as = name->d.rfc822Name;
+					BIO_write(bio, ASN1_STRING_data(as),
+						  ASN1_STRING_length(as));
+					break;
+				case GEN_DNS:
+					BIO_puts(bio, "DNS:");
+					as = name->d.dNSName;
+					BIO_write(bio, ASN1_STRING_data(as),
+						  ASN1_STRING_length(as));
+					break;
+				case GEN_URI:
+					BIO_puts(bio, "URI:");
+					as = name->d.uniformResourceIdentifier;
+					BIO_write(bio, ASN1_STRING_data(as),
+						  ASN1_STRING_length(as));
+					break;
+				default:
+					/* use builtin print for GEN_OTHERNAME, GEN_X400,
+					 * GEN_EDIPARTY, GEN_DIRNAME, GEN_IPADD and GEN_RID
+					 */
+					GENERAL_NAME_print(bio, name);
+			}
+			/* trailing ', ' except for last element */
+			if (i < (num - 1)) {
+				BIO_puts(bio, ", ");
+			}
+	}
+	sk_GENERAL_NAME_pop_free(names, GENERAL_NAME_free);
+
+	return 0;
+}
+
 /* {{{ proto array openssl_x509_parse(mixed x509 [, bool shortnames=true])
    Returns an array of the fields/values of the CERT */
 PHP_FUNCTION(openssl_x509_parse)
@@ -1422,15 +1500,30 @@ PHP_FUNCTION(openssl_x509_parse)
 
 
 	for (i = 0; i < X509_get_ext_count(cert); i++) {
+		int nid;
 		extension = X509_get_ext(cert, i);
-		if (OBJ_obj2nid(X509_EXTENSION_get_object(extension)) != NID_undef) {
+		nid = OBJ_obj2nid(X509_EXTENSION_get_object(extension));
+		if (nid != NID_undef) {
 			extname = (char *)OBJ_nid2sn(OBJ_obj2nid(X509_EXTENSION_get_object(extension)));
 		} else {
 			OBJ_obj2txt(buf, sizeof(buf)-1, X509_EXTENSION_get_object(extension), 1);
 			extname = buf;
 		}
 		bio_out = BIO_new(BIO_s_mem());
-		if (X509V3_EXT_print(bio_out, extension, 0, 0)) {
+		if (nid == NID_subject_alt_name) {
+			if (openssl_x509v3_subjectAltName(bio_out, extension) == 0) {
+				BIO_get_mem_ptr(bio_out, &bio_buf);
+				add_assoc_stringl(subitem, extname, bio_buf->data, bio_buf->length, 1);
+			} else {
+				zval_dtor(return_value);
+				if (certresource == -1 && cert) {
+					X509_free(cert);
+				}
+				BIO_free(bio_out);
+				RETURN_FALSE;
+			}
+		}
+		else if (X509V3_EXT_print(bio_out, extension, 0, 0)) {
 			BIO_get_mem_ptr(bio_out, &bio_buf);
 			add_assoc_stringl(subitem, extname, bio_buf->data, bio_buf->length, 1);
 		} else {
@@ -1796,7 +1889,7 @@ PHP_FUNCTION(openssl_pkcs12_export_to_file)
 	}
 
 	/* parse extra config from args array, promote this to an extra function */
-	if (args && zend_hash_find(Z_ARRVAL_P(args), "friendly_name", sizeof("friendly_name"), (void**)&item) == SUCCESS)
+	if (args && zend_hash_find(Z_ARRVAL_P(args), "friendly_name", sizeof("friendly_name"), (void**)&item) == SUCCESS && Z_TYPE_PP(item) == IS_STRING)
 		friendly_name = Z_STRVAL_PP(item);
 	/* certpbe (default RC2-40)
 	   keypbe (default 3DES)
@@ -1874,7 +1967,7 @@ PHP_FUNCTION(openssl_pkcs12_export)
 	}
 
 	/* parse extra config from args array, promote this to an extra function */
-	if (args && zend_hash_find(Z_ARRVAL_P(args), "friendly_name", sizeof("friendly_name"), (void**)&item) == SUCCESS)
+	if (args && zend_hash_find(Z_ARRVAL_P(args), "friendly_name", sizeof("friendly_name"), (void**)&item) == SUCCESS && Z_TYPE_PP(item) == IS_STRING)
 		friendly_name = Z_STRVAL_PP(item);
 
 	if (args && zend_hash_find(Z_ARRVAL_P(args), "extracerts", sizeof("extracerts"), (void**)&item) == SUCCESS)
@@ -4677,7 +4770,7 @@ PHP_FUNCTION(openssl_encrypt)
 	int data_len, method_len, password_len, iv_len = 0, max_iv_len;
 	const EVP_CIPHER *cipher_type;
 	EVP_CIPHER_CTX cipher_ctx;
-	int i, outlen, keylen;
+	int i = 0, outlen, keylen;
 	unsigned char *outbuf, *key;
 	zend_bool free_iv;
 
@@ -4776,6 +4869,10 @@ PHP_FUNCTION(openssl_decrypt)
 
 	if (!raw_input) {
 		base64_str = (char*)php_base64_decode((unsigned char*)data, data_len, &base64_str_len);
+		if (!base64_str) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed to base64 decode the input");
+			RETURN_FALSE;
+		}
 		data_len = base64_str_len;
 		data = base64_str;
 	}

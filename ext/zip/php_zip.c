@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
   +----------------------------------------------------------------------+
 */
 
-/* $Id: php_zip.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -28,6 +28,7 @@
 #include "ext/standard/file.h"
 #include "ext/standard/php_string.h"
 #include "ext/pcre/php_pcre.h"
+#include "ext/standard/php_filestat.h"
 #include "php_zip.h"
 #include "lib/zip.h"
 #include "lib/zipint.h"
@@ -309,6 +310,7 @@ static int php_zip_add_file(struct zip *za, const char *filename, size_t filenam
 	struct zip_source *zs;
 	int cur_idx;
 	char resolved_path[MAXPATHLEN];
+	zval exists_flag;
 
 
 	if (ZIP_OPENBASEDIR_CHECKPATH(filename)) {
@@ -316,6 +318,11 @@ static int php_zip_add_file(struct zip *za, const char *filename, size_t filenam
 	}
 
 	if (!expand_filepath(filename, resolved_path TSRMLS_CC)) {
+		return -1;
+	}
+
+	php_stat(resolved_path, strlen(resolved_path), FS_EXISTS, &exists_flag TSRMLS_CC);
+	if (!Z_BVAL(exists_flag)) {
 		return -1;
 	}
 
@@ -1104,7 +1111,7 @@ static zend_object_value php_zip_object_new(zend_class_entry *class_type TSRMLS_
 	intern->zo.ce = class_type;
 #endif
 
-	zend_hash_copy(intern->zo.properties, &class_type->default_properties, (copy_ctor_func_t) zval_add_ref,
+	zend_hash_copy(intern->zo.properties, &class_type->default_properties, (copy_ctor_func_t) zval_property_ctor, 
 					(void *) &tmp, sizeof(zval *));
 
 	retval.handle = zend_objects_store_put(intern,
@@ -1148,7 +1155,13 @@ static void php_zip_free_entry(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 
 	if (zr_rsrc) {
 		if (zr_rsrc->zf) {
-			zip_fclose(zr_rsrc->zf);
+			if (zr_rsrc->zf->za) {
+				zip_fclose(zr_rsrc->zf);
+			} else {
+				if (zr_rsrc->zf->src)
+					zip_source_free(zr_rsrc->zf->src);
+				free(zr_rsrc->zf);
+			}
 			zr_rsrc->zf = NULL;
 		}
 		efree(zr_rsrc);
@@ -1321,9 +1334,8 @@ static PHP_NAMED_FUNCTION(zif_zip_entry_open)
 }
 /* }}} */
 
-/* {{{ proto void zip_entry_close(resource zip_ent)
+/* {{{ proto bool zip_entry_close(resource zip_ent)
    Close a zip entry */
-/* another dummy function to fit in the old api*/
 static PHP_NAMED_FUNCTION(zif_zip_entry_close)
 {
 	zval * zip_entry;
@@ -1334,8 +1346,8 @@ static PHP_NAMED_FUNCTION(zif_zip_entry_close)
 	}
 
 	ZEND_FETCH_RESOURCE(zr_rsrc, zip_read_rsrc *, &zip_entry, -1, le_zip_entry_name, le_zip_entry);
-	/*  we got a zip_entry resource, be happy */
-	RETURN_TRUE;
+
+	RETURN_BOOL(SUCCESS == zend_list_delete(Z_LVAL_P(zip_entry)));
 }
 /* }}} */
 
@@ -2872,9 +2884,9 @@ static PHP_MINFO_FUNCTION(zip)
 	php_info_print_table_start();
 
 	php_info_print_table_row(2, "Zip", "enabled");
-	php_info_print_table_row(2, "Extension Version","$Id: php_zip.c 321634 2012-01-01 13:15:04Z felipe $");
+	php_info_print_table_row(2, "Extension Version","$Id$");
 	php_info_print_table_row(2, "Zip version", PHP_ZIP_VERSION_STRING);
-	php_info_print_table_row(2, "Libzip version", "0.9.0");
+	php_info_print_table_row(2, "Libzip version", LIBZIP_VERSION);
 
 	php_info_print_table_end();
 }

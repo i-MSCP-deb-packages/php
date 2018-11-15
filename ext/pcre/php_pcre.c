@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: php_pcre.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "php.h"
 #include "php_ini.h"
@@ -241,21 +241,29 @@ PHPAPI pcre_cache_entry* pcre_get_compiled_regex_cache(char *regex, int regex_le
 	char				*pattern;
 	int					 do_study = 0;
 	int					 poptions = 0;
+	int				count = 0;
 	unsigned const char *tables = NULL;
 #if HAVE_SETLOCALE
-	char				*locale = setlocale(LC_CTYPE, NULL);
+	char				*locale;
 #endif
 	pcre_cache_entry	*pce;
 	pcre_cache_entry	 new_entry;
+
+#if HAVE_SETLOCALE
+# if defined(PHP_WIN32) && defined(ZTS)
+	_configthreadlocale(_ENABLE_PER_THREAD_LOCALE);
+# endif
+	locale = setlocale(LC_CTYPE, NULL);
+#endif
 
 	/* Try to lookup the cached regex entry, and if successful, just pass
 	   back the compiled pattern, otherwise go on and compile it. */
 	if (zend_hash_find(&PCRE_G(pcre_cache), regex, regex_len+1, (void **)&pce) == SUCCESS) {
 		/*
-		 * We use a quick pcre_info() check to see whether cache is corrupted, and if it
+		 * We use a quick pcre_fullinfo() check to see whether cache is corrupted, and if it
 		 * is, we flush it and compile the pattern from scratch.
 		 */
-		if (pcre_info(pce->re, NULL, NULL) == PCRE_ERROR_BADMAGIC) {
+		if (pcre_fullinfo(pce->re, NULL, PCRE_INFO_CAPTURECOUNT, &count) == PCRE_ERROR_BADMAGIC) {
 			zend_hash_clean(&PCRE_G(pcre_cache));
 		} else {
 #if HAVE_SETLOCALE

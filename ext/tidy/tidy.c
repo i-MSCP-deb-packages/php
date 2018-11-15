@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
   +----------------------------------------------------------------------+
 */
 
-/* $Id: tidy.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -190,6 +190,7 @@ struct _PHPTidyDoc {
 	TidyDoc     doc;
 	TidyBuffer  *errbuf;
 	unsigned int ref_count;
+	unsigned int initialized:1;
 };
 
 struct _PHPTidyObj {
@@ -686,7 +687,7 @@ static void tidy_object_new(zend_class_entry *class_type, zend_object_handlers *
 	memset(intern, 0, sizeof(PHPTidyObj));
 	zend_object_std_init(&intern->std, class_type TSRMLS_CC);
 	
-	zend_hash_copy(intern->std.properties, &class_type->default_properties, (copy_ctor_func_t) zval_add_ref, (void *) &tmp, sizeof(zval *));
+	zend_hash_copy(intern->std.properties, &class_type->default_properties, (copy_ctor_func_t) zval_property_ctor, (void *) &tmp, sizeof(zval *));
 
 	switch(objtype) {
 		case is_node:
@@ -701,6 +702,7 @@ static void tidy_object_new(zend_class_entry *class_type, zend_object_handlers *
 			intern->ptdoc = emalloc(sizeof(PHPTidyDoc));
 			intern->ptdoc->doc = tidyCreate();
 			intern->ptdoc->ref_count = 1;
+			intern->ptdoc->initialized = 0;
 			intern->ptdoc->errbuf = emalloc(sizeof(TidyBuffer));
 			tidyBufInit(intern->ptdoc->errbuf);
 
@@ -1040,7 +1042,9 @@ static int php_tidy_parse_string(PHPTidyObj *obj, char *string, int len, char *e
 			return FAILURE;
 		}
 	}
-	
+
+	obj->ptdoc->initialized = 1;
+
 	tidyBufInit(&buf);
 	tidyBufAppend(&buf, string, len);
 	if (tidyParseBuffer(obj->ptdoc->doc, &buf) < 0) {
@@ -1092,7 +1096,7 @@ static PHP_MINFO_FUNCTION(tidy)
 	php_info_print_table_start();
 	php_info_print_table_header(2, "Tidy support", "enabled");
 	php_info_print_table_row(2, "libTidy Release", (char *)tidyReleaseDate());
-	php_info_print_table_row(2, "Extension Version", PHP_TIDY_MODULE_VERSION " ($Id: tidy.c 321634 2012-01-01 13:15:04Z felipe $)");
+	php_info_print_table_row(2, "Extension Version", PHP_TIDY_MODULE_VERSION " ($Id$)");
 	php_info_print_table_end();
 
 	DISPLAY_INI_ENTRIES();
@@ -1235,7 +1239,7 @@ static PHP_FUNCTION(tidy_parse_file)
 	obj = (PHPTidyObj *) zend_object_store_get_object(return_value TSRMLS_CC);
 
 	if (!(contents = php_tidy_file_to_mem(inputfile, use_include_path, &contents_len TSRMLS_CC))) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Cannot Load '%s' into memory %s", inputfile, (use_include_path) ? "(Using include path)" : "");
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Cannot Load '%s' into memory%s", inputfile, (use_include_path) ? " (Using include path)" : "");
 		RETURN_FALSE;
 	}
 
@@ -1288,7 +1292,7 @@ static PHP_FUNCTION(tidy_diagnose)
 {
 	TIDY_FETCH_OBJECT;
 
-	if (tidyStatus(obj->ptdoc->doc) != 0 && tidyRunDiagnostics(obj->ptdoc->doc) >= 0) {
+	if (obj->ptdoc->initialized && tidyRunDiagnostics(obj->ptdoc->doc) >= 0) {
 		tidy_doc_update_properties(obj TSRMLS_CC);
 		RETURN_TRUE;
 	}

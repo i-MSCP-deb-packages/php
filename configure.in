@@ -1,4 +1,4 @@
-## $Id: configure.in 322014 2012-01-10 11:21:57Z johannes $ -*- autoconf -*-
+## $Id$ -*- autoconf -*-
 dnl ## Process this file with autoconf to produce a configure script.
 
 divert(1)
@@ -31,7 +31,7 @@ dnl Basic autoconf + automake initialization, generation of config.nice.
 dnl -------------------------------------------------------------------------
 
 AC_PREREQ(2.13)
-AC_INIT(README.SVN-RULES)
+AC_INIT(README.GIT-RULES)
 
 PHP_CONFIG_NICE(config.nice)
 
@@ -41,7 +41,7 @@ AC_CONFIG_HEADER(main/php_config.h)
 
 PHP_MAJOR_VERSION=5
 PHP_MINOR_VERSION=3
-PHP_RELEASE_VERSION=9
+PHP_RELEASE_VERSION=29
 PHP_EXTRA_VERSION=""
 PHP_VERSION="$PHP_MAJOR_VERSION.$PHP_MINOR_VERSION.$PHP_RELEASE_VERSION$PHP_EXTRA_VERSION"
 PHP_VERSION_ID=`expr [$]PHP_MAJOR_VERSION \* 10000 + [$]PHP_MINOR_VERSION \* 100 + [$]PHP_RELEASE_VERSION`
@@ -155,7 +155,7 @@ dnl Check if bison generated files exist when bison does not..
 case $php_cv_bison_version in
   ""|invalid[)]
     if ! test -f "$abs_srcdir/Zend/zend_language_parser.h" || ! test -f "$abs_srcdir/Zend/zend_language_parser.c" ; then
-      AC_MSG_ERROR([bison is required to build PHP/Zend when building a SVN checkout!])
+      AC_MSG_ERROR([bison is required to build PHP/Zend when building a GIT checkout!])
     fi
     ;;
 esac
@@ -712,7 +712,7 @@ if test "$PHP_GCOV" = "yes"; then
     AC_MSG_ERROR([ccache must be disabled when --enable-gcov option is used. You can disable ccache by setting environment variable CCACHE_DISABLE=1.])
   fi
   
-  ltp_version_list="1.5 1.6 1.7"
+  ltp_version_list="1.5 1.6 1.7 1.9 1.10"
 
   AC_CHECK_PROG(LTP, lcov, lcov)
   AC_CHECK_PROG(LTP_GENHTML, genhtml, genhtml)
@@ -1335,10 +1335,10 @@ PHP_CONFIGURE_PART(Configuring libtool)
 
 LDFLAGS="$LDFLAGS $PHP_AIX_LDFLAGS"
 
-dnl Autoconf 2.13's libtool checks go slightly nuts on Mac OS X 10.5 and 10.6.
+dnl Autoconf 2.13's libtool checks go slightly nuts on Mac OS X 10.5, 10.6, 10.7 and 10.8.
 dnl This hack works around it. Ugly.
 case $host_alias in
-*darwin9*|*darwin10*)
+*darwin9*|*darwin10*|*darwin11*|*darwin12*)
   ac_cv_exeext=
   ;;
 esac
@@ -1548,6 +1548,21 @@ cat <<X
 | php-install@lists.php.net mailing list and include appropiate      |
 | information about your setup.                                      |
 X
+  fi
+
+  if test "$PHP_SAPI" = "apache2handler" || test "$PHP_SAPI" = "apache2filter"; then
+    if test "$APACHE_VERSION" -ge 2004001; then
+      if test -z "$APACHE_THREADED_MPM"; then
+cat <<X
++--------------------------------------------------------------------+
+|                        *** WARNING ***                             |
+|                                                                    |
+| You have built PHP for Apache's current non-threaded MPM.          |
+| If you change Apache to use a threaded MPM you must reconfigure    |
+| PHP with --enable-maintainer-zts                                   |
+X
+      fi
+    fi
   fi
 
   # Warn about linking Apache with libpthread if oci8 extension is enabled on linux.
