@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.0 of the PHP license,       |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -16,17 +16,17 @@
   |         Ilia Alshanetsky <ilia@prohost.org>                          |
   +----------------------------------------------------------------------+
 
-  $Id: enchant.c 321634 2012-01-01 13:15:04Z felipe $
+  $Id$
 */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <enchant.h>
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
+#include <enchant.h>
 #include "php_enchant.h"
 
 typedef EnchantBroker * EnchantBrokerPtr;
@@ -326,7 +326,7 @@ PHP_MINFO_FUNCTION(enchant)
 #elif defined(HAVE_ENCHANT_BROKER_SET_PARAM)
 	php_info_print_table_row(2, "Libenchant Version", "1.5.0 or later");
 #endif
-	php_info_print_table_row(2, "Revision", "$Revision: 321634 $");
+	php_info_print_table_row(2, "Revision", "$Id$");
 	php_info_print_table_end();
 
 	php_info_print_table_start();
@@ -729,6 +729,7 @@ PHP_FUNCTION(enchant_dict_quick_check)
 
 	if (sugg) {
 		zval_dtor(sugg);
+		array_init(sugg);
 	}
 
 	PHP_ENCHANT_GET_DICT;
@@ -741,8 +742,6 @@ PHP_FUNCTION(enchant_dict_quick_check)
 		if (!sugg && ZEND_NUM_ARGS() == 2) {
 			RETURN_FALSE;
 		}
-
-		array_init(sugg);
 
 		suggs = enchant_dict_suggest(pdict->pdict, word, wordlen, &n_sugg_st);
 		memcpy(&n_sugg, &n_sugg_st, sizeof(n_sugg));

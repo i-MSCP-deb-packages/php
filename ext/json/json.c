@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
   +----------------------------------------------------------------------+
 */
 
-/* $Id: json.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -147,8 +147,9 @@ static int json_determine_array_type(zval **val TSRMLS_DC) /* {{{ */
 		idx = 0;
 		for (;; zend_hash_move_forward_ex(myht, &pos)) {
 			i = zend_hash_get_current_key_ex(myht, &key, &key_len, &index, 0, &pos);
-			if (i == HASH_KEY_NON_EXISTANT)
+			if (i == HASH_KEY_NON_EXISTANT) {
 				break;
+			}
 
 			if (i == HASH_KEY_IS_STRING) {
 				return 1;

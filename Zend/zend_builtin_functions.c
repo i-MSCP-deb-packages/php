@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2013 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: zend_builtin_functions.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "zend.h"
 #include "zend_API.h"
@@ -1516,8 +1516,7 @@ ZEND_FUNCTION(set_exception_handler)
 		RETURN_TRUE;
 	}
 
-	*EG(user_exception_handler) = *exception_handler;
-	zval_copy_ctor(EG(user_exception_handler));
+	MAKE_COPY_ZVAL(&exception_handler, EG(user_exception_handler))
 
 	if (!had_orig_exception_handler) {
 		RETURN_NULL();
@@ -1542,6 +1541,13 @@ ZEND_FUNCTION(restore_exception_handler)
 }
 /* }}} */
 
+static int same_name(const char *key, const char *name, zend_uint name_len)
+{
+	char *lcname = zend_str_tolower_dup(name, name_len);
+	int ret = memcmp(lcname, key, name_len) == 0;
+	efree(lcname);
+	return ret;
+}
 
 static int copy_class_or_interface_name(zend_class_entry **pce TSRMLS_DC, int num_args, va_list args, zend_hash_key *hash_key)
 {
@@ -1553,7 +1559,13 @@ static int copy_class_or_interface_name(zend_class_entry **pce TSRMLS_DC, int nu
 
 	if ((hash_key->nKeyLength==0 || hash_key->arKey[0]!=0)
 		&& (comply_mask == (ce->ce_flags & mask))) {
-		add_next_index_stringl(array, ce->name, ce->name_length, 1);
+		if (ce->refcount > 1 && 
+		    (ce->name_length != hash_key->nKeyLength - 1 || 
+		     !same_name(hash_key->arKey, ce->name, ce->name_length))) {
+			add_next_index_stringl(array, hash_key->arKey, hash_key->nKeyLength - 1, 1);
+		} else {
+			add_next_index_stringl(array, ce->name, ce->name_length, 1);
+		}
 	}
 	return ZEND_HASH_APPLY_KEEP;
 }

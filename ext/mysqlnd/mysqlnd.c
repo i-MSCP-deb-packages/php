@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 2006-2012 The PHP Group                                |
+  | Copyright (c) 2006-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -18,7 +18,7 @@
   +----------------------------------------------------------------------+
 */
 
-/* $Id: mysqlnd.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 #include "php.h"
 #include "mysqlnd.h"
 #include "mysqlnd_wireprotocol.h"
@@ -680,9 +680,18 @@ MYSQLND_METHOD(mysqlnd_conn, connect)(MYSQLND * conn,
 	conn->server_version	= mnd_pestrdup(greet_packet->server_version, conn->persistent);
 
 	conn->greet_charset = mysqlnd_find_charset_nr(greet_packet->charset_no);
+	if (!conn->greet_charset) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			"Server sent charset (%d) unknown to the client. Please, report to the developers", greet_packet->charset_no);
+		SET_CLIENT_ERROR(conn->error_info, CR_NOT_IMPLEMENTED, UNKNOWN_SQLSTATE,
+			"Server sent charset unknown to the client. Please, report to the developers");
+		goto err;
+	}
 	/* we allow load data local infile by default */
 	mysql_flags |= CLIENT_LOCAL_FILES | CLIENT_PS_MULTI_RESULTS;
 	mysql_flags |= MYSQLND_CAPABILITIES;
+
+	mysql_flags |= conn->options.flags; /* use the flags from set_client_option() */
 
 	if (db) {
 		mysql_flags |= CLIENT_CONNECT_WITH_DB;

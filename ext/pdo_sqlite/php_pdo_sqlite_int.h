@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
   +----------------------------------------------------------------------+
 */
 
-/* $Id: php_pdo_sqlite_int.h 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #ifndef PHP_PDO_SQLITE_INT_H
 #define PHP_PDO_SQLITE_INT_H
@@ -46,10 +46,19 @@ struct pdo_sqlite_func {
 	struct pdo_sqlite_fci afunc, astep, afini;
 };
 
+struct pdo_sqlite_collation {
+	struct pdo_sqlite_collation *next;
+
+	const char *name;
+	zval *callback;
+	struct pdo_sqlite_fci fc;
+};
+
 typedef struct {
 	sqlite3 *db;
 	pdo_sqlite_error_info einfo;
 	struct pdo_sqlite_func *funcs;
+	struct pdo_sqlite_collation *collations;
 } pdo_sqlite_db_handle;
 
 typedef struct {

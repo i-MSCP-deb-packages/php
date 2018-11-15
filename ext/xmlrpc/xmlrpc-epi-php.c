@@ -37,7 +37,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -51,7 +51,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: xmlrpc-epi-php.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 /**********************************************************************
 * BUGS:                                                               *
@@ -1043,9 +1043,8 @@ PHP_FUNCTION(xmlrpc_server_register_method)
 		 */
 		if (XMLRPC_ServerRegisterMethod(server->server_ptr, method_key, php_xmlrpc_callback)) {
 			/* save for later use */
-			MAKE_STD_ZVAL(method_name_save);
-			*method_name_save = **method_name;
-			zval_copy_ctor(method_name_save);
+			ALLOC_ZVAL(method_name_save);
+			MAKE_COPY_ZVAL(method_name, method_name_save);
 
 			/* register our php method */
 			add_zval(server->method_map, method_key, &method_name_save);
@@ -1073,9 +1072,8 @@ PHP_FUNCTION(xmlrpc_server_register_introspection_callback)
 
 	if (type == le_xmlrpc_server) {
 		/* save for later use */
-		MAKE_STD_ZVAL(method_name_save);
-		*method_name_save = **method_name;
-		zval_copy_ctor(method_name_save);
+		ALLOC_ZVAL(method_name_save);
+		MAKE_COPY_ZVAL(method_name, method_name_save);
 
 		/* register our php method */
 		add_zval(server->introspection_map, NULL, &method_name_save);
@@ -1242,8 +1240,7 @@ PHP_FUNCTION(xmlrpc_parse_method_descriptions)
 			retval = XMLRPC_to_PHP(xVal);
 
 			if (retval) {
-				*return_value = *retval;
-				zval_copy_ctor(return_value);
+				RETVAL_ZVAL(retval, 1, 1);
 			}
 			/* dust, sweep, and mop */
 			XMLRPC_CleanupValue(xVal);

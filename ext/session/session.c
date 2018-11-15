@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: session.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -56,7 +56,7 @@
 #include "mod_mm.h"
 #endif
 
-PHPAPI ZEND_DECLARE_MODULE_GLOBALS(ps);
+PHPAPI ZEND_DECLARE_MODULE_GLOBALS(ps)
 
 /* ***********
    * Helpers *
@@ -362,7 +362,8 @@ PHPAPI char *php_session_create_id(PS_CREATE_SID_ARGS) /* {{{ */
 
 	if (zend_hash_find(&EG(symbol_table), "_SERVER", sizeof("_SERVER"), (void **) &array) == SUCCESS &&
 		Z_TYPE_PP(array) == IS_ARRAY &&
-		zend_hash_find(Z_ARRVAL_PP(array), "REMOTE_ADDR", sizeof("REMOTE_ADDR"), (void **) &token) == SUCCESS
+		zend_hash_find(Z_ARRVAL_PP(array), "REMOTE_ADDR", sizeof("REMOTE_ADDR"), (void **) &token) == SUCCESS &&
+		Z_TYPE_PP(token) == IS_STRING
 	) {
 		remote_addr = Z_STRVAL_PP(token);
 	}
@@ -1512,9 +1513,7 @@ static void php_session_flush(TSRMLS_D) /* {{{ */
 {
 	if (PS(session_status) == php_session_active) {
 		PS(session_status) = php_session_none;
-		zend_try {
-			php_session_save_current_state(TSRMLS_C);
-		} zend_end_try();
+		php_session_save_current_state(TSRMLS_C);
 	}
 }
 /* }}} */
@@ -2167,7 +2166,9 @@ static PHP_RSHUTDOWN_FUNCTION(session) /* {{{ */
 {
 	int i;
 
-	php_session_flush(TSRMLS_C);
+	zend_try {
+		php_session_flush(TSRMLS_C);
+	} zend_end_try();
 	php_rshutdown_session_globals(TSRMLS_C);
 
 	/* this should NOT be done in php_rshutdown_session_globals() */

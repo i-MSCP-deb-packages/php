@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
   +----------------------------------------------------------------------+
 */
 
-/* $Id: pdo_mysql.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -35,7 +35,7 @@
 ZEND_GET_MODULE(pdo_mysql)
 #endif
 
-ZEND_DECLARE_MODULE_GLOBALS(pdo_mysql);
+ZEND_DECLARE_MODULE_GLOBALS(pdo_mysql)
 
 /*
  The default socket location is sometimes defined by configure.
@@ -84,8 +84,8 @@ static PHP_MINIT_FUNCTION(pdo_mysql)
 	REGISTER_PDO_CLASS_CONST_LONG("MYSQL_ATTR_MAX_BUFFER_SIZE", (long)PDO_MYSQL_ATTR_MAX_BUFFER_SIZE);
 	REGISTER_PDO_CLASS_CONST_LONG("MYSQL_ATTR_READ_DEFAULT_FILE", (long)PDO_MYSQL_ATTR_READ_DEFAULT_FILE);
 	REGISTER_PDO_CLASS_CONST_LONG("MYSQL_ATTR_READ_DEFAULT_GROUP", (long)PDO_MYSQL_ATTR_READ_DEFAULT_GROUP);
-	REGISTER_PDO_CLASS_CONST_LONG("MYSQL_ATTR_COMPRESS", (long)PDO_MYSQL_ATTR_COMPRESS);
 #endif
+	REGISTER_PDO_CLASS_CONST_LONG("MYSQL_ATTR_COMPRESS", (long)PDO_MYSQL_ATTR_COMPRESS);
 	REGISTER_PDO_CLASS_CONST_LONG("MYSQL_ATTR_DIRECT_QUERY", (long)PDO_MYSQL_ATTR_DIRECT_QUERY);
 	REGISTER_PDO_CLASS_CONST_LONG("MYSQL_ATTR_FOUND_ROWS", (long)PDO_MYSQL_ATTR_FOUND_ROWS);
 	REGISTER_PDO_CLASS_CONST_LONG("MYSQL_ATTR_IGNORE_SPACE", (long)PDO_MYSQL_ATTR_IGNORE_SPACE);

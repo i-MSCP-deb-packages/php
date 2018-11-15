@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: mod_user.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "php.h"
 #include "php_session.h"
@@ -63,7 +63,7 @@ static zval *ps_call_handler(zval *func, int argc, zval **argv TSRMLS_DC)
 }
 
 #define STDVARS1							\
-	zval *retval;							\
+	zval *retval = NULL;					\
 	int ret = FAILURE
 
 #define STDVARS								\
@@ -86,6 +86,13 @@ PS_OPEN_FUNC(user)
 	zval *args[2];
 	static char dummy = 0;
 	STDVARS1;
+	
+	if (PSF(open) == NULL) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			"user session functions not defined");
+			
+		return FAILURE;
+	}
 
 	SESS_ZVAL_STRING((char*)save_path, args[0]);
 	SESS_ZVAL_STRING((char*)session_name, args[1]);

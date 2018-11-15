@@ -1,5 +1,5 @@
 dnl
-dnl $Id: config0.m4 296107 2010-03-12 10:28:59Z jani $
+dnl $Id$
 dnl
 
 PHP_ARG_WITH(zlib,for ZLIB support,

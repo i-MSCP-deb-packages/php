@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
   +----------------------------------------------------------------------+
 */
 
-/* $Id: xp_socket.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "php.h"
 #include "ext/standard/file.h"
@@ -514,6 +514,9 @@ static inline int parse_unix_address(php_stream_xport_param *xparam, struct sock
 		 * BUT, to get into this branch of code, the name is too long,
 		 * so we don't care. */
 		xparam->inputs.namelen = sizeof(unix_addr->sun_path) - 1;
+		php_error_docref(NULL TSRMLS_CC, E_NOTICE,
+			"socket path exceeded the maximum allowed length of %lu bytes "
+			"and was truncated", (unsigned long)sizeof(unix_addr->sun_path));
 	}
 
 	memcpy(unix_addr->sun_path, xparam->inputs.name, xparam->inputs.namelen);

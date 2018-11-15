@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2013 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -18,7 +18,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: zend_API.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "zend.h"
 #include "zend_execute.h"
@@ -33,7 +33,6 @@
 #endif
 
 /* these variables are true statics/globals, and have to be mutex'ed on every access */
-static int module_count=0;
 ZEND_API HashTable module_registry;
 
 /* this function doesn't check for too many parameters */
@@ -254,10 +253,14 @@ ZEND_API int zend_get_object_classname(const zval *object, char **class_name, ze
 static int parse_arg_object_to_string(zval **arg TSRMLS_DC) /* {{{ */
 {
 	if (Z_OBJ_HANDLER_PP(arg, cast_object)) {
-		SEPARATE_ZVAL_IF_NOT_REF(arg);
-		if (Z_OBJ_HANDLER_PP(arg, cast_object)(*arg, *arg, IS_STRING TSRMLS_CC) == SUCCESS) {
+		zval *obj;
+		MAKE_STD_ZVAL(obj);
+		if (Z_OBJ_HANDLER_P(*arg, cast_object)(*arg, obj, IS_STRING TSRMLS_CC) == SUCCESS) {
+			zval_ptr_dtor(arg);
+			*arg = obj;
 			return SUCCESS;
 		}
+		efree(obj);
 	}
 	/* Standard PHP objects */
 	if (Z_OBJ_HT_PP(arg) == &std_object_handlers || !Z_OBJ_HANDLER_PP(arg, cast_object)) {
@@ -2119,7 +2122,9 @@ void module_destructor(zend_module_entry *module) /* {{{ */
 	/* Deinitilaise module globals */
 	if (module->globals_size) {
 #ifdef ZTS
-		ts_free_id(*module->globals_id_ptr);
+		if (*module->globals_id_ptr) {
+			ts_free_id(*module->globals_id_ptr);
+		}
 #else
 		if (module->globals_dtor) {
 			module->globals_dtor(module->globals_ptr TSRMLS_CC);
@@ -2134,7 +2139,7 @@ void module_destructor(zend_module_entry *module) /* {{{ */
 
 #if HAVE_LIBDL
 #if !(defined(NETWARE) && defined(APACHE_1_BUILD))
-	if (module->handle) {
+	if (module->handle && !getenv("ZEND_DONT_UNLOAD_MODULES")) {
 		DL_UNLOAD(module->handle);
 	}
 #endif
@@ -2180,7 +2185,7 @@ int module_registry_unload_temp(const zend_module_entry *module TSRMLS_DC) /* {{
 /* return the next free module number */
 int zend_next_free_module(void) /* {{{ */
 {
-	return ++module_count;
+	return zend_hash_num_elements(&module_registry) + 1;
 }
 /* }}} */
 
@@ -2339,16 +2344,15 @@ static const zend_function_entry disabled_class_new[] = {
 
 ZEND_API int zend_disable_class(char *class_name, uint class_name_length TSRMLS_DC) /* {{{ */
 {
-	zend_class_entry disabled_class;
+	zend_class_entry **disabled_class;
 
 	zend_str_tolower(class_name, class_name_length);
-	if (zend_hash_del(CG(class_table), class_name, class_name_length+1)==FAILURE) {
+	if (zend_hash_find(CG(class_table), class_name, class_name_length+1, (void **)&disabled_class)==FAILURE) {
 		return FAILURE;
 	}
-	INIT_OVERLOADED_CLASS_ENTRY_EX(disabled_class, class_name, class_name_length, disabled_class_new, NULL, NULL, NULL, NULL, NULL);
-	disabled_class.create_object = display_disabled_class;
-	disabled_class.name_length = class_name_length;
-	zend_register_internal_class(&disabled_class TSRMLS_CC);
+	INIT_CLASS_ENTRY_INIT_METHODS((**disabled_class), disabled_class_new, NULL, NULL, NULL, NULL, NULL);
+	(*disabled_class)->create_object = display_disabled_class;
+	zend_hash_clean(&((*disabled_class)->function_table));
 	return SUCCESS;
 }
 /* }}} */
@@ -2422,7 +2426,6 @@ static int zend_is_callable_check_class(const char *name, int name_len, zend_fca
 }
 /* }}} */
 
-
 static int zend_is_callable_check_func(int check_flags, zval *callable, zend_fcall_info_cache *fcc, int strict_class, char **error TSRMLS_DC) /* {{{ */
 {
 	zend_class_entry *ce_org = fcc->calling_scope;
@@ -2444,11 +2447,9 @@ static int zend_is_callable_check_func(int check_flags, zval *callable, zend_fca
 		/* Skip leading \ */
 		if (Z_STRVAL_P(callable)[0] == '\\') {
 			mlen = Z_STRLEN_P(callable) - 1;
-			mname = Z_STRVAL_P(callable) + 1;
 			lmname = zend_str_tolower_dup(Z_STRVAL_P(callable) + 1, mlen);
 		} else {
 			mlen = Z_STRLEN_P(callable);
-			mname = Z_STRVAL_P(callable);
 			lmname = zend_str_tolower_dup(Z_STRVAL_P(callable), mlen);
 		}
 		/* Check if function with given name exists.
@@ -2519,7 +2520,7 @@ static int zend_is_callable_check_func(int check_flags, zval *callable, zend_fca
 	} else if (zend_hash_find(ftable, lmname, mlen+1, (void**)&fcc->function_handler) == SUCCESS) {
 		retval = 1;
 		if ((fcc->function_handler->op_array.fn_flags & ZEND_ACC_CHANGED) &&
-		    EG(scope) &&
+		    !strict_class && EG(scope) &&
 		    instanceof_function(fcc->function_handler->common.scope, EG(scope) TSRMLS_CC)) {
 			zend_function *priv_fbc;
 
@@ -2602,7 +2603,14 @@ get_function_via_handler:
 
 	if (retval) {
 		if (fcc->calling_scope && !call_via_handler) {
-			if (!fcc->object_ptr && !(fcc->function_handler->common.fn_flags & ZEND_ACC_STATIC)) {
+			if (!fcc->object_ptr && (fcc->function_handler->common.fn_flags & ZEND_ACC_ABSTRACT)) {
+				if (error) {
+					zend_spprintf(error, 0, "cannot call abstract method %s::%s()", fcc->calling_scope->name, fcc->function_handler->common.function_name);
+					retval = 0;
+				} else {
+					zend_error(E_ERROR, "Cannot call abstract method %s::%s()", fcc->calling_scope->name, fcc->function_handler->common.function_name);
+				}
+			} else if (!fcc->object_ptr && !(fcc->function_handler->common.fn_flags & ZEND_ACC_STATIC)) {
 				int severity;
 				char *verb;
 				if (fcc->function_handler->common.fn_flags & ZEND_ACC_ALLOW_STATIC) {
@@ -3464,6 +3472,8 @@ ZEND_API int zend_update_static_property(zend_class_entry *scope, char *name, in
 				(*property)->value = value->value;
 				if (Z_REFCOUNT_P(value) > 0) {
 					zval_copy_ctor(*property);
+				} else {
+					efree(value);
 				}
 			} else {
 				zval *garbage = *property;

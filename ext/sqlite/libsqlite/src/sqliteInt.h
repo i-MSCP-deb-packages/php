@@ -11,7 +11,7 @@
 *************************************************************************
 ** Internal interface definitions for SQLite.
 **
-** @(#) $Id: sqliteInt.h 203289 2005-12-20 15:26:26Z iliaa $
+** @(#) $Id$
 */
 #include "config.h"
 #include "sqlite.h"

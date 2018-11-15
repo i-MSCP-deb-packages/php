@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -18,7 +18,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: string.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 /* Synced with php 3.0 revision 1.193 1999-06-16 [ssb] */
 
@@ -131,7 +131,7 @@ static char *php_bin2hex(const unsigned char *old, const size_t oldlen, size_t *
 	register unsigned char *result = NULL;
 	size_t i, j;
 
-	result = (unsigned char *) safe_emalloc(oldlen * 2, sizeof(char), 1);
+	result = (unsigned char *) safe_emalloc(oldlen, 2 * sizeof(char), 1);
 	
 	for (i = j = 0; i < oldlen; i++) {
 		result[j++] = hexconvtab[old[i] >> 4];
@@ -1744,7 +1744,7 @@ PHP_FUNCTION(strpos)
 
 	if (Z_TYPE_P(needle) == IS_STRING) {
 		if (!Z_STRLEN_P(needle)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Empty delimiter");
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "Empty needle");
 			RETURN_FALSE;
 		}
 
@@ -3902,7 +3902,6 @@ static void php_hebrev(INTERNAL_FUNCTION_PARAMETERS, int convert_newlines)
 				new_char_count--;
 			}
 			if (new_char_count > 0) {
-				char_count=new_char_count;
 				begin=new_begin;
 			}
 		}
@@ -4001,13 +4000,12 @@ PHP_FUNCTION(nl2br)
 		RETURN_STRINGL(str, str_len, 1);
 	}
 
-	if (is_xhtml) {
-		new_length = str_len + repl_cnt * (sizeof("<br />") - 1);
-	} else {
-		new_length = str_len + repl_cnt * (sizeof("<br>") - 1);
-	}
+	{
+		size_t repl_len = is_xhtml ? (sizeof("<br />") - 1) : (sizeof("<br>") - 1);
 
-	tmp = target = emalloc(new_length + 1);
+		new_length = str_len + repl_cnt * repl_len;
+		tmp = target = safe_emalloc(repl_cnt, repl_len, str_len + 1);
+	}
 
 	while (str < end) {
 		switch (*str) {
@@ -5240,7 +5238,7 @@ PHP_FUNCTION(strpbrk)
 {
 	char *haystack, *char_list;
 	int haystack_len, char_list_len;
-	char *p;
+	char *haystack_ptr, *cl_ptr;
 	
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &haystack, &haystack_len, &char_list, &char_list_len) == FAILURE) {
 		RETURN_FALSE;
@@ -5251,11 +5249,15 @@ PHP_FUNCTION(strpbrk)
 		RETURN_FALSE;	
 	}
 
-	if ((p = strpbrk(haystack, char_list))) {
-		RETURN_STRINGL(p, (haystack + haystack_len - p), 1);
-	} else {
-		RETURN_FALSE;
+	for (haystack_ptr = haystack; haystack_ptr < (haystack + haystack_len); ++haystack_ptr) {
+		for (cl_ptr = char_list; cl_ptr < (char_list + char_list_len); ++cl_ptr) {
+			if (*cl_ptr == *haystack_ptr) {
+				RETURN_STRINGL(haystack_ptr, (haystack + haystack_len - haystack_ptr), 1);
+			}
+		}
 	}
+
+	RETURN_FALSE;
 }
 /* }}} */
 

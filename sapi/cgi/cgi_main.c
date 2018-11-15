@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -21,7 +21,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: cgi_main.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "php.h"
 #include "php_globals.h"
@@ -70,6 +70,7 @@
 #include "php_main.h"
 #include "fopen_wrappers.h"
 #include "ext/standard/php_standard.h"
+#include "ext/standard/url.h"
 
 #ifdef PHP_WIN32
 # include <io.h>
@@ -624,7 +625,9 @@ void cgi_php_import_environment_variables(zval *array_ptr TSRMLS_DC)
 		int filter_arg = (array_ptr == PG(http_globals)[TRACK_VARS_ENV])?PARSE_ENV:PARSE_SERVER;
 
 		/* turn off magic_quotes while importing environment variables */
-		PG(magic_quotes_gpc) = 0;
+		if (magic_quotes_gpc) {
+			zend_alter_ini_entry_ex("magic_quotes_gpc", sizeof("magic_quotes_gpc"), "0", 1, ZEND_INI_SYSTEM, ZEND_INI_STAGE_ACTIVATE, 1 TSRMLS_CC);
+		}
 		for (zend_hash_internal_pointer_reset_ex(request->env, &pos);
 			zend_hash_get_current_key_ex(request->env, &var, &var_len, &idx, 0, &pos) == HASH_KEY_IS_STRING &&
 			zend_hash_get_current_data_ex(request->env, (void **) &val, &pos) == SUCCESS;
@@ -636,7 +639,9 @@ void cgi_php_import_environment_variables(zval *array_ptr TSRMLS_DC)
 				php_register_variable_safe(var, *val, new_val_len, array_ptr TSRMLS_CC);
 			}
 		}
-		PG(magic_quotes_gpc) = magic_quotes_gpc;
+		if (magic_quotes_gpc) {
+			zend_alter_ini_entry_ex("magic_quotes_gpc", sizeof("magic_quotes_gpc"), "1", 1, ZEND_INI_SYSTEM, ZEND_INI_STAGE_ACTIVATE, 1 TSRMLS_CC);
+		}
 	}
 }
 
@@ -844,12 +849,13 @@ static int sapi_cgi_activate(TSRMLS_D)
 				zend_str_tolower(doc_root, doc_root_len);
 #endif
 				php_cgi_ini_activate_user_config(path, path_len, doc_root, doc_root_len, doc_root_len - 1 TSRMLS_CC);
+				
+#ifdef PHP_WIN32
+				efree(doc_root);
+#endif
 			}
 		}
 
-#ifdef PHP_WIN32
-		efree(doc_root);
-#endif
 		efree(path);
 	}
 
@@ -1503,6 +1509,9 @@ int main(int argc, char *argv[])
 #ifndef PHP_WIN32
 	int status = 0;
 #endif
+	char *query_string;
+	char *decoded_query_string;
+	int skip_getopt = 0;
 
 #if 0 && defined(PHP_DEBUG)
 	/* IIS is always making things more difficult.  This allows
@@ -1552,7 +1561,21 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	while ((c = php_getopt(argc, argv, OPTIONS, &php_optarg, &php_optind, 0, 2)) != -1) {
+	if((query_string = getenv("QUERY_STRING")) != NULL && strchr(query_string, '=') == NULL) {
+		/* we've got query string that has no = - apache CGI will pass it to command line */
+		unsigned char *p;
+		decoded_query_string = strdup(query_string);
+		php_url_decode(decoded_query_string, strlen(decoded_query_string));
+		for (p = decoded_query_string; *p &&  *p <= ' '; p++) {
+			/* skip all leading spaces */
+		}
+		if(*p == '-') {
+			skip_getopt = 1;
+		}
+		free(decoded_query_string);
+	}
+
+	while (!skip_getopt && (c = php_getopt(argc, argv, OPTIONS, &php_optarg, &php_optind, 0, 2)) != -1) {
 		switch (c) {
 			case 'c':
 				if (cgi_sapi_module.php_ini_path_override) {
@@ -1801,7 +1824,7 @@ consult the installation file that came with this distribution, or visit \n\
 	}
 
 	zend_first_try {
-		while ((c = php_getopt(argc, argv, OPTIONS, &php_optarg, &php_optind, 1, 2)) != -1) {
+		while (!skip_getopt && (c = php_getopt(argc, argv, OPTIONS, &php_optarg, &php_optind, 1, 2)) != -1) {
 			switch (c) {
 				case 'T':
 					benchmark = 1;
@@ -1933,9 +1956,9 @@ consult the installation file that came with this distribution, or visit \n\
 								SG(request_info).no_headers = 1;
 							}
 #if ZEND_DEBUG
-							php_printf("PHP %s (%s) (built: %s %s) (DEBUG)\nCopyright (c) 1997-2012 The PHP Group\n%s", PHP_VERSION, sapi_module.name, __DATE__, __TIME__, get_zend_version());
+							php_printf("PHP %s (%s) (built: %s %s) (DEBUG)\nCopyright (c) 1997-2014 The PHP Group\n%s", PHP_VERSION, sapi_module.name, __DATE__, __TIME__, get_zend_version());
 #else
-							php_printf("PHP %s (%s) (built: %s %s)\nCopyright (c) 1997-2012 The PHP Group\n%s", PHP_VERSION, sapi_module.name, __DATE__, __TIME__, get_zend_version());
+							php_printf("PHP %s (%s) (built: %s %s)\nCopyright (c) 1997-2014 The PHP Group\n%s", PHP_VERSION, sapi_module.name, __DATE__, __TIME__, get_zend_version());
 #endif
 							php_request_shutdown((void *) 0);
 							fcgi_shutdown();

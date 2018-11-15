@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | phar php single-file executable PHP extension                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 2005-2012 The PHP Group                                |
+  | Copyright (c) 2005-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
   +----------------------------------------------------------------------+
 */
 
-/* $Id: phar.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #define PHAR_MAIN 1
 #include "phar_internal.h"
@@ -1799,7 +1799,11 @@ static int phar_analyze_path(const char *fname, const char *ext, int ext_len, in
 #ifdef PHP_WIN32
 				phar_unixify_path_separators(realpath, strlen(realpath));
 #endif
-				a = strstr(realpath, fname) + ((ext - fname) + ext_len);
+				if ((a = strstr(realpath, fname)) == NULL) {
+					return FAILURE;
+				}
+				
+				a += ((ext - fname) + ext_len);
 				*a = '\0';
 				slash = strrchr(realpath, '/');
 
@@ -2649,11 +2653,8 @@ int phar_flush(phar_archive_data *phar, char *user_stub, long len, int convert, 
 				len = -len;
 			}
 			user_stub = 0;
-#if PHP_MAJOR_VERSION >= 6
-			if (!(len = php_stream_copy_to_mem(stubfile, (void **) &user_stub, len, 0)) || !user_stub) {
-#else
+
 			if (!(len = php_stream_copy_to_mem(stubfile, &user_stub, len, 0)) || !user_stub) {
-#endif
 				if (closeoldfile) {
 					php_stream_close(oldfile);
 				}
@@ -3669,7 +3670,7 @@ PHP_MINFO_FUNCTION(phar) /* {{{ */
 	php_info_print_table_header(2, "Phar: PHP Archive support", "enabled");
 	php_info_print_table_row(2, "Phar EXT version", PHP_PHAR_VERSION);
 	php_info_print_table_row(2, "Phar API version", PHP_PHAR_API_VERSION);
-	php_info_print_table_row(2, "SVN revision", "$Revision: 321634 $");
+	php_info_print_table_row(2, "SVN revision", "$Id$");
 	php_info_print_table_row(2, "Phar-based phar archives", "enabled");
 	php_info_print_table_row(2, "Tar-based phar archives", "enabled");
 	php_info_print_table_row(2, "ZIP-based phar archives", "enabled");

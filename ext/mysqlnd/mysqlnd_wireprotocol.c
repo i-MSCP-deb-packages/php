@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 2006-2012 The PHP Group                                |
+  | Copyright (c) 2006-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -958,7 +958,11 @@ php_mysqlnd_rset_field_read(void *_packet, MYSQLND *conn TSRMLS_DC)
 		BAIL_IF_NO_MORE_DATA;
 	}
 
-	/* 1 byte filler */
+	/* 1 byte length */
+	if (12 != *p) {
+		DBG_ERR_FMT("Protocol error. Server sent false length. Expected 12 got %d", (int) *p);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Protocol error. Server sent false length. Expected 12");
+	}
 	p++;
 	BAIL_IF_NO_MORE_DATA;
 
@@ -978,7 +982,7 @@ php_mysqlnd_rset_field_read(void *_packet, MYSQLND *conn TSRMLS_DC)
 	p += 2;
 	BAIL_IF_NO_MORE_DATA;
 
-	meta->decimals = uint2korr(p);
+	meta->decimals = uint1korr(p);
 	p += 1;
 	BAIL_IF_NO_MORE_DATA;
 

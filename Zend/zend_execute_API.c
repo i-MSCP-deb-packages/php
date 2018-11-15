@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2013 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: zend_execute_API.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include <stdio.h>
 #include <signal.h>
@@ -263,15 +263,13 @@ void shutdown_executor(TSRMLS_D) /* {{{ */
 		if (EG(user_error_handler)) {
 			zeh = EG(user_error_handler);
 			EG(user_error_handler) = NULL;
-			zval_dtor(zeh);
-			FREE_ZVAL(zeh);
+			zval_ptr_dtor(&zeh);
 		}
 
 		if (EG(user_exception_handler)) {
 			zeh = EG(user_exception_handler);
 			EG(user_exception_handler) = NULL;
-			zval_dtor(zeh);
-			FREE_ZVAL(zeh);
+			zval_ptr_dtor(&zeh);
 		}
 
 		zend_stack_destroy(&EG(user_error_handlers_error_reporting));
@@ -877,7 +875,7 @@ int zend_call_function(zend_fcall_info *fci, zend_fcall_info_cache *fci_cache TS
 
 				if (fci->no_separation &&
 				    !ARG_MAY_BE_SENT_BY_REF(EX(function_state).function, i + 1)) {
-					if(i) {
+					if (i || UNEXPECTED(ZEND_VM_STACK_ELEMETS(EG(argument_stack)) == EG(argument_stack)->top)) {
 						/* hack to clean up the stack */
 						zend_vm_stack_push_nocheck((void *) (zend_uintptr_t)i TSRMLS_CC);
 						zend_vm_stack_clear_multiple(TSRMLS_C);

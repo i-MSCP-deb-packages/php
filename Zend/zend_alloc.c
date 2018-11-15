@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2013 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -18,7 +18,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: zend_alloc.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "zend.h"
 #include "zend_alloc.h"
@@ -2386,7 +2386,7 @@ static inline size_t safe_address(size_t nmemb, size_t size, size_t offset)
 	size_t res = nmemb;
 	unsigned long overflow = 0;
 
-	__asm__ ("mull %3\n\taddl %4,%0\n\tadcl %1,%1"
+	__asm__ ("mull %3\n\taddl %4,%0\n\tadcl $0,%1"
 	     : "=&a"(res), "=&d" (overflow)
 	     : "%0"(res),
 	       "rm"(size),
@@ -2406,7 +2406,7 @@ static inline size_t safe_address(size_t nmemb, size_t size, size_t offset)
         size_t res = nmemb;
         unsigned long overflow = 0;
 
-        __asm__ ("mulq %3\n\taddq %4,%0\n\tadcq %1,%1"
+        __asm__ ("mulq %3\n\taddq %4,%0\n\tadcq $0,%1"
              : "=&a"(res), "=&d" (overflow)
              : "%0"(res),
                "rm"(size),

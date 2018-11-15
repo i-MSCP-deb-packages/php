@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2013 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: zend_object_handlers.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "zend.h"
 #include "zend_globals.h"
@@ -296,6 +296,16 @@ static int zend_get_property_guard(zend_object *zobj, zend_property_info *proper
 		info.name = Z_STRVAL_P(member);
 		info.name_length = Z_STRLEN_P(member);
 		info.h = zend_get_hash_value(Z_STRVAL_P(member), Z_STRLEN_P(member) + 1);
+	} else if(property_info->name[0] == '\0'){
+		const char *class_name = NULL, *prop_name = NULL;
+		zend_unmangle_property_name(property_info->name, property_info->name_length, &class_name, &prop_name);
+		if(class_name) {
+			/* use unmangled name for protected properties */
+			info.name = prop_name;
+			info.name_length = strlen(prop_name);
+			info.h = zend_get_hash_value(info.name, info.name_length+1);
+			property_info = &info;
+		}
 	}
 	if (!zobj->guards) {
 		ALLOC_HASHTABLE(zobj->guards);
@@ -437,6 +447,8 @@ static void zend_std_write_property(zval *object, zval *member, zval *value TSRM
 				(*variable_ptr)->value = value->value;
 				if (Z_REFCOUNT_P(value) > 0) {
 					zval_copy_ctor(*variable_ptr);
+				} else {
+					efree(value);
 				}
 				zval_dtor(&garbage);
 			} else {
@@ -1272,6 +1284,7 @@ ZEND_API int zend_std_cast_object_tostring(zval *readobj, zval *writeobj, int ty
 					if (retval) {
 						zval_ptr_dtor(&retval);
 					}
+					EG(exception) = NULL;
 					zend_error(E_ERROR, "Method %s::__toString() must not throw an exception", ce->name);
 					return FAILURE;
 				}

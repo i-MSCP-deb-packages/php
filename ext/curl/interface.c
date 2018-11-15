@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: interface.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #define ZEND_INCLUDE_FULL_WINDOWS_HEADERS
 
@@ -971,6 +971,15 @@ PHP_MSHUTDOWN_FUNCTION(curl)
 }
 /* }}} */
 
+/* {{{ curl_write_nothing
+ * Used as a work around. See _php_curl_close_ex
+ */
+static size_t curl_write_nothing(char *data, size_t size, size_t nmemb, void *ctx) 
+{
+	return size * nmemb;
+}
+/* }}} */
+
 /* {{{ curl_write
  */
 static size_t curl_write(char *data, size_t size, size_t nmemb, void *ctx)
@@ -1610,9 +1619,9 @@ PHP_FUNCTION(curl_copy_handle)
 	dupch->uses = 0;
 	ch->uses++;
 	if (ch->handlers->write->stream) {
-		Z_ADDREF_P(dupch->handlers->write->stream);
-		dupch->handlers->write->stream = ch->handlers->write->stream;
+		Z_ADDREF_P(ch->handlers->write->stream);
 	}
+	dupch->handlers->write->stream = ch->handlers->write->stream;
 	dupch->handlers->write->method = ch->handlers->write->method;
 	dupch->handlers->write->type   = ch->handlers->write->type;
 	if (ch->handlers->read->stream) {
@@ -1679,6 +1688,16 @@ static int _php_curl_setopt(php_curl *ch, long option, zval **zvalue, zval *retu
 	CURLcode     error=CURLE_OK;
 
 	switch (option) {
+		case CURLOPT_SSL_VERIFYHOST:
+			if(Z_BVAL_PP(zvalue) == 1) {
+#if LIBCURL_VERSION_NUM <= 0x071c00 /* 7.28.0 */
+				php_error_docref(NULL TSRMLS_CC, E_NOTICE, "CURLOPT_SSL_VERIFYHOST with value 1 is deprecated and will be removed as of libcurl 7.28.1. It is recommended to use value 2 instead");
+#else
+				php_error_docref(NULL TSRMLS_CC, E_NOTICE, "CURLOPT_SSL_VERIFYHOST no longer accepts the value 1, value 2 will be used instead");
+				error = curl_easy_setopt(ch->cp, option, 2);
+				break;
+#endif
+			}
 		case CURLOPT_INFILESIZE:
 		case CURLOPT_VERBOSE:
 		case CURLOPT_HEADER:
@@ -1717,7 +1736,6 @@ static int _php_curl_setopt(php_curl *ch, long option, zval **zvalue, zval *retu
 #if LIBCURL_VERSION_NUM > 0x071002
 		case CURLOPT_CONNECTTIMEOUT_MS:
 #endif
-		case CURLOPT_SSL_VERIFYHOST:
 		case CURLOPT_SSL_VERIFYPEER:
 		case CURLOPT_DNS_USE_GLOBAL_CACHE:
 		case CURLOPT_NOSIGNAL:
@@ -2167,7 +2185,7 @@ string_copy:
 
 			convert_to_string_ex(zvalue);
 
-			if (php_check_open_basedir(Z_STRVAL_PP(zvalue) TSRMLS_CC) || (PG(safe_mode) && !php_checkuid(Z_STRVAL_PP(zvalue), "rb+", CHECKUID_CHECK_MODE_PARAM))) {
+			if ((Z_STRLEN_PP(zvalue) && php_check_open_basedir(Z_STRVAL_PP(zvalue) TSRMLS_CC)) || (PG(safe_mode) && !php_checkuid(Z_STRVAL_PP(zvalue), "rb+", CHECKUID_CHECK_MODE_PARAM))) {
 				RETVAL_FALSE;
 				return 1;
 			}
@@ -2595,6 +2613,21 @@ static void _php_curl_close_ex(php_curl *ch TSRMLS_DC)
 #endif
 
 	_php_curl_verify_handlers(ch, 0 TSRMLS_CC);
+
+	/* 
+	 * Libcurl is doing connection caching. When easy handle is cleaned up,
+	 * if the handle was previously used by the curl_multi_api, the connection 
+	 * remains open un the curl multi handle is cleaned up. Some protocols are
+	 * sending content like the FTP one, and libcurl try to use the 
+	 * WRITEFUNCTION or the HEADERFUNCTION. Since structures used in those
+	 * callback are freed, we need to use an other callback to which avoid
+	 * segfaults.
+	 *
+	 * Libcurl commit d021f2e8a00 fix this issue and should be part of 7.28.2 
+	 */
+	curl_easy_setopt(ch->cp, CURLOPT_HEADERFUNCTION, curl_write_nothing);
+	curl_easy_setopt(ch->cp, CURLOPT_WRITEFUNCTION, curl_write_nothing);
+
 	curl_easy_cleanup(ch->cp);
 
 	/* cURL destructors should be invoked only by last curl handle */

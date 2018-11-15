@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -20,7 +20,7 @@
    +----------------------------------------------------------------------+
 */
 
-/* $Id: php_odbc.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -387,7 +387,7 @@ const zend_function_entry odbc_functions[] = {
 };
 /* }}} */
 
-ZEND_DECLARE_MODULE_GLOBALS(odbc);
+ZEND_DECLARE_MODULE_GLOBALS(odbc)
 static PHP_GINIT_FUNCTION(odbc);
 
 /* {{{ odbc_module_entry
@@ -1317,7 +1317,7 @@ PHP_FUNCTION(odbc_execute)
 			if (Z_STRLEN_PP(tmp) > 2 &&
 				Z_STRVAL_PP(tmp)[0] == '\'' &&
 				Z_STRVAL_PP(tmp)[Z_STRLEN_PP(tmp) - 1] == '\'') {
-				if (strlen(tmp) != Z_STRLEN_PP(tmp)) {
+				if (strlen(Z_STRVAL_PP(tmp)) != Z_STRLEN_PP(tmp)) {
 					RETURN_FALSE;
 				}
 

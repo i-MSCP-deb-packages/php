@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2013 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -17,7 +17,7 @@
   |          Dmitry Stogov <dmitry@zend.com>                             |
   +----------------------------------------------------------------------+
 */
-/* $Id: php_sdl.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #include "php_soap.h"
 #include "ext/libxml/php_libxml.h"
@@ -237,11 +237,45 @@ void sdl_set_uri_credentials(sdlCtx *ctx, char *uri TSRMLS_DC)
 	s = strstr(ctx->sdl->source, "://");
 	if (!s) return;
 	s = strchr(s+3, '/');
-	l1 = s - ctx->sdl->source;
+	l1 = s ? (s - ctx->sdl->source) : strlen(ctx->sdl->source);
 	s = strstr((char*)uri, "://");
 	if (!s) return;
 	s = strchr(s+3, '/');
-	l2 = s - (char*)uri;
+	l2 = s ? (s - (char*)uri) : strlen((char*)uri);
+	if (l1 != l2) {
+		/* check for http://...:80/ */
+		if (l1 > 11 &&
+		    ctx->sdl->source[4] == ':' &&
+		    ctx->sdl->source[l1-3] == ':' &&
+		    ctx->sdl->source[l1-2] == '8' &&
+		    ctx->sdl->source[l1-1] == '0') {
+			l1 -= 3;
+		}
+		if (l2 > 11 &&
+		    uri[4] == ':' &&
+		    uri[l2-3] == ':' &&
+		    uri[l2-2] == '8' &&
+		    uri[l2-1] == '0') {
+			l2 -= 3;
+		}
+		/* check for https://...:443/ */
+		if (l1 > 13 &&
+		    ctx->sdl->source[4] == 's' &&
+		    ctx->sdl->source[l1-4] == ':' &&
+		    ctx->sdl->source[l1-3] == '4' &&
+		    ctx->sdl->source[l1-2] == '4' &&
+		    ctx->sdl->source[l1-1] == '3') {
+			l1 -= 4;
+		}
+		if (l2 > 13 &&
+		    uri[4] == 's' &&
+		    uri[l2-4] == ':' &&
+		    uri[l2-3] == '4' &&
+		    uri[l2-2] == '4' &&
+		    uri[l2-1] == '3') {
+			l2 -= 4;
+		}
+	}
 	if (l1 != l2 || memcmp(ctx->sdl->source, uri, l1) != 0) {
 		/* another server. clear authentication credentals */
 		context = php_libxml_switch_context(NULL TSRMLS_CC);
@@ -3162,6 +3196,8 @@ sdlPtr get_sdl(zval *this_ptr, char *uri, long cache_wsdl TSRMLS_DC)
 	smart_str headers = {0};
 	char* key = NULL;
 	time_t t = time(0);
+	zend_bool has_proxy_authorization = 0;
+	zend_bool has_authorization = 0;
 
 	if (strchr(uri,':') != NULL || IS_ABSOLUTE_PATH(uri, uri_len)) {
 		uri_len = strlen(uri);
@@ -3225,6 +3261,13 @@ sdlPtr get_sdl(zval *this_ptr, char *uri, long cache_wsdl TSRMLS_DC)
 		context = php_stream_context_alloc();
 	}
 
+	if (zend_hash_find(Z_OBJPROP_P(this_ptr), "_user_agent", sizeof("_user_agent"), (void **) &tmp) == SUCCESS &&
+	    Z_TYPE_PP(tmp) == IS_STRING && Z_STRLEN_PP(tmp) > 0) {	
+		smart_str_appends(&headers, "User-Agent: ");
+		smart_str_appends(&headers, Z_STRVAL_PP(tmp));
+		smart_str_appends(&headers, "\r\n");
+	}
+
 	if (zend_hash_find(Z_OBJPROP_P(this_ptr), "_proxy_host", sizeof("_proxy_host"), (void **) &proxy_host) == SUCCESS &&
 	    Z_TYPE_PP(proxy_host) == IS_STRING &&
 	    zend_hash_find(Z_OBJPROP_P(this_ptr), "_proxy_port", sizeof("_proxy_port"), (void **) &proxy_port) == SUCCESS &&
@@ -3258,10 +3301,10 @@ sdlPtr get_sdl(zval *this_ptr, char *uri, long cache_wsdl TSRMLS_DC)
 			zval_ptr_dtor(&str_proxy);
 		}
 
-		proxy_authentication(this_ptr, &headers TSRMLS_CC);
+		has_proxy_authorization = proxy_authentication(this_ptr, &headers TSRMLS_CC);
 	}
 
-	basic_authentication(this_ptr, &headers TSRMLS_CC);
+	has_authorization = basic_authentication(this_ptr, &headers TSRMLS_CC);
 
 	/* Use HTTP/1.1 with "Connection: close" by default */
 	if (php_stream_context_get_option(context, "http", "protocol_version", &tmp) == FAILURE) {
@@ -3270,7 +3313,7 @@ sdlPtr get_sdl(zval *this_ptr, char *uri, long cache_wsdl TSRMLS_DC)
 		ZVAL_DOUBLE(http_version, 1.1);
 		php_stream_context_set_option(context, "http", "protocol_version", http_version);
 		zval_ptr_dtor(&http_version);
-		smart_str_appendl(&headers, "Connection: close", sizeof("Connection: close")-1);
+		smart_str_appendl(&headers, "Connection: close\r\n", sizeof("Connection: close\r\n")-1);
 	}
 
 	if (headers.len > 0) {
@@ -3278,6 +3321,8 @@ sdlPtr get_sdl(zval *this_ptr, char *uri, long cache_wsdl TSRMLS_DC)
 
 		if (!context) {
 			context = php_stream_context_alloc();
+		} else {
+			http_context_headers(context, has_authorization, has_proxy_authorization, 0, &headers TSRMLS_CC);
 		}
 
 		smart_str_0(&headers);

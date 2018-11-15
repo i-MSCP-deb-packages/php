@@ -1,5 +1,5 @@
 dnl
-dnl $Id: config.m4 311041 2011-05-15 05:49:34Z rasmus $
+dnl $Id$
 dnl
 
 PHP_ARG_WITH(pdo-firebird,for Firebird support for PDO,

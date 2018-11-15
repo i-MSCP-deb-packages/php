@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2013 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -16,7 +16,7 @@
    +----------------------------------------------------------------------+
  */
 
-/* $Id: spl_iterators.c 321634 2012-01-01 13:15:04Z felipe $ */
+/* $Id$ */
 
 #ifdef HAVE_CONFIG_H
 # include "config.h"
@@ -858,6 +858,8 @@ static union _zend_function *spl_recursive_it_get_method(zval **object_ptr, char
 				*object_ptr = zobj;
 				function_handler = Z_OBJ_HT_P(*object_ptr)->get_method(object_ptr, method, method_len TSRMLS_CC);
 			}
+		} else {
+			*object_ptr = zobj;
 		}
 	}
 	return function_handler;
@@ -921,7 +923,7 @@ static zend_object_value spl_RecursiveIteratorIterator_new_ex(zend_class_entry *
 	}
 
 	zend_object_std_init(&intern->std, class_type TSRMLS_CC);
-	zend_hash_copy(intern->std.properties, &class_type->default_properties, (copy_ctor_func_t) zval_add_ref, (void *) &tmp, sizeof(zval *));
+	zend_hash_copy(intern->std.properties, &class_type->default_properties, (copy_ctor_func_t) zval_property_ctor, (void *) &tmp, sizeof(zval *));
 
 	retval.handle = zend_objects_store_put(intern, (zend_objects_store_dtor_t)spl_RecursiveIteratorIterator_dtor, (zend_objects_free_object_storage_t) spl_RecursiveIteratorIterator_free_storage, NULL TSRMLS_CC);
 	retval.handlers = &spl_handlers_rec_it_it;
@@ -1025,12 +1027,12 @@ static void spl_recursive_tree_iterator_get_entry(spl_recursive_it_object * obje
 	zend_replace_error_handling(EH_THROW, spl_ce_UnexpectedValueException, &error_handling TSRMLS_CC);
 	if (data && *data) {
 		RETVAL_ZVAL(*data, 1, 0);
-	}
-	if (Z_TYPE_P(return_value) == IS_ARRAY) {
-		zval_dtor(return_value);
-		ZVAL_STRINGL(return_value, "Array", sizeof("Array")-1, 1);
-	} else {
-		convert_to_string(return_value);
+		if (Z_TYPE_P(return_value) == IS_ARRAY) {
+			zval_dtor(return_value);
+			ZVAL_STRINGL(return_value, "Array", sizeof("Array")-1, 1);
+		} else {
+			convert_to_string(return_value);
+		}
 	}
 	zend_restore_error_handling(&error_handling TSRMLS_CC);
 }
@@ -1131,8 +1133,15 @@ SPL_METHOD(RecursiveTreeIterator, current)
 		}
 	}
 
+	INIT_ZVAL(prefix);
+	INIT_ZVAL(entry);
 	spl_recursive_tree_iterator_get_prefix(object, &prefix TSRMLS_CC);
 	spl_recursive_tree_iterator_get_entry(object, &entry TSRMLS_CC);
+	if (Z_TYPE(entry) != IS_STRING) {
+		zval_dtor(&prefix);
+		zval_dtor(&entry);
+		RETURN_NULL();
+	}
 	spl_recursive_tree_iterator_get_postfix(object, &postfix TSRMLS_CC);
 
 	str_len = Z_STRLEN(prefix) + Z_STRLEN(entry) + Z_STRLEN(postfix);
@@ -1287,6 +1296,8 @@ static union _zend_function *spl_dual_it_get_method(zval **object_ptr, char *met
 				*object_ptr = intern->inner.zobject;
 				function_handler = Z_OBJ_HT_P(*object_ptr)->get_method(object_ptr, method, method_len TSRMLS_CC);
 			}
+		} else {
+			*object_ptr = intern->inner.zobject;
 		}
 	}
 	return function_handler;

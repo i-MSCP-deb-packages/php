@@ -1,5 +1,5 @@
 dnl
-dnl $Id: config9.m4 243300 2007-10-01 12:40:54Z jani $
+dnl $Id$
 dnl
 
 PHP_ARG_ENABLE(cgi,,
