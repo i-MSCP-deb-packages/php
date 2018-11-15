@@ -297,7 +297,6 @@ configure-apache2-stamp: prepared-stamp
 		--with-imap-ssl \
 		--enable-intl=shared \
 		--with-ttf=shared,/usr \
-		--with-t1lib=shared,/usr \
 		--with-ldap=shared,/usr \
 		--with-ldap-sasl=/usr \
 		--with-mcrypt=shared,/usr \
