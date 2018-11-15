@@ -1,3 +1,10 @@
+php5.3 (5.3.29-1) unstable; urgency=low
+
+  * Renamed source package
+  * Updated gbp conffile
+
+ -- Laurent Declercq <l.declercq@nuxwin.com>  Thu, 15 Nov 2018 02:45:32 +0100
+
 php5 (5.3.9-6) unstable; urgency=low
 
   * Build MySQL extensions with Native Driver as an alternative
