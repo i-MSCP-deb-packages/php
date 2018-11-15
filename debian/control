@@ -1,7 +1,7 @@
 Source: php5.3
 Section: php
 Priority: optional
-Maintainer: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Maintainer: Laurent Declercq <l.declercq@nuxwin.com>
 Uploaders: Ondřej Surý <ondrej@debian.org>,
 	   Sean Finney <seanius@debian.org>,
 	   Thijs Kinkhorst <thijs@debian.org>,
