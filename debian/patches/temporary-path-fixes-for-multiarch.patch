@@ -93,3 +93,14 @@ Reviewed-by: Steve Langasek <steve.langasek@ubuntu.com>
       AC_MSG_ERROR(Could not find $PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.[a|so])
    fi
  
+--- a/ext/mysql/config.m4
++++ b/ext/mysql/config.m4
+@@ -94,7 +94,7 @@ Note that the MySQL client library is no
+     PHP_LIBDIR=lib
+   fi
+ 
+-  for i in $PHP_LIBDIR $PHP_LIBDIR/mysql; do
++  for i in $PHP_LIBDIR/$DEB_HOST_MULTIARCH $PHP_LIBDIR $PHP_LIBDIR/mysql; do
+     MYSQL_LIB_CHK($i)
+   done
+ 

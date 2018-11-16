@@ -189,57 +189,52 @@
  
 -#if PHP_STD_DES_CRYPT
 -#define PHP_MAX_SALT_LEN 2
--#endif
--
--#if PHP_EXT_DES_CRYPT
--#undef PHP_MAX_SALT_LEN
--#define PHP_MAX_SALT_LEN 9
 +#if defined(HAVE_CRYPT_R) && (defined(_REENTRANT) || defined(_THREAD_SAFE))
 +# define PHP_USE_SYSTEM_CRYPT_R
  #endif
+ 
+-#if PHP_EXT_DES_CRYPT
+-#undef PHP_MAX_SALT_LEN
+-#define PHP_MAX_SALT_LEN 9
+-#endif
++#define PHP_MAX_STD_DES_SALT_LEN 2
++#define PHP_MAX_STD_DES_HASH_LEN 11
  
 -#if PHP_MD5_CRYPT
 -#undef PHP_MAX_SALT_LEN
 -#define PHP_MAX_SALT_LEN 12
 -#endif
-+#define PHP_MAX_STD_DES_SALT_LEN 2
-+#define PHP_MAX_STD_DES_HASH_LEN 11
++#define PHP_MAX_EXT_DES_SALT_LEN 9
++#define PHP_MAX_EXT_DES_HASH_LEN 11
  
 -#if PHP_BLOWFISH_CRYPT
 -#undef PHP_MAX_SALT_LEN
 -#define PHP_MAX_SALT_LEN 60
 -#endif
--
++#define PHP_MAX_MD5_SALT_LEN 12
++#define PHP_MAX_MD5_HASH_LEN 22
+ 
 -#if PHP_SHA512_CRYPT
 -#undef PHP_MAX_SALT_LEN
 -#define PHP_MAX_SALT_LEN 123
 -#endif
--
--
++#define PHP_MAX_BLOWFISH_SALT_LEN 29
++#define PHP_MAX_BLOWFISH_HASH_LEN 31
+ 
++#define PHP_MAX_SHA256_SALT_LEN 37
++#define PHP_MAX_SHA256_HASH_LEN 43
+ 
 -/* If the configure-time checks fail, we provide DES.
 - * XXX: This is a hack. Fix the real problem! */
--
++#define PHP_MAX_SHA512_SALT_LEN 37
++#define PHP_MAX_SHA512_HASH_LEN 86
+ 
 -#ifndef PHP_MAX_SALT_LEN
 -#define PHP_MAX_SALT_LEN 2
 -#undef PHP_STD_DES_CRYPT
 -#define PHP_STD_DES_CRYPT 1
 -#endif
-+#define PHP_MAX_EXT_DES_SALT_LEN 9
-+#define PHP_MAX_EXT_DES_HASH_LEN 11
-+
-+#define PHP_MAX_MD5_SALT_LEN 12
-+#define PHP_MAX_MD5_HASH_LEN 22
-+
-+#define PHP_MAX_BLOWFISH_SALT_LEN 29
-+#define PHP_MAX_BLOWFISH_HASH_LEN 31
-+ 
-+#define PHP_MAX_SHA256_SALT_LEN 37
-+#define PHP_MAX_SHA256_HASH_LEN 43
-+
-+#define PHP_MAX_SHA512_SALT_LEN 37
-+#define PHP_MAX_SHA512_HASH_LEN 86
-+
-+/* 
++/*
 + * Maximum salt length is from SHA512
 + * Maximum hash length is from SHA512
 + */
@@ -351,7 +346,8 @@
 +		salt_len = 12;
  	}
  
- /* Windows (win32/crypt) has a stripped down version of libxcrypt and 
+-/* Windows (win32/crypt) has a stripped down version of libxcrypt and 
++/* Windows (win32/crypt) has a stripped down version of libxcrypt and
  	a CryptoApi md5_crypt implementation */
 -#if PHP_USE_PHP_CRYPT_R
  	{
@@ -389,8 +385,8 @@
 -			char *output;
 -			int needed = (sizeof(sha512_salt_prefix) - 1
 -						+ sizeof(sha512_rounds_prefix) + 9 + 1
--						+ strlen(salt) + 1 + 43 + 1);
--			output = emalloc(needed * sizeof(char *));
+-						+ salt_in_len + 1 + 86 + 1);
+-			output = emalloc(needed);
 -			salt[salt_in_len] = '\0';
 -
 -			crypt_res = php_sha512_crypt_r(str, salt, output, needed);
@@ -404,7 +400,7 @@
 -				RETVAL_STRING(output, 1);
 -			}
 -
--			memset(output, 0, PHP_MAX_SALT_LEN + 1);
+-			memset(output, 0, needed);
 -			efree(output);
 +			/* CRYPT_SHA512 */
 +#if PHP_SHA512_CRYPT
@@ -416,7 +412,7 @@
 +# endif
 +#elif PHP_USE_PHP_CRYPT_R
 +# error Using PHP SHA512 crypt function, should not happen on Debian system
-+			crypt_res = php_sha512_crypt_r(str, salt, output, sizeof(output));
++			 crypt_res = php_sha512_crypt_r(str, salt, output, sizeof(output));
 +#endif
  		} else if (salt[0]=='$' && salt[1]=='5' && salt[2]=='$') {
 -			const char sha256_salt_prefix[] = "$5$";
@@ -424,8 +420,8 @@
 -			char *output;
 -			int needed = (sizeof(sha256_salt_prefix) - 1
 -						+ sizeof(sha256_rounds_prefix) + 9 + 1
--						+ strlen(salt) + 1 + 43 + 1);
--			output = emalloc(needed * sizeof(char *));
+-						+ salt_in_len + 1 + 43 + 1);
+-			output = emalloc(needed);
 -			salt[salt_in_len] = '\0';
 -
 -			crypt_res = php_sha256_crypt_r(str, salt, output, needed);
@@ -439,7 +435,7 @@
 -				RETVAL_STRING(output, 1);
 -			}
 -
--			memset(output, 0, PHP_MAX_SALT_LEN + 1);
+-			memset(output, 0, needed);
 -			efree(output);
 +			/* CRYPT_SHA256 */
 +#if PHP_SHA256_CRYPT
@@ -488,8 +484,8 @@
 -
 -			memset(output, 0, PHP_MAX_SALT_LEN + 1);
 +#endif
-+		} else if (salt[0]=='_' && 
-+				   salt_len == 9) {
++               } else if (salt[0]=='_' &&
++				salt_len == 9) {
 +			/* CRYPT_EXT_DES */
 +#if PHP_EXT_DES_CRYPT
 +# error Using system extended DES crypt function, should not happen on Debian system

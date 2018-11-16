@@ -1,0 +1,150 @@
+Backport of:
+
+From 1ac4d8f2c632f5be5a02d49c1e0d3b1fb515e4a8 Mon Sep 17 00:00:00 2001
+From: Michael Wallner <mike@php.net>
+Date: Mon, 29 Jul 2013 17:59:35 +0200
+Subject: [PATCH] fix bug #65481 (shutdown segfault due to serialize)
+
+---
+ ext/standard/php_var.h                     |    1 
+ ext/standard/tests/serialize/bug65481.phpt |   40 +++++++++++++++++++++++++++++
+ ext/standard/var_unserializer.c            |   25 +++++++++++++++++-
+ ext/standard/var_unserializer.re           |   25 +++++++++++++++++-
+ 4 files changed, 89 insertions(+), 2 deletions(-)
+ create mode 100644 ext/standard/tests/serialize/bug65481.phpt
+
+--- a/ext/standard/php_var.h
++++ b/ext/standard/php_var.h
+@@ -63,6 +63,7 @@ PHPAPI int php_var_unserialize(zval **rv
+ 
+ PHPAPI void var_replace(php_unserialize_data_t *var_hash, zval *ozval, zval **nzval);
+ PHPAPI void var_push_dtor(php_unserialize_data_t *var_hash, zval **val);
++PHPAPI void var_push_dtor_no_addref(php_unserialize_data_t *var_hashx, zval **rval);
+ PHPAPI void var_destroy(php_unserialize_data_t *var_hash);
+ 
+ #define PHP_VAR_UNSERIALIZE_ZVAL_CHANGED(var_hash, ozval, nzval) \
+--- /dev/null
++++ b/ext/standard/tests/serialize/bug65481.phpt
+@@ -0,0 +1,40 @@
++--TEST--
++Bug #65481 (shutdown segfault due to serialize)
++--FILE--
++<?php
++echo "Test\n";
++
++class A {
++	public $e = array();
++}
++
++class Token implements \Serializable {
++	public function serialize()
++	{
++		$c = new A;
++
++		for ($i = 0; $i < 4; $i++)
++		{
++			$e = new A;
++			$c->e[] = $e;
++			$e->e = $c->e;
++		}
++
++		return serialize(array(serialize($c)));
++	}
++
++	public function unserialize($str)
++	{
++		$r = unserialize($str);
++		$r = unserialize($r[0]);
++	}
++}
++
++$token = new Token;
++$token = serialize($token);
++
++?>
++Done
++--EXPECT--
++Test
++Done
+--- a/ext/standard/var_unserializer.c
++++ b/ext/standard/var_unserializer.c
+@@ -79,6 +79,29 @@ PHPAPI void var_push_dtor(php_unserializ
+ 	var_hash->data[var_hash->used_slots++] = *rval;
+ }
+ 
++PHPAPI void var_push_dtor_no_addref(php_unserialize_data_t *var_hashx, zval **rval)
++{
++	var_entries *var_hash = var_hashx->first_dtor, *prev = NULL;
++
++	while (var_hash && var_hash->used_slots == VAR_ENTRIES_MAX) {
++		prev = var_hash;
++		var_hash = var_hash->next;
++	}
++
++	if (!var_hash) {
++		var_hash = emalloc(sizeof(var_entries));
++		var_hash->used_slots = 0;
++		var_hash->next = 0;
++
++		if (!var_hashx->first_dtor)
++			var_hashx->first_dtor = var_hash;
++		else
++			prev->next = var_hash;
++	}
++
++	var_hash->data[var_hash->used_slots++] = *rval;
++}
++
+ PHPAPI void var_replace(php_unserialize_data_t *var_hashx, zval *ozval, zval **nzval)
+ {
+ 	long i;
+@@ -1099,7 +1122,7 @@ yy91:
+ 	if (*rval == *rval_ref) return 0;
+ 
+ 	if (*rval != NULL) {
+-		zval_ptr_dtor(rval);
++		var_push_dtor_no_addref(var_hash, rval);
+ 	}
+ 	*rval = *rval_ref;
+ 	Z_ADDREF_PP(rval);
+--- a/ext/standard/var_unserializer.re
++++ b/ext/standard/var_unserializer.re
+@@ -78,6 +78,29 @@ PHPAPI void var_push_dtor(php_unserializ
+ 	var_hash->data[var_hash->used_slots++] = *rval;
+ }
+ 
++PHPAPI void var_push_dtor_no_addref(php_unserialize_data_t *var_hashx, zval **rval)
++{
++	var_entries *var_hash = var_hashx->first_dtor, *prev = NULL;
++
++	while (var_hash && var_hash->used_slots == VAR_ENTRIES_MAX) {
++		prev = var_hash;
++		var_hash = var_hash->next;
++	}
++
++	if (!var_hash) {
++		var_hash = emalloc(sizeof(var_entries));
++		var_hash->used_slots = 0;
++		var_hash->next = 0;
++
++		if (!var_hashx->first_dtor)
++			var_hashx->first_dtor = var_hash;
++		else
++			prev->next = var_hash;
++	}
++
++	var_hash->data[var_hash->used_slots++] = *rval;
++}
++
+ PHPAPI void var_replace(php_unserialize_data_t *var_hashx, zval *ozval, zval **nzval)
+ {
+ 	long i;
+@@ -447,7 +470,7 @@ PHPAPI int php_var_unserialize(UNSERIALI
+ 	if (*rval == *rval_ref) return 0;
+ 
+ 	if (*rval != NULL) {
+-		zval_ptr_dtor(rval);
++		var_push_dtor_no_addref(var_hash, rval);
+ 	}
+ 	*rval = *rval_ref;
+ 	Z_ADDREF_PP(rval);

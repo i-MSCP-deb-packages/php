@@ -1,0 +1,97 @@
+Description: fix php-gd compatibility with libgd2 2.1.0.
+Origin: backport, https://github.com/php/php-src/commit/eb50789910410179565e8f2114d80011e34c0ad7
+
+---
+ ext/gd/gd.c              |    2 -
+ ext/gd/libgd/gd_compat.c |   53 +++++++++++++++++++++++++++++++++++++++++++++++
+ ext/gd/libgd/gd_compat.h |    2 +
+ 3 files changed, 56 insertions(+), 1 deletion(-)
+
+--- a/ext/gd/gd.c
++++ b/ext/gd/gd.c
+@@ -2268,7 +2268,7 @@ static int _php_image_type (char data[8]
+ 		gdIOCtx *io_ctx;
+ 		io_ctx = gdNewDynamicCtxEx(8, data, 0);
+ 		if (io_ctx) {
+-			if (getmbi((int(*)(void *)) gdGetC, io_ctx) == 0 && skipheader((int(*)(void *)) gdGetC, io_ctx) == 0 ) {
++			if (getmbi((int(*)(void *)) io_ctx->getC, io_ctx) == 0 && skipheader((int(*)(void *)) io_ctx->getC, io_ctx) == 0 ) {
+ #if HAVE_LIBGD204
+ 				io_ctx->gd_free(io_ctx);
+ #else
+--- a/ext/gd/libgd/gd_compat.c
++++ b/ext/gd/libgd/gd_compat.c
+@@ -4,6 +4,9 @@
+ # include <png.h>
+ #endif
+ 
++#include <TSRM.h>
++#include "php.h"
++
+ #ifdef HAVE_GD_JPG
+ # include <jpeglib.h>
+ #endif
+@@ -33,3 +36,53 @@ const char * gdPngGetVersionString()
+ }
+ #endif
+ 
++int overflow2(int a, int b)
++{
++	TSRMLS_FETCH();
++
++	if(a <= 0 || b <= 0) {
++		php_error_docref(NULL TSRMLS_CC, E_WARNING, "gd warning: one parameter to a memory allocation multiplication is negative or zero, failing operation gracefully\n");
++		return 1;
++	}
++	if(a > INT_MAX / b) {
++		php_error_docref(NULL TSRMLS_CC, E_WARNING, "gd warning: product of memory allocation multiplication would exceed INT_MAX, failing operation gracefully\n");
++		return 1;
++	}
++	return 0;
++}
++
++/* Not exported by libgd, copied from wbmp.c */
++int
++getmbi (int (*getin) (void *in), void *in)
++{
++  int i, mbi = 0;
++
++  do
++    {
++      i = getin (in);
++      if (i < 0)
++	return (-1);
++      mbi = (mbi << 7) | (i & 0x7f);
++    }
++  while (i & 0x80);
++
++  return (mbi);
++}
++
++/* Not exported by libgd, copied from wbmp.c */
++int
++skipheader (int (*getin) (void *in), void *in)
++{
++  int i;
++
++  do
++    {
++      i = getin (in);
++      if (i < 0)
++	return (-1);
++    }
++  while (i & 0x80);
++
++  return (0);
++}
++
+--- a/ext/gd/libgd/gd_compat.h
++++ b/ext/gd/libgd/gd_compat.h
+@@ -11,6 +11,8 @@ const char * gdPngGetVersionString();
+ const char * gdJpegGetVersionString();
+ int gdJpegGetVersionInt();
+ int overflow2(int a, int b);
++int getmbi (int (*getin) (void *in), void *in);
++int skipheader (int (*getin) (void *in), void *in);
+ 
+ /* filters section
+  *

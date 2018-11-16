@@ -1,0 +1,24 @@
+Backport of:
+
+From 1364742be9757e594fd1b203d45805106ecd31c7 Mon Sep 17 00:00:00 2001
+From: Stanislav Malyshev <stas@php.net>
+Date: Mon, 18 Jul 2016 23:30:51 -0700
+Subject: [PATCH] Fix tests
+
+---
+ ext/exif/tests/bug54002.phpt |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+--- a/ext/exif/tests/bug54002.phpt
++++ b/ext/exif/tests/bug54002.phpt
+@@ -13,8 +13,4 @@ exif_read_data(__DIR__ . '/bug54002_2.jp
+ --EXPECTF--
+ Warning: exif_read_data(bug54002_1.jpeg): Process tag(x0205=UndefinedTa): Illegal byte_count in %sbug54002.php on line %d
+ 
+-Warning: exif_read_data(bug54002_1.jpeg): Process tag(xA000=FlashPixVer): Illegal pointer offset(%s) in %sbug54002.php on line %d
+-
+-Warning: exif_read_data(bug54002_2.jpeg): Process tag(x0205=UndefinedTa): Illegal byte_count in %sbug54002.php on line %d
+-
+-Warning: exif_read_data(bug54002_2.jpeg): Process tag(xA000=FlashPixVer): Illegal pointer offset(%s) in %sbug54002.php on line %d
++Warning: exif_read_data(bug54002_2.jpeg): Process tag(x0205=UndefinedTa): Illegal byte_count in %sbug54002.php on line %d
+\ No newline at end of file

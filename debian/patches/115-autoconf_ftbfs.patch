@@ -1,7 +1,7 @@
 --- a/configure.in
 +++ b/configure.in
 @@ -1,7 +1,7 @@
- ## $Id: configure.in 322014 2012-01-10 11:21:57Z johannes $ -*- autoconf -*-
+ ## $Id$ -*- autoconf -*-
  dnl ## Process this file with autoconf to produce a configure script.
  
 -divert(1)
@@ -48,7 +48,7 @@
 --- a/ext/standard/config.m4
 +++ b/ext/standard/config.m4
 @@ -1,6 +1,6 @@
- dnl $Id: config.m4 300511 2010-06-17 10:22:03Z pajoye $ -*- autoconf -*-
+ dnl $Id$ -*- autoconf -*-
  
 -divert(3)dnl
 +dnl divert(3)dnl
@@ -70,7 +70,7 @@
  dnl This file becomes configure.in for self-contained extensions.
  
 -divert(1)
-+dnl divert(1)
++dnl dnl divert(1)
  
  AC_PREREQ(2.13)
  AC_INIT(config.m4)

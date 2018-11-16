@@ -1,0 +1,40 @@
+Backport of:
+
+From 16023f3e3b9c06cf677c3c980e8d574e4c162827 Mon Sep 17 00:00:00 2001
+From: Stanislav Malyshev <stas@php.net>
+Date: Sun, 26 Jul 2015 17:43:16 -0700
+Subject: [PATCH] Fix bug #70014 - use RAND_bytes instead of deprecated
+ RAND_pseudo_bytes
+
+---
+ ext/openssl/openssl.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+--- a/ext/openssl/openssl.c
++++ b/ext/openssl/openssl.c
+@@ -4990,7 +4990,6 @@ PHP_FUNCTION(openssl_random_pseudo_bytes
+ 	long buffer_length;
+ 	unsigned char *buffer = NULL;
+ 	zval *zstrong_result_returned = NULL;
+-	int strong_result = 0;
+ 
+ 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|z", &buffer_length, &zstrong_result_returned) == FAILURE) {
+ 		return;
+@@ -5007,7 +5006,7 @@ PHP_FUNCTION(openssl_random_pseudo_bytes
+ 
+ 	buffer = emalloc(buffer_length + 1);
+ 
+-	if ((strong_result = RAND_pseudo_bytes(buffer, buffer_length)) < 0) {
++	if (RAND_bytes(buffer, buffer_length) <= 0) {
+ 		efree(buffer);
+ 		RETURN_FALSE;
+ 	}
+@@ -5016,7 +5015,7 @@ PHP_FUNCTION(openssl_random_pseudo_bytes
+ 	RETVAL_STRINGL((char *)buffer, buffer_length, 0);
+ 
+ 	if (zstrong_result_returned) {
+-		ZVAL_BOOL(zstrong_result_returned, strong_result);
++		ZVAL_BOOL(zstrong_result_returned, 1);
+ 	}
+ }
+ /* }}} */

@@ -7,20 +7,24 @@ Description: Silence warnings about using the default system timezone info
 Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=571762
 --- a/ext/date/php_date.c
 +++ b/ext/date/php_date.c
-@@ -886,7 +886,7 @@ static char* guess_timezone(const timeli
+@@ -905,7 +905,7 @@ static char* guess_timezone(const timeli
  			tzid = "UTC";
  		}
  		
 -		php_error_docref(NULL TSRMLS_CC, E_WARNING, DATE_TZ_ERRMSG "We selected '%s' for '%s/%.1f/%s' instead", tzid, ta ? ta->tm_zone : "Unknown", ta ? (float) (ta->tm_gmtoff / 3600) : 0, ta ? (ta->tm_isdst ? "DST" : "no DST") : "Unknown");
-+		// php_error_docref(NULL TSRMLS_CC, E_WARNING, DATE_TZ_ERRMSG "We selected '%s' for '%s/%.1f/%s' instead", tzid, ta ? ta->tm_zone : "Unknown", ta ? (float) (ta->tm_gmtoff / 3600) : 0, ta ? (ta->tm_isdst ? "DST" : "no DST") : "Unknown");
++		//php_error_docref(NULL TSRMLS_CC, E_WARNING, DATE_TZ_ERRMSG "We selected '%s' for '%s/%.1f/%s' instead", tzid, ta ? ta->tm_zone : "Unknown", ta ? (float) (ta->tm_gmtoff / 3600) : 0, ta ? (ta->tm_isdst ? "DST" : "no DST") : "Unknown");
  		return tzid;
  	}
  #endif
 --- a/ext/date/tests/date_default_timezone_get-1.phpt
 +++ /dev/null
-@@ -1,16 +0,0 @@
+@@ -1,20 +0,0 @@
 ---TEST--
 -date_default_timezone_get() function [1]
+---SKIPIF--
+-<?php
+-	if(substr(PHP_OS, 0, 3) == 'WIN') die("skip on windows");
+-?>
 ---INI--
 -date.timezone=
 ---FILE--
@@ -37,9 +41,13 @@ Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=571762
 -UTC
 --- a/ext/date/tests/date_default_timezone_get-2.phpt
 +++ /dev/null
-@@ -1,12 +0,0 @@
+@@ -1,16 +0,0 @@
 ---TEST--
 -date_default_timezone_get() function [2]
+---SKIPIF--
+-<?php
+-	if(substr(PHP_OS, 0, 3) == 'WIN') die("skip on windows");
+-?>
 ---INI--
 -date.timezone=
 ---FILE--

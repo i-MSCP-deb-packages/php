@@ -7,7 +7,7 @@ Last-Update: 2010-05-01
 
 --- a/ext/session/session.c
 +++ b/ext/session/session.c
-@@ -788,7 +788,7 @@ static PHP_INI_MH(OnUpdateHashFunc) /* {
+@@ -789,7 +789,7 @@ static PHP_INI_MH(OnUpdateHashFunc) /* {
  PHP_INI_BEGIN()
  	STD_PHP_INI_BOOLEAN("session.bug_compat_42",    "1",         PHP_INI_ALL, OnUpdateBool,   bug_compat,         php_ps_globals,    ps_globals)
  	STD_PHP_INI_BOOLEAN("session.bug_compat_warn",  "1",         PHP_INI_ALL, OnUpdateBool,   bug_compat_warn,    php_ps_globals,    ps_globals)

@@ -1,0 +1,44 @@
+Description: fix local file disclosure via curl NULL byte injection
+Origin: backport, http://git.php.net/?p=php-src.git;a=commit;h=ab0939e5e5449cba04b02fff3a5595f725bce0a0
+Bug: https://bugs.php.net/bug.php?id=68089
+
+---
+ ext/curl/interface.c         |    5 +++++
+ ext/curl/tests/bug68089.phpt |   18 ++++++++++++++++++
+ 2 files changed, 23 insertions(+)
+
+--- a/ext/curl/interface.c
++++ b/ext/curl/interface.c
+@@ -172,6 +172,11 @@ static int php_curl_option_url(php_curl
+ #endif
+ 	TSRMLS_FETCH();
+ 
++	if (strlen(url) != len) {
++		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Curl option contains invalid characters (\\0)");
++		return 0;
++	}
++
+ 	/* Disable file:// if open_basedir or safe_mode are used */
+ 	if ((PG(open_basedir) && *PG(open_basedir)) || PG(safe_mode)) {
+ #if LIBCURL_VERSION_NUM >= 0x071304
+--- /dev/null
++++ b/ext/curl/tests/bug68089.phpt
+@@ -0,0 +1,18 @@
++--TEST--
++Bug #68089 (NULL byte injection - cURL lib)
++--SKIPIF--
++<?php
++include 'skipif.inc';
++
++?>
++--FILE--
++<?php
++$url = "file:///etc/passwd\0http://google.com";
++$ch = curl_init();
++var_dump(curl_setopt($ch, CURLOPT_URL, $url));
++?>
++Done
++--EXPECTF--
++Warning: curl_setopt(): Curl option contains invalid characters (\0) in %s/bug68089.php on line 4
++bool(false)
++Done

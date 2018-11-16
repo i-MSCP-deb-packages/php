@@ -1,0 +1,246 @@
+Backport of:
+
+From 72281f29dd4691b2f741362d3581162fcf85f502 Mon Sep 17 00:00:00 2001
+From: Stanislav Malyshev <stas@php.net>
+Date: Sun, 20 Mar 2016 20:54:09 -0700
+Subject: [PATCH] Fix bug #71860: Require valid paths for phar filenames
+
+---
+ ext/phar/phar.c                       |    4 +
+ ext/phar/phar_object.c                |   84 ++++++++++++++++++++++++++++++++++
+ ext/phar/tests/create_path_error.phpt |    1 
+ 3 files changed, 88 insertions(+), 1 deletion(-)
+
+--- a/ext/phar/phar.c
++++ b/ext/phar/phar.c
+@@ -2268,6 +2268,10 @@ int phar_split_fname(char *filename, int
+ #endif
+ 	int ext_len, free_filename = 0;
+ 
++	if (CHECK_NULL_PATH(filename, filename_len)) {
++		return FAILURE;
++	}
++
+ 	if (!strncasecmp(filename, "phar://", 7)) {
+ 		filename += 7;
+ 		filename_len -= 7;
+--- a/ext/phar/phar_object.c
++++ b/ext/phar/phar_object.c
+@@ -481,6 +481,14 @@ PHP_METHOD(Phar, mount)
+ 		return;
+ 	}
+ 
++	if (path_len && (strlen(path) != path_len)) {
++		return;
++	}
++
++	if (actual_len && (strlen(actual) != actual_len)) {
++		return;
++	}
++
+ 	fname = zend_get_executed_filename(TSRMLS_C);
+ 	fname_len = strlen(fname);
+ 
+@@ -974,6 +982,14 @@ PHP_METHOD(Phar, createDefaultStub)
+ 		return;
+ 	}
+ 
++	if (index_len && (strlen(index) != index_len)) {
++		return;
++	}
++
++	if (webindex_len && (strlen(webindex) != webindex_len)) {
++		return;
++	}
++
+ 	stub = phar_create_default_stub(index, webindex, &stub_len, &error TSRMLS_CC);
+ 
+ 	if (error) {
+@@ -1018,6 +1034,10 @@ PHP_METHOD(Phar, loadPhar)
+ 		return;
+ 	}
+ 
++	if (fname_len && (strlen(fname) != fname_len)) {
++		return;
++	}
++
+ 	phar_request_initialize(TSRMLS_C);
+ 
+ 	RETVAL_BOOL(phar_open_from_filename(fname, fname_len, alias, alias_len, REPORT_ERRORS, NULL, &error TSRMLS_CC) == SUCCESS);
+@@ -1097,6 +1117,10 @@ PHP_METHOD(Phar, isValidPharFilename)
+ 		return;
+ 	}
+ 
++	if (fname_len && (strlen(fname) != fname_len)) {
++		return;
++	}
++
+ 	is_executable = executable;
+ 	RETVAL_BOOL(phar_detect_phar_fname_ext(fname, fname_len, &ext_str, &ext_len, is_executable, 2, 1 TSRMLS_CC) == SUCCESS);
+ }
+@@ -1177,6 +1201,10 @@ PHP_METHOD(Phar, __construct)
+ 		}
+ 	}
+ 
++	if (fname_len && (strlen(fname) != fname_len)) {
++		return;
++	}
++
+ 	if (phar_obj->arc.archive) {
+ 		zend_throw_exception_ex(spl_ce_BadMethodCallException, 0 TSRMLS_CC, "Cannot call constructor twice");
+ 		return;
+@@ -1344,6 +1372,10 @@ PHP_METHOD(Phar, unlinkArchive)
+ 		RETURN_FALSE;
+ 	}
+ 
++	if (fname_len && (strlen(fname) != fname_len)) {
++		RETURN_FALSE;
++	}
++
+ 	if (!fname_len) {
+ 		zend_throw_exception_ex(phar_ce_PharException, 0 TSRMLS_CC, "Unknown phar archive \"\"");
+ 		return;
+@@ -1825,6 +1857,10 @@ PHP_METHOD(Phar, buildFromDirectory)
+ 		RETURN_FALSE;
+ 	}
+ 
++	if (dir_len && (strlen(dir) != dir_len)) {
++		RETURN_FALSE;
++	}
++
+ 	MAKE_STD_ZVAL(iter);
+ 
+ 	if (SUCCESS != object_init_ex(iter, spl_ce_RecursiveDirectoryIterator)) {
+@@ -2707,6 +2743,10 @@ PHP_METHOD(Phar, delete)
+ 		RETURN_FALSE;
+ 	}
+ 
++	if (fname_len && (strlen(fname) != fname_len)) {
++		RETURN_FALSE;
++	}
++
+ 	if (phar_obj->arc.archive->is_persistent && FAILURE == phar_copy_on_write(&(phar_obj->arc.archive) TSRMLS_CC)) {
+ 		zend_throw_exception_ex(phar_ce_PharException, 0 TSRMLS_CC, "phar \"%s\" is persistent, unable to copy on write", phar_obj->arc.archive->fname);
+ 		return;
+@@ -3519,6 +3559,14 @@ PHP_METHOD(Phar, copy)
+ 		return;
+ 	}
+ 
++	if (oldfile_len && (strlen(oldfile) != oldfile_len)) {
++		return;
++	}
++
++	if (newfile_len && (strlen(newfile) != newfile_len)) {
++		return;
++	}
++
+ 	if (PHAR_G(readonly) && !phar_obj->arc.archive->is_data) {
+ 		zend_throw_exception_ex(spl_ce_UnexpectedValueException, 0 TSRMLS_CC,
+ 			"Cannot copy \"%s\" to \"%s\", phar is read-only", oldfile, newfile);
+@@ -3629,6 +3677,10 @@ PHP_METHOD(Phar, offsetExists)
+ 		return;
+ 	}
+ 
++	if (fname_len && (strlen(fname) != fname_len)) {
++		return;
++	}
++
+ 	if (zend_hash_exists(&phar_obj->arc.archive->manifest, fname, (uint) fname_len)) {
+ 		if (SUCCESS == zend_hash_find(&phar_obj->arc.archive->manifest, fname, (uint) fname_len, (void**)&entry)) {
+ 			if (entry->is_deleted) {
+@@ -3666,6 +3718,10 @@ PHP_METHOD(Phar, offsetGet)
+ 		return;
+ 	}
+ 
++	if (fname_len && (strlen(fname) != fname_len)) {
++		return;
++	}
++
+ 	/* security is 0 here so that we can get a better error message than "entry doesn't exist" */
+ 	if (!(entry = phar_get_entry_info_dir(phar_obj->arc.archive, fname, fname_len, 1, &error, 0 TSRMLS_CC))) {
+ 		zend_throw_exception_ex(spl_ce_BadMethodCallException, 0 TSRMLS_CC, "Entry %s does not exist%s%s", fname, error?", ":"", error?error:"");
+@@ -3815,6 +3871,10 @@ PHP_METHOD(Phar, offsetSet)
+ 		return;
+ 	}
+ 
++	if (fname_len && (strlen(fname) != fname_len)) {
++		return;
++	}
++
+ 	if (fname_len == sizeof(".phar/stub.php")-1 && !memcmp(fname, ".phar/stub.php", sizeof(".phar/stub.php")-1)) {
+ 		zend_throw_exception_ex(spl_ce_BadMethodCallException, 0 TSRMLS_CC, "Cannot set stub \".phar/stub.php\" directly in phar \"%s\", use setStub", phar_obj->arc.archive->fname);
+ 		return;
+@@ -3853,6 +3913,10 @@ PHP_METHOD(Phar, offsetUnset)
+ 		return;
+ 	}
+ 
++	if (fname_len && (strlen(fname) != fname_len)) {
++		return;
++	}
++
+ 	if (zend_hash_exists(&phar_obj->arc.archive->manifest, fname, (uint) fname_len)) {
+ 		if (SUCCESS == zend_hash_find(&phar_obj->arc.archive->manifest, fname, (uint) fname_len, (void**)&entry)) {
+ 			if (entry->is_deleted) {
+@@ -3900,6 +3964,10 @@ PHP_METHOD(Phar, addEmptyDir)
+ 		return;
+ 	}
+ 
++	if (dirname_len && (strlen(dirname) != dirname_len)) {
++		return;
++	}
++
+ 	if (dirname_len >= sizeof(".phar")-1 && !memcmp(dirname, ".phar", sizeof(".phar")-1)) {
+ 		zend_throw_exception_ex(spl_ce_BadMethodCallException, 0 TSRMLS_CC, "Cannot create a directory in magic \".phar\" directory");
+ 		return;
+@@ -3925,6 +3993,10 @@ PHP_METHOD(Phar, addFile)
+ 		return;
+ 	}
+ 
++	if (fname_len && (strlen(fname) != fname_len)) {
++		return;
++	}
++
+ #if PHP_API_VERSION < 20100412
+ 	if (PG(safe_mode) && (!php_checkuid(fname, NULL, CHECKUID_ALLOW_ONLY_FILE))) {
+ 		zend_throw_exception_ex(spl_ce_RuntimeException, 0 TSRMLS_CC, "phar error: unable to open file \"%s\" to add to phar archive, safe_mode restrictions prevent this", fname);
+@@ -3969,6 +4041,10 @@ PHP_METHOD(Phar, addFromString)
+ 		return;
+ 	}
+ 
++	if (localname_len && (strlen(localname) != localname_len)) {
++		return;
++	}
++
+ 	phar_add_file(&(phar_obj->arc.archive), localname, localname_len, cont_str, cont_len, NULL TSRMLS_CC);
+ }
+ /* }}} */
+@@ -4395,6 +4471,10 @@ PHP_METHOD(Phar, extractTo)
+ 		return;
+ 	}
+ 
++	if (pathto_len && (strlen(pathto) != pathto_len)) {
++		return;
++	}
++
+ 	fp = php_stream_open_wrapper(phar_obj->arc.archive->fname, "rb", IGNORE_URL|STREAM_MUST_SEEK, &actual);
+ 
+ 	if (!fp) {
+@@ -4544,6 +4624,10 @@ PHP_METHOD(PharFileInfo, __construct)
+ 		return;
+ 	}
+ 
++	if (fname_len && (strlen(fname) != fname_len)) {
++		return;
++	}
++
+ 	entry_obj = (phar_entry_object*)zend_object_store_get_object(getThis() TSRMLS_CC);
+ 
+ 	if (entry_obj->ent.entry) {
+--- a/ext/phar/tests/create_path_error.phpt
++++ b/ext/phar/tests/create_path_error.phpt
+@@ -58,5 +58,4 @@ Error: file_put_contents(phar://%s//): f
+ Error: file_put_contents(phar://%s/.): failed to open stream: phar error: file "" in phar "%s" cannot be empty
+ Error: file_put_contents(phar://%s/../): failed to open stream: phar error: file "" in phar "%s" cannot be empty
+ Error: file_put_contents(phar://%s/a/..): failed to open stream: phar error: file "" in phar "%s" cannot be empty
+-Exception: Entry a does not exist and cannot be created: phar error: invalid path "a" contains illegal character
+ ===DONE===

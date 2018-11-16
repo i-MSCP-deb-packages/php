@@ -1,0 +1,1574 @@
+Description: remove readelf.c from fileinfo as it isn't used, and is a
+ source of confusion when doing security updates.
+Origin: backport, http://git.php.net/?p=php-src.git;a=commit;h=919abf0cb132cc06c3a0be311af3069bd4be09ce
+
+---
+ ext/fileinfo/config.m4          |    2 
+ ext/fileinfo/config.w32         |    2 
+ ext/fileinfo/libmagic/file.h    |    2 
+ ext/fileinfo/libmagic/readelf.c | 1190 ----------------------------------------
+ ext/fileinfo/libmagic/readelf.h |  333 -----------
+ 5 files changed, 2 insertions(+), 1527 deletions(-)
+
+--- a/ext/fileinfo/config.m4
++++ b/ext/fileinfo/config.m4
+@@ -11,7 +11,7 @@ if test "$PHP_FILEINFO" != "no"; then
+     libmagic/cdf.c libmagic/cdf_time.c libmagic/compress.c \
+     libmagic/encoding.c libmagic/fsmagic.c libmagic/funcs.c \
+     libmagic/is_tar.c libmagic/magic.c libmagic/print.c \
+-    libmagic/readcdf.c libmagic/readelf.c libmagic/softmagic.c"
++    libmagic/readcdf.c libmagic/softmagic.c"
+ 
+   PHP_NEW_EXTENSION(fileinfo, fileinfo.c $libmagic_sources, $ext_shared,,-I@ext_srcdir@/libmagic)
+   PHP_ADD_BUILD_DIR($ext_builddir/libmagic)
+--- a/ext/fileinfo/config.w32
++++ b/ext/fileinfo/config.w32
+@@ -8,7 +8,7 @@ if (PHP_FILEINFO != 'no') {
+ 			cdf.c cdf_time.c compress.c \
+ 			encoding.c fsmagic.c funcs.c \
+ 			is_tar.c magic.c print.c \
+-			readcdf.c readelf.c softmagic.c";
++			readcdf.c softmagic.c";
+ 
+ 	if (VCVERS < 1500) {
+ 		ADD_FLAG('CFLAGS', '/Zm1000');
+--- a/ext/fileinfo/libmagic/file.h
++++ b/ext/fileinfo/libmagic/file.h
+@@ -397,8 +397,6 @@ protected int file_pipe2file(struct magi
+ protected int file_replace(struct magic_set *, const char *, const char *);
+ protected int file_printf(struct magic_set *, const char *, ...);
+ protected int file_reset(struct magic_set *);
+-protected int file_tryelf(struct magic_set *, int, const unsigned char *,
+-    size_t);
+ protected int file_trycdf(struct magic_set *, int, const unsigned char *,
+     size_t);
+ #ifdef PHP_FILEINFO_UNCOMPRESS 
+--- a/ext/fileinfo/libmagic/readelf.h
++++ /dev/null
+@@ -1,333 +0,0 @@
+-/*
+- * Copyright (c) Christos Zoulas 2003.
+- * All Rights Reserved.
+- * 
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- * 1. Redistributions of source code must retain the above copyright
+- *    notice immediately at the beginning of the file, without modification,
+- *    this list of conditions, and the following disclaimer.
+- * 2. Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in the
+- *    documentation and/or other materials provided with the distribution.
+- *  
+- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR
+- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+- * SUCH DAMAGE.
+- */
+-/*
+- * @(#)Id: readelf.h,v 1.9 2002/05/16 18:45:56 christos Exp
+- *
+- * Provide elf data structures for non-elf machines, allowing file
+- * non-elf hosts to determine if an elf binary is stripped.
+- * Note: cobbled from the linux header file, with modifications
+- */
+-#ifndef __fake_elf_h__
+-#define	__fake_elf_h__
+-
+-#if HAVE_STDINT_H
+-#include <stdint.h>
+-#endif
+-
+-typedef uint32_t	Elf32_Addr;
+-typedef uint32_t	Elf32_Off;
+-typedef uint16_t	Elf32_Half;
+-typedef uint32_t	Elf32_Word;
+-typedef uint8_t		Elf32_Char;
+-
+-#if SIZEOF_LONG_LONG != 8
+-#define	USE_ARRAY_FOR_64BIT_TYPES
+-typedef	uint32_t 	Elf64_Addr[2];
+-typedef	uint32_t 	Elf64_Off[2];
+-typedef uint32_t 	Elf64_Xword[2];
+-#else
+-#undef USE_ARRAY_FOR_64BIT_TYPES
+-typedef	uint64_t 	Elf64_Addr;
+-typedef	uint64_t 	Elf64_Off;
+-typedef uint64_t 	Elf64_Xword;
+-#endif
+-typedef uint16_t	Elf64_Half;
+-typedef uint32_t	Elf64_Word;
+-typedef uint8_t		Elf64_Char;
+-
+-#define	EI_NIDENT	16
+-
+-typedef struct {
+-    Elf32_Char	e_ident[EI_NIDENT];
+-    Elf32_Half	e_type;
+-    Elf32_Half	e_machine;
+-    Elf32_Word	e_version;
+-    Elf32_Addr	e_entry;  /* Entry point */
+-    Elf32_Off	e_phoff;
+-    Elf32_Off	e_shoff;
+-    Elf32_Word	e_flags;
+-    Elf32_Half	e_ehsize;
+-    Elf32_Half	e_phentsize;
+-    Elf32_Half	e_phnum;
+-    Elf32_Half	e_shentsize;
+-    Elf32_Half	e_shnum;
+-    Elf32_Half	e_shstrndx;
+-} Elf32_Ehdr;
+-
+-typedef struct {
+-    Elf64_Char	e_ident[EI_NIDENT];
+-    Elf64_Half	e_type;
+-    Elf64_Half	e_machine;
+-    Elf64_Word	e_version;
+-    Elf64_Addr	e_entry;  /* Entry point */
+-    Elf64_Off	e_phoff;
+-    Elf64_Off	e_shoff;
+-    Elf64_Word	e_flags;
+-    Elf64_Half	e_ehsize;
+-    Elf64_Half	e_phentsize;
+-    Elf64_Half	e_phnum;
+-    Elf64_Half	e_shentsize;
+-    Elf64_Half	e_shnum;
+-    Elf64_Half	e_shstrndx;
+-} Elf64_Ehdr;
+-
+-/* e_type */
+-#define	ET_REL		1
+-#define	ET_EXEC		2
+-#define	ET_DYN		3
+-#define	ET_CORE		4
+-
+-/* e_machine (used only for SunOS 5.x hardware capabilities) */
+-#define	EM_SPARC	2
+-#define	EM_386		3
+-#define	EM_SPARC32PLUS	18
+-#define	EM_SPARCV9	43
+-#define	EM_IA_64	50
+-#define	EM_AMD64	62
+-
+-/* sh_type */
+-#define	SHT_SYMTAB	2
+-#define	SHT_NOTE	7
+-#define	SHT_DYNSYM	11
+-#define	SHT_SUNW_cap	0x6ffffff5	/* SunOS 5.x hw/sw capabilites */
+-
+-/* elf type */
+-#define	ELFDATANONE	0		/* e_ident[EI_DATA] */
+-#define	ELFDATA2LSB	1
+-#define	ELFDATA2MSB	2
+-
+-/* elf class */
+-#define	ELFCLASSNONE	0
+-#define	ELFCLASS32	1
+-#define	ELFCLASS64	2
+-
+-/* magic number */
+-#define	EI_MAG0		0		/* e_ident[] indexes */
+-#define	EI_MAG1		1
+-#define	EI_MAG2		2
+-#define	EI_MAG3		3
+-#define	EI_CLASS	4
+-#define	EI_DATA		5
+-#define	EI_VERSION	6
+-#define	EI_PAD		7
+-
+-#define	ELFMAG0		0x7f		/* EI_MAG */
+-#define	ELFMAG1		'E'
+-#define	ELFMAG2		'L'
+-#define	ELFMAG3		'F'
+-#define	ELFMAG		"\177ELF"
+-
+-#define	OLFMAG1		'O'
+-#define	OLFMAG		"\177OLF"
+-
+-typedef struct {
+-    Elf32_Word	p_type;
+-    Elf32_Off	p_offset;
+-    Elf32_Addr	p_vaddr;
+-    Elf32_Addr	p_paddr;
+-    Elf32_Word	p_filesz;
+-    Elf32_Word	p_memsz;
+-    Elf32_Word	p_flags;
+-    Elf32_Word	p_align;
+-} Elf32_Phdr;
+-
+-typedef struct {
+-    Elf64_Word	p_type;
+-    Elf64_Word	p_flags;
+-    Elf64_Off	p_offset;
+-    Elf64_Addr	p_vaddr;
+-    Elf64_Addr	p_paddr;
+-    Elf64_Xword	p_filesz;
+-    Elf64_Xword	p_memsz;
+-    Elf64_Xword	p_align;
+-} Elf64_Phdr;
+-
+-#define	PT_NULL		0		/* p_type */
+-#define	PT_LOAD		1
+-#define	PT_DYNAMIC	2
+-#define	PT_INTERP	3
+-#define	PT_NOTE		4
+-#define	PT_SHLIB	5
+-#define	PT_PHDR		6
+-#define	PT_NUM		7
+-
+-typedef struct {
+-    Elf32_Word	sh_name;
+-    Elf32_Word	sh_type;
+-    Elf32_Word	sh_flags;
+-    Elf32_Addr	sh_addr;
+-    Elf32_Off	sh_offset;
+-    Elf32_Word	sh_size;
+-    Elf32_Word	sh_link;
+-    Elf32_Word	sh_info;
+-    Elf32_Word	sh_addralign;
+-    Elf32_Word	sh_entsize;
+-} Elf32_Shdr;
+-
+-typedef struct {
+-    Elf64_Word	sh_name;
+-    Elf64_Word	sh_type;
+-    Elf64_Off	sh_flags;
+-    Elf64_Addr	sh_addr;
+-    Elf64_Off	sh_offset;
+-    Elf64_Off	sh_size;
+-    Elf64_Word	sh_link;
+-    Elf64_Word	sh_info;
+-    Elf64_Off	sh_addralign;
+-    Elf64_Off	sh_entsize;
+-} Elf64_Shdr;
+-
+-#define	NT_NETBSD_CORE_PROCINFO		1
+-
+-/* Note header in a PT_NOTE section */
+-typedef struct elf_note {
+-    Elf32_Word	n_namesz;	/* Name size */
+-    Elf32_Word	n_descsz;	/* Content size */
+-    Elf32_Word	n_type;		/* Content type */
+-} Elf32_Nhdr;
+-
+-typedef struct {
+-    Elf64_Word	n_namesz;
+-    Elf64_Word	n_descsz;
+-    Elf64_Word	n_type;
+-} Elf64_Nhdr;
+-
+-/* Notes used in ET_CORE */
+-#define	NT_PRSTATUS	1
+-#define	NT_PRFPREG	2
+-#define	NT_PRPSINFO	3
+-#define	NT_PRXREG	4
+-#define	NT_TASKSTRUCT	4
+-#define	NT_PLATFORM	5
+-#define	NT_AUXV		6
+-
+-/* Note types used in executables */
+-/* NetBSD executables (name = "NetBSD") */
+-#define	NT_NETBSD_VERSION	1
+-#define	NT_NETBSD_EMULATION	2
+-#define	NT_FREEBSD_VERSION	1
+-#define	NT_OPENBSD_VERSION	1
+-#define	NT_DRAGONFLY_VERSION	1
+-/*
+- * GNU executables (name = "GNU")
+- * word[0]: GNU OS tags
+- * word[1]: major version
+- * word[2]: minor version
+- * word[3]: tiny version
+- */
+-#define	NT_GNU_VERSION		1
+-
+-/* GNU OS tags */
+-#define	GNU_OS_LINUX	0
+-#define	GNU_OS_HURD	1
+-#define	GNU_OS_SOLARIS	2
+-#define	GNU_OS_KFREEBSD	3
+-#define	GNU_OS_KNETBSD	4
+-
+-/*
+- * GNU Hardware capability information 
+- * word[0]: Number of entries
+- * word[1]: Bitmask of enabled entries
+- * Followed by a byte id, and a NUL terminated string per entry
+- */
+-#define	NT_GNU_HWCAP		2
+-
+-/*
+- * GNU Build ID generated by ld
+- * 160 bit SHA1 [default] 
+- * 128 bit md5 or uuid
+- */
+-#define	NT_GNU_BUILD_ID		3
+-
+-/* SunOS 5.x hardware/software capabilities */
+-typedef struct {
+-	Elf32_Word	c_tag;
+-	union {
+-		Elf32_Word	c_val;
+-		Elf32_Addr	c_ptr;
+-	} c_un;
+-} Elf32_Cap;
+-
+-typedef struct {
+-	Elf64_Xword	c_tag;
+-	union {
+-		Elf64_Xword	c_val;
+-		Elf64_Addr	c_ptr;
+-	} c_un;
+-} Elf64_Cap;
+-
+-/* SunOS 5.x hardware/software capability tags */
+-#define	CA_SUNW_NULL	0
+-#define	CA_SUNW_HW_1	1
+-#define	CA_SUNW_SF_1	2
+-
+-/* SunOS 5.x software capabilities */
+-#define	SF1_SUNW_FPKNWN	0x01
+-#define	SF1_SUNW_FPUSED	0x02
+-#define	SF1_SUNW_MASK	0x03
+-
+-/* SunOS 5.x hardware capabilities: sparc */
+-#define	AV_SPARC_MUL32		0x0001
+-#define	AV_SPARC_DIV32		0x0002
+-#define	AV_SPARC_FSMULD		0x0004
+-#define	AV_SPARC_V8PLUS		0x0008
+-#define	AV_SPARC_POPC		0x0010
+-#define	AV_SPARC_VIS		0x0020
+-#define	AV_SPARC_VIS2		0x0040
+-#define	AV_SPARC_ASI_BLK_INIT	0x0080
+-#define	AV_SPARC_FMAF		0x0100
+-#define	AV_SPARC_FJFMAU		0x4000
+-#define	AV_SPARC_IMA		0x8000
+-
+-/* SunOS 5.x hardware capabilities: 386 */
+-#define	AV_386_FPU		0x00000001
+-#define	AV_386_TSC		0x00000002
+-#define	AV_386_CX8		0x00000004
+-#define	AV_386_SEP		0x00000008
+-#define	AV_386_AMD_SYSC		0x00000010
+-#define	AV_386_CMOV		0x00000020
+-#define	AV_386_MMX		0x00000040
+-#define	AV_386_AMD_MMX		0x00000080
+-#define	AV_386_AMD_3DNow	0x00000100
+-#define	AV_386_AMD_3DNowx	0x00000200
+-#define	AV_386_FXSR		0x00000400
+-#define	AV_386_SSE		0x00000800
+-#define	AV_386_SSE2		0x00001000
+-#define	AV_386_PAUSE		0x00002000
+-#define	AV_386_SSE3		0x00004000
+-#define	AV_386_MON		0x00008000
+-#define	AV_386_CX16		0x00010000
+-#define	AV_386_AHF		0x00020000
+-#define	AV_386_TSCP		0x00040000
+-#define	AV_386_AMD_SSE4A	0x00080000
+-#define	AV_386_POPCNT		0x00100000
+-#define	AV_386_AMD_LZCNT	0x00200000
+-#define	AV_386_SSSE3		0x00400000
+-#define	AV_386_SSE4_1		0x00800000
+-#define	AV_386_SSE4_2		0x01000000
+-
+-#endif
+--- a/ext/fileinfo/libmagic/readelf.c
++++ /dev/null
+@@ -1,1190 +0,0 @@
+-/*
+- * Copyright (c) Christos Zoulas 2003.
+- * All Rights Reserved.
+- * 
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- * 1. Redistributions of source code must retain the above copyright
+- *    notice immediately at the beginning of the file, without modification,
+- *    this list of conditions, and the following disclaimer.
+- * 2. Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in the
+- *    documentation and/or other materials provided with the distribution.
+- *  
+- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+- * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR
+- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+- * SUCH DAMAGE.
+- */
+-#include "file.h"
+-
+-#ifndef lint
+-FILE_RCSID("@(#)$File: readelf.c,v 1.90 2011/08/23 08:01:12 christos Exp $")
+-#endif
+-
+-#ifdef BUILTIN_ELF
+-#include <string.h>
+-#include <ctype.h>
+-#include <stdlib.h>
+-#ifdef HAVE_UNISTD_H
+-#include <unistd.h>
+-#endif
+-
+-#include "readelf.h"
+-#include "magic.h"
+-
+-#ifdef	ELFCORE
+-private int dophn_core(struct magic_set *, int, int, int, off_t, int, size_t,
+-    off_t, int *);
+-#endif
+-private int dophn_exec(struct magic_set *, int, int, int, off_t, int, size_t,
+-    off_t, int *, int);
+-private int doshn(struct magic_set *, int, int, int, off_t, int, size_t,
+-    off_t, int *, int);
+-private size_t donote(struct magic_set *, unsigned char *, size_t, size_t, int,
+-    int, size_t, int *);
+-
+-#define	ELF_ALIGN(a)	((((a) + align - 1) / align) * align)
+-
+-#define isquote(c) (strchr("'\"`", (c)) != NULL)
+-
+-private uint16_t getu16(int, uint16_t);
+-private uint32_t getu32(int, uint32_t);
+-private uint64_t getu64(int, uint64_t);
+-
+-private uint16_t
+-getu16(int swap, uint16_t value)
+-{
+-	union {
+-		uint16_t ui;
+-		char c[2];
+-	} retval, tmpval;
+-
+-	if (swap) {
+-		tmpval.ui = value;
+-
+-		retval.c[0] = tmpval.c[1];
+-		retval.c[1] = tmpval.c[0];
+-		
+-		return retval.ui;
+-	} else
+-		return value;
+-}
+-
+-private uint32_t
+-getu32(int swap, uint32_t value)
+-{
+-	union {
+-		uint32_t ui;
+-		char c[4];
+-	} retval, tmpval;
+-
+-	if (swap) {
+-		tmpval.ui = value;
+-
+-		retval.c[0] = tmpval.c[3];
+-		retval.c[1] = tmpval.c[2];
+-		retval.c[2] = tmpval.c[1];
+-		retval.c[3] = tmpval.c[0];
+-		
+-		return retval.ui;
+-	} else
+-		return value;
+-}
+-
+-private uint64_t
+-getu64(int swap, uint64_t value)
+-{
+-	union {
+-		uint64_t ui;
+-		char c[8];
+-	} retval, tmpval;
+-
+-	if (swap) {
+-		tmpval.ui = value;
+-
+-		retval.c[0] = tmpval.c[7];
+-		retval.c[1] = tmpval.c[6];
+-		retval.c[2] = tmpval.c[5];
+-		retval.c[3] = tmpval.c[4];
+-		retval.c[4] = tmpval.c[3];
+-		retval.c[5] = tmpval.c[2];
+-		retval.c[6] = tmpval.c[1];
+-		retval.c[7] = tmpval.c[0];
+-		
+-		return retval.ui;
+-	} else
+-		return value;
+-}
+-
+-#define elf_getu16(swap, value) getu16(swap, value)
+-#define elf_getu32(swap, value) getu32(swap, value)
+-#ifdef USE_ARRAY_FOR_64BIT_TYPES
+-# define elf_getu64(swap, array) \
+-	((swap ? ((uint64_t)elf_getu32(swap, array[0])) << 32 : elf_getu32(swap, array[0])) + \
+-	 (swap ? elf_getu32(swap, array[1]) : ((uint64_t)elf_getu32(swap, array[1]) << 32)))
+-#else
+-# define elf_getu64(swap, value) getu64(swap, value)
+-#endif
+-
+-#define xsh_addr	(clazz == ELFCLASS32			\
+-			 ? (void *) &sh32			\
+-			 : (void *) &sh64)
+-#define xsh_sizeof	(clazz == ELFCLASS32			\
+-			 ? sizeof sh32				\
+-			 : sizeof sh64)
+-#define xsh_size	(clazz == ELFCLASS32			\
+-			 ? elf_getu32(swap, sh32.sh_size)	\
+-			 : elf_getu64(swap, sh64.sh_size))
+-#define xsh_offset	(off_t)(clazz == ELFCLASS32		\
+-			 ? elf_getu32(swap, sh32.sh_offset)	\
+-			 : elf_getu64(swap, sh64.sh_offset))
+-#define xsh_type	(clazz == ELFCLASS32			\
+-			 ? elf_getu32(swap, sh32.sh_type)	\
+-			 : elf_getu32(swap, sh64.sh_type))
+-#define xph_addr	(clazz == ELFCLASS32			\
+-			 ? (void *) &ph32			\
+-			 : (void *) &ph64)
+-#define xph_sizeof	(clazz == ELFCLASS32			\
+-			 ? sizeof ph32				\
+-			 : sizeof ph64)
+-#define xph_type	(clazz == ELFCLASS32			\
+-			 ? elf_getu32(swap, ph32.p_type)	\
+-			 : elf_getu32(swap, ph64.p_type))
+-#define xph_offset	(off_t)(clazz == ELFCLASS32		\
+-			 ? elf_getu32(swap, ph32.p_offset)	\
+-			 : elf_getu64(swap, ph64.p_offset))
+-#define xph_align	(size_t)((clazz == ELFCLASS32		\
+-			 ? (off_t) (ph32.p_align ? 		\
+-			    elf_getu32(swap, ph32.p_align) : 4) \
+-			 : (off_t) (ph64.p_align ?		\
+-			    elf_getu64(swap, ph64.p_align) : 4)))
+-#define xph_filesz	(size_t)((clazz == ELFCLASS32		\
+-			 ? elf_getu32(swap, ph32.p_filesz)	\
+-			 : elf_getu64(swap, ph64.p_filesz)))
+-#define xnh_addr	(clazz == ELFCLASS32			\
+-			 ? (void *) &nh32			\
+-			 : (void *) &nh64)
+-#define xph_memsz	(size_t)((clazz == ELFCLASS32		\
+-			 ? elf_getu32(swap, ph32.p_memsz)	\
+-			 : elf_getu64(swap, ph64.p_memsz)))
+-#define xnh_sizeof	(clazz == ELFCLASS32			\
+-			 ? sizeof nh32				\
+-			 : sizeof nh64)
+-#define xnh_type	(clazz == ELFCLASS32			\
+-			 ? elf_getu32(swap, nh32.n_type)	\
+-			 : elf_getu32(swap, nh64.n_type))
+-#define xnh_namesz	(clazz == ELFCLASS32			\
+-			 ? elf_getu32(swap, nh32.n_namesz)	\
+-			 : elf_getu32(swap, nh64.n_namesz))
+-#define xnh_descsz	(clazz == ELFCLASS32			\
+-			 ? elf_getu32(swap, nh32.n_descsz)	\
+-			 : elf_getu32(swap, nh64.n_descsz))
+-#define prpsoffsets(i)	(clazz == ELFCLASS32			\
+-			 ? prpsoffsets32[i]			\
+-			 : prpsoffsets64[i])
+-#define xcap_addr	(clazz == ELFCLASS32			\
+-			 ? (void *) &cap32			\
+-			 : (void *) &cap64)
+-#define xcap_sizeof	(clazz == ELFCLASS32			\
+-			 ? sizeof cap32				\
+-			 : sizeof cap64)
+-#define xcap_tag	(clazz == ELFCLASS32			\
+-			 ? elf_getu32(swap, cap32.c_tag)	\
+-			 : elf_getu64(swap, cap64.c_tag))
+-#define xcap_val	(clazz == ELFCLASS32			\
+-			 ? elf_getu32(swap, cap32.c_un.c_val)	\
+-			 : elf_getu64(swap, cap64.c_un.c_val))
+-
+-#ifdef ELFCORE
+-/*
+- * Try larger offsets first to avoid false matches
+- * from earlier data that happen to look like strings.
+- */
+-static const size_t	prpsoffsets32[] = {
+-#ifdef USE_NT_PSINFO
+-	104,		/* SunOS 5.x (command line) */
+-	88,		/* SunOS 5.x (short name) */
+-#endif /* USE_NT_PSINFO */
+-
+-	100,		/* SunOS 5.x (command line) */
+-	84,		/* SunOS 5.x (short name) */
+-
+-	44,		/* Linux (command line) */
+-	28,		/* Linux 2.0.36 (short name) */
+-
+-	8,		/* FreeBSD */
+-};
+-
+-static const size_t	prpsoffsets64[] = {
+-#ifdef USE_NT_PSINFO
+-	152,		/* SunOS 5.x (command line) */
+-	136,		/* SunOS 5.x (short name) */
+-#endif /* USE_NT_PSINFO */
+-
+-	136,		/* SunOS 5.x, 64-bit (command line) */
+-	120,		/* SunOS 5.x, 64-bit (short name) */
+-
+-	56,		/* Linux (command line) */
+-	40,             /* Linux (tested on core from 2.4.x, short name) */
+-
+-	16,		/* FreeBSD, 64-bit */
+-};
+-
+-#define	NOFFSETS32	(sizeof prpsoffsets32 / sizeof prpsoffsets32[0])
+-#define NOFFSETS64	(sizeof prpsoffsets64 / sizeof prpsoffsets64[0])
+-
+-#define NOFFSETS	(clazz == ELFCLASS32 ? NOFFSETS32 : NOFFSETS64)
+-
+-/*
+- * Look through the program headers of an executable image, searching
+- * for a PT_NOTE section of type NT_PRPSINFO, with a name "CORE" or
+- * "FreeBSD"; if one is found, try looking in various places in its
+- * contents for a 16-character string containing only printable
+- * characters - if found, that string should be the name of the program
+- * that dropped core.  Note: right after that 16-character string is,
+- * at least in SunOS 5.x (and possibly other SVR4-flavored systems) and
+- * Linux, a longer string (80 characters, in 5.x, probably other
+- * SVR4-flavored systems, and Linux) containing the start of the
+- * command line for that program.
+- *
+- * SunOS 5.x core files contain two PT_NOTE sections, with the types
+- * NT_PRPSINFO (old) and NT_PSINFO (new).  These structs contain the
+- * same info about the command name and command line, so it probably
+- * isn't worthwhile to look for NT_PSINFO, but the offsets are provided
+- * above (see USE_NT_PSINFO), in case we ever decide to do so.  The
+- * NT_PRPSINFO and NT_PSINFO sections are always in order and adjacent;
+- * the SunOS 5.x file command relies on this (and prefers the latter).
+- *
+- * The signal number probably appears in a section of type NT_PRSTATUS,
+- * but that's also rather OS-dependent, in ways that are harder to
+- * dissect with heuristics, so I'm not bothering with the signal number.
+- * (I suppose the signal number could be of interest in situations where
+- * you don't have the binary of the program that dropped core; if you
+- * *do* have that binary, the debugger will probably tell you what
+- * signal it was.)
+- */
+-
+-#define	OS_STYLE_SVR4		0
+-#define	OS_STYLE_FREEBSD	1
+-#define	OS_STYLE_NETBSD		2
+-
+-private const char os_style_names[][8] = {
+-	"SVR4",
+-	"FreeBSD",
+-	"NetBSD",
+-};
+-
+-#define FLAGS_DID_CORE		0x01
+-#define FLAGS_DID_NOTE		0x02
+-#define FLAGS_DID_BUILD_ID	0x04
+-#define FLAGS_DID_CORE_STYLE	0x08
+-#define FLAGS_IS_CORE		0x10
+-
+-private int
+-dophn_core(struct magic_set *ms, int clazz, int swap, int fd, off_t off,
+-    int num, size_t size, off_t fsize, int *flags)
+-{
+-	Elf32_Phdr ph32;
+-	Elf64_Phdr ph64;
+-	size_t offset;
+-	unsigned char nbuf[BUFSIZ];
+-	ssize_t bufsize;
+-
+-	if (size != xph_sizeof) {
+-		if (file_printf(ms, ", corrupted program header size") == -1)
+-			return -1;
+-		return 0;
+-	}
+-
+-	/*
+-	 * Loop through all the program headers.
+-	 */
+-	for ( ; num; num--) {
+-		if (FINFO_LSEEK_FUNC(fd, off, SEEK_SET) == (off_t)-1) {
+-			file_badseek(ms);
+-			return -1;
+-		}
+-		if (FINFO_READ_FUNC(fd, xph_addr, xph_sizeof) == -1) {
+-			file_badread(ms);
+-			return -1;
+-		}
+-		off += size;
+-
+-		if (xph_offset > fsize) {
+-			/* Perhaps warn here */
+-			continue;
+-		}
+-
+-		if (xph_type != PT_NOTE)
+-			continue;
+-
+-		/*
+-		 * This is a PT_NOTE section; loop through all the notes
+-		 * in the section.
+-		 */
+-		if (FINFO_LSEEK_FUNC(fd, xph_offset, SEEK_SET) == (off_t)-1) {
+-			file_badseek(ms);
+-			return -1;
+-		}
+-		bufsize = FINFO_READ_FUNC(fd, nbuf,
+-		    ((xph_filesz < sizeof(nbuf)) ? xph_filesz : sizeof(nbuf)));
+-		if (bufsize == -1) {
+-			file_badread(ms);
+-			return -1;
+-		}
+-		offset = 0;
+-		for (;;) {
+-			if (offset >= (size_t)bufsize)
+-				break;
+-			offset = donote(ms, nbuf, offset, (size_t)bufsize,
+-			    clazz, swap, 4, flags);
+-			if (offset == 0)
+-				break;
+-
+-		}
+-	}
+-	return 0;
+-}
+-#endif
+-
+-private size_t
+-donote(struct magic_set *ms, unsigned char *nbuf, size_t offset, size_t size,
+-    int clazz, int swap, size_t align, int *flags)
+-{
+-	Elf32_Nhdr nh32;
+-	Elf64_Nhdr nh64;
+-	size_t noff, doff;
+-#ifdef ELFCORE
+-	int os_style = -1;
+-#endif
+-	uint32_t namesz, descsz;
+-
+-	(void)memcpy(xnh_addr, &nbuf[offset], xnh_sizeof);
+-	offset += xnh_sizeof;
+-
+-	namesz = xnh_namesz;
+-	descsz = xnh_descsz;
+-	if ((namesz == 0) && (descsz == 0)) {
+-		/*
+-		 * We're out of note headers.
+-		 */
+-		return (offset >= size) ? offset : size;
+-	}
+-
+-	if (namesz & 0x80000000) {
+-	    (void)file_printf(ms, ", bad note name size 0x%lx",
+-		(unsigned long)namesz);
+-	    return offset;
+-	}
+-
+-	if (descsz & 0x80000000) {
+-	    (void)file_printf(ms, ", bad note description size 0x%lx",
+-		(unsigned long)descsz);
+-	    return offset;
+-	}
+-
+-
+-	noff = offset;
+-	doff = ELF_ALIGN(offset + namesz);
+-
+-	if (offset + namesz > size) {
+-		/*
+-		 * We're past the end of the buffer.
+-		 */
+-		return doff;
+-	}
+-
+-	offset = ELF_ALIGN(doff + descsz);
+-	if (doff + descsz > size) {
+-		/*
+-		 * We're past the end of the buffer.
+-		 */
+-		return (offset >= size) ? offset : size;
+-	}
+-
+-	if ((*flags & (FLAGS_DID_NOTE|FLAGS_DID_BUILD_ID)) ==
+-	    (FLAGS_DID_NOTE|FLAGS_DID_BUILD_ID))
+-		goto core;
+-
+-	if (namesz == 4 && strcmp((char *)&nbuf[noff], "GNU") == 0 &&
+-	    xnh_type == NT_GNU_VERSION && descsz == 16) {
+-		uint32_t desc[4];
+-		(void)memcpy(desc, &nbuf[doff], sizeof(desc));
+-
+-		if (file_printf(ms, ", for GNU/") == -1)
+-			return size;
+-		switch (elf_getu32(swap, desc[0])) {
+-		case GNU_OS_LINUX:
+-			if (file_printf(ms, "Linux") == -1)
+-				return size;
+-			break;
+-		case GNU_OS_HURD:
+-			if (file_printf(ms, "Hurd") == -1)
+-				return size;
+-			break;
+-		case GNU_OS_SOLARIS:
+-			if (file_printf(ms, "Solaris") == -1)
+-				return size;
+-			break;
+-		case GNU_OS_KFREEBSD:
+-			if (file_printf(ms, "kFreeBSD") == -1)
+-				return size;
+-			break;
+-		case GNU_OS_KNETBSD:
+-			if (file_printf(ms, "kNetBSD") == -1)
+-				return size;
+-			break;
+-		default:
+-			if (file_printf(ms, "<unknown>") == -1)
+-				return size; 
+-		}
+-		if (file_printf(ms, " %d.%d.%d", elf_getu32(swap, desc[1]),
+-		    elf_getu32(swap, desc[2]), elf_getu32(swap, desc[3])) == -1)
+-			return size;
+-		*flags |= FLAGS_DID_NOTE;
+-		return size;
+-	}
+-
+-	if (namesz == 4 && strcmp((char *)&nbuf[noff], "GNU") == 0 &&
+-	    xnh_type == NT_GNU_BUILD_ID && (descsz == 16 || descsz == 20)) {
+-	    uint32_t desc[5], i;
+-	    if (file_printf(ms, ", BuildID[%s]=0x", descsz == 16 ? "md5/uuid" :
+-		"sha1") == -1)
+-		    return size;
+-	    (void)memcpy(desc, &nbuf[doff], descsz);
+-	    for (i = 0; i < descsz >> 2; i++)
+-		if (file_printf(ms, "%.8x", desc[i]) == -1)
+-		    return size;
+-	    *flags |= FLAGS_DID_BUILD_ID;
+-	}
+-
+-	if (namesz == 7 && strcmp((char *)&nbuf[noff], "NetBSD") == 0 &&
+-	    xnh_type == NT_NETBSD_VERSION && descsz == 4) {
+-		uint32_t desc;
+-		(void)memcpy(&desc, &nbuf[doff], sizeof(desc));
+-		desc = elf_getu32(swap, desc);
+-
+-		if (file_printf(ms, ", for NetBSD") == -1)
+-			return size;
+-		/*
+-		 * The version number used to be stuck as 199905, and was thus
+-		 * basically content-free.  Newer versions of NetBSD have fixed
+-		 * this and now use the encoding of __NetBSD_Version__:
+-		 *
+-		 *	MMmmrrpp00
+-		 *
+-		 * M = major version
+-		 * m = minor version
+-		 * r = release ["",A-Z,Z[A-Z] but numeric]
+-		 * p = patchlevel
+-		 */
+-		if (desc > 100000000U) {
+-			uint32_t ver_patch = (desc / 100) % 100;
+-			uint32_t ver_rel = (desc / 10000) % 100;
+-			uint32_t ver_min = (desc / 1000000) % 100;
+-			uint32_t ver_maj = desc / 100000000;
+-
+-			if (file_printf(ms, " %u.%u", ver_maj, ver_min) == -1)
+-				return size;
+-			if (ver_rel == 0 && ver_patch != 0) {
+-				if (file_printf(ms, ".%u", ver_patch) == -1)
+-					return size;
+-			} else if (ver_rel != 0) {
+-				while (ver_rel > 26) {
+-					if (file_printf(ms, "Z") == -1)
+-						return size;
+-					ver_rel -= 26;
+-				}
+-				if (file_printf(ms, "%c", 'A' + ver_rel - 1)
+-				    == -1)
+-					return size;
+-			}
+-		}
+-		*flags |= FLAGS_DID_NOTE;
+-		return size;
+-	}
+-
+-	if (namesz == 8 && strcmp((char *)&nbuf[noff], "FreeBSD") == 0 &&
+-	    xnh_type == NT_FREEBSD_VERSION && descsz == 4) {
+-		uint32_t desc;
+-		(void)memcpy(&desc, &nbuf[doff], sizeof(desc));
+-		desc = elf_getu32(swap, desc);
+-		if (file_printf(ms, ", for FreeBSD") == -1)
+-			return size;
+-
+-		/*
+-		 * Contents is __FreeBSD_version, whose relation to OS
+-		 * versions is defined by a huge table in the Porter's
+-		 * Handbook.  This is the general scheme:
+-		 * 
+-		 * Releases:
+-		 * 	Mmp000 (before 4.10)
+-		 * 	Mmi0p0 (before 5.0)
+-		 * 	Mmm0p0
+-		 * 
+-		 * Development branches:
+-		 * 	Mmpxxx (before 4.6)
+-		 * 	Mmp1xx (before 4.10)
+-		 * 	Mmi1xx (before 5.0)
+-		 * 	M000xx (pre-M.0)
+-		 * 	Mmm1xx
+-		 * 
+-		 * M = major version
+-		 * m = minor version
+-		 * i = minor version increment (491000 -> 4.10)
+-		 * p = patchlevel
+-		 * x = revision
+-		 * 
+-		 * The first release of FreeBSD to use ELF by default
+-		 * was version 3.0.
+-		 */
+-		if (desc == 460002) {
+-			if (file_printf(ms, " 4.6.2") == -1)
+-				return size;
+-		} else if (desc < 460100) {
+-			if (file_printf(ms, " %d.%d", desc / 100000,
+-			    desc / 10000 % 10) == -1)
+-				return size;
+-			if (desc / 1000 % 10 > 0)
+-				if (file_printf(ms, ".%d", desc / 1000 % 10)
+-				    == -1)
+-					return size;
+-			if ((desc % 1000 > 0) || (desc % 100000 == 0))
+-				if (file_printf(ms, " (%d)", desc) == -1)
+-					return size;
+-		} else if (desc < 500000) {
+-			if (file_printf(ms, " %d.%d", desc / 100000,
+-			    desc / 10000 % 10 + desc / 1000 % 10) == -1)
+-				return size;
+-			if (desc / 100 % 10 > 0) {
+-				if (file_printf(ms, " (%d)", desc) == -1)
+-					return size;
+-			} else if (desc / 10 % 10 > 0) {
+-				if (file_printf(ms, ".%d", desc / 10 % 10)
+-				    == -1)
+-					return size;
+-			}
+-		} else {
+-			if (file_printf(ms, " %d.%d", desc / 100000,
+-			    desc / 1000 % 100) == -1)
+-				return size;
+-			if ((desc / 100 % 10 > 0) ||
+-			    (desc % 100000 / 100 == 0)) {
+-				if (file_printf(ms, " (%d)", desc) == -1)
+-					return size;
+-			} else if (desc / 10 % 10 > 0) {
+-				if (file_printf(ms, ".%d", desc / 10 % 10)
+-				    == -1)
+-					return size;
+-			}
+-		}
+-		*flags |= FLAGS_DID_NOTE;
+-		return size;
+-	}
+-
+-	if (namesz == 8 && strcmp((char *)&nbuf[noff], "OpenBSD") == 0 &&
+-	    xnh_type == NT_OPENBSD_VERSION && descsz == 4) {
+-		if (file_printf(ms, ", for OpenBSD") == -1)
+-			return size;
+-		/* Content of note is always 0 */
+-		*flags |= FLAGS_DID_NOTE;
+-		return size;
+-	}
+-
+-	if (namesz == 10 && strcmp((char *)&nbuf[noff], "DragonFly") == 0 &&
+-	    xnh_type == NT_DRAGONFLY_VERSION && descsz == 4) {
+-		uint32_t desc;
+-		if (file_printf(ms, ", for DragonFly") == -1)
+-			return size;
+-		(void)memcpy(&desc, &nbuf[doff], sizeof(desc));
+-		desc = elf_getu32(swap, desc);
+-		if (file_printf(ms, " %d.%d.%d", desc / 100000,
+-		    desc / 10000 % 10, desc % 10000) == -1)
+-			return size;
+-		*flags |= FLAGS_DID_NOTE;
+-		return size;
+-	}
+-
+-core:
+-	/*
+-	 * Sigh.  The 2.0.36 kernel in Debian 2.1, at
+-	 * least, doesn't correctly implement name
+-	 * sections, in core dumps, as specified by
+-	 * the "Program Linking" section of "UNIX(R) System
+-	 * V Release 4 Programmer's Guide: ANSI C and
+-	 * Programming Support Tools", because my copy
+-	 * clearly says "The first 'namesz' bytes in 'name'
+-	 * contain a *null-terminated* [emphasis mine]
+-	 * character representation of the entry's owner
+-	 * or originator", but the 2.0.36 kernel code
+-	 * doesn't include the terminating null in the
+-	 * name....
+-	 */
+-	if ((namesz == 4 && strncmp((char *)&nbuf[noff], "CORE", 4) == 0) ||
+-	    (namesz == 5 && strcmp((char *)&nbuf[noff], "CORE") == 0)) {
+-		os_style = OS_STYLE_SVR4;
+-	} 
+-
+-	if ((namesz == 8 && strcmp((char *)&nbuf[noff], "FreeBSD") == 0)) {
+-		os_style = OS_STYLE_FREEBSD;
+-	}
+-
+-	if ((namesz >= 11 && strncmp((char *)&nbuf[noff], "NetBSD-CORE", 11)
+-	    == 0)) {
+-		os_style = OS_STYLE_NETBSD;
+-	}
+-
+-#ifdef ELFCORE
+-	if ((*flags & FLAGS_DID_CORE) != 0)
+-		return size;
+-
+-	if (os_style != -1 && (*flags & FLAGS_DID_CORE_STYLE) == 0) {
+-		if (file_printf(ms, ", %s-style", os_style_names[os_style])
+-		    == -1)
+-			return size;
+-		*flags |= FLAGS_DID_CORE_STYLE;
+-	}
+-
+-	switch (os_style) {
+-	case OS_STYLE_NETBSD:
+-		if (xnh_type == NT_NETBSD_CORE_PROCINFO) {
+-			uint32_t signo;
+-			/*
+-			 * Extract the program name.  It is at
+-			 * offset 0x7c, and is up to 32-bytes,
+-			 * including the terminating NUL.
+-			 */
+-			if (file_printf(ms, ", from '%.31s'",
+-			    &nbuf[doff + 0x7c]) == -1)
+-				return size;
+-			
+-			/*
+-			 * Extract the signal number.  It is at
+-			 * offset 0x08.
+-			 */
+-			(void)memcpy(&signo, &nbuf[doff + 0x08],
+-			    sizeof(signo));
+-			if (file_printf(ms, " (signal %u)",
+-			    elf_getu32(swap, signo)) == -1)
+-				return size;
+-			*flags |= FLAGS_DID_CORE;
+-			return size;
+-		}
+-		break;
+-
+-	default:
+-		if (xnh_type == NT_PRPSINFO && *flags & FLAGS_IS_CORE) {
+-			size_t i, j;
+-			unsigned char c;
+-			/*
+-			 * Extract the program name.  We assume
+-			 * it to be 16 characters (that's what it
+-			 * is in SunOS 5.x and Linux).
+-			 *
+-			 * Unfortunately, it's at a different offset
+-			 * in various OSes, so try multiple offsets.
+-			 * If the characters aren't all printable,
+-			 * reject it.
+-			 */
+-			for (i = 0; i < NOFFSETS; i++) {
+-				unsigned char *cname, *cp;
+-				size_t reloffset = prpsoffsets(i);
+-				size_t noffset = doff + reloffset;
+-				size_t k;
+-				for (j = 0; j < 16; j++, noffset++,
+-				    reloffset++) {
+-					/*
+-					 * Make sure we're not past
+-					 * the end of the buffer; if
+-					 * we are, just give up.
+-					 */
+-					if (noffset >= size)
+-						goto tryanother;
+-
+-					/*
+-					 * Make sure we're not past
+-					 * the end of the contents;
+-					 * if we are, this obviously
+-					 * isn't the right offset.
+-					 */
+-					if (reloffset >= descsz)
+-						goto tryanother;
+-
+-					c = nbuf[noffset];
+-					if (c == '\0') {
+-						/*
+-						 * A '\0' at the
+-						 * beginning is
+-						 * obviously wrong.
+-						 * Any other '\0'
+-						 * means we're done.
+-						 */
+-						if (j == 0)
+-							goto tryanother;
+-						else
+-							break;
+-					} else {
+-						/*
+-						 * A nonprintable
+-						 * character is also
+-						 * wrong.
+-						 */
+-						if (!isprint(c) || isquote(c))
+-							goto tryanother;
+-					}
+-				}
+-				/*
+-				 * Well, that worked.
+-				 */
+-
+-				/*
+-				 * Try next offsets, in case this match is
+-				 * in the middle of a string.
+-				 */
+-				for (k = i + 1 ; k < NOFFSETS ; k++) {
+-					size_t no;
+-					int adjust = 1;
+-					if (prpsoffsets(k) >= prpsoffsets(i))
+-						continue;
+-					for (no = doff + prpsoffsets(k);
+-					     no < doff + prpsoffsets(i); no++)
+-						adjust = adjust
+-						         && isprint(nbuf[no]);
+-					if (adjust)
+-						i = k;
+-				}
+-
+-				cname = (unsigned char *)
+-				    &nbuf[doff + prpsoffsets(i)];
+-				for (cp = cname; *cp && isprint(*cp); cp++)
+-					continue;
+-				/*
+-				 * Linux apparently appends a space at the end
+-				 * of the command line: remove it.
+-				 */
+-				while (cp > cname && isspace(cp[-1]))
+-					cp--;
+-				if (file_printf(ms, ", from '%.*s'",
+-				    (int)(cp - cname), cname) == -1)
+-					return size;
+-				*flags |= FLAGS_DID_CORE;
+-				return size;
+-
+-			tryanother:
+-				;
+-			}
+-		}
+-		break;
+-	}
+-#endif
+-	return offset;
+-}
+-
+-/* SunOS 5.x hardware capability descriptions */
+-typedef struct cap_desc {
+-	uint64_t cd_mask;
+-	const char *cd_name;
+-} cap_desc_t;
+-
+-static const cap_desc_t cap_desc_sparc[] = {
+-	{ AV_SPARC_MUL32,		"MUL32" },
+-	{ AV_SPARC_DIV32,		"DIV32" },
+-	{ AV_SPARC_FSMULD,		"FSMULD" },
+-	{ AV_SPARC_V8PLUS,		"V8PLUS" },
+-	{ AV_SPARC_POPC,		"POPC" },
+-	{ AV_SPARC_VIS,			"VIS" },
+-	{ AV_SPARC_VIS2,		"VIS2" },
+-	{ AV_SPARC_ASI_BLK_INIT,	"ASI_BLK_INIT" },
+-	{ AV_SPARC_FMAF,		"FMAF" },
+-	{ AV_SPARC_FJFMAU,		"FJFMAU" },
+-	{ AV_SPARC_IMA,			"IMA" },
+-	{ 0, NULL }
+-};
+-
+-static const cap_desc_t cap_desc_386[] = {
+-	{ AV_386_FPU,			"FPU" },
+-	{ AV_386_TSC,			"TSC" },
+-	{ AV_386_CX8,			"CX8" },
+-	{ AV_386_SEP,			"SEP" },
+-	{ AV_386_AMD_SYSC,		"AMD_SYSC" },
+-	{ AV_386_CMOV,			"CMOV" },
+-	{ AV_386_MMX,			"MMX" },
+-	{ AV_386_AMD_MMX,		"AMD_MMX" },
+-	{ AV_386_AMD_3DNow,		"AMD_3DNow" },
+-	{ AV_386_AMD_3DNowx,		"AMD_3DNowx" },
+-	{ AV_386_FXSR,			"FXSR" },
+-	{ AV_386_SSE,			"SSE" },
+-	{ AV_386_SSE2,			"SSE2" },
+-	{ AV_386_PAUSE,			"PAUSE" },
+-	{ AV_386_SSE3,			"SSE3" },
+-	{ AV_386_MON,			"MON" },
+-	{ AV_386_CX16,			"CX16" },
+-	{ AV_386_AHF,			"AHF" },
+-	{ AV_386_TSCP,			"TSCP" },
+-	{ AV_386_AMD_SSE4A,		"AMD_SSE4A" },
+-	{ AV_386_POPCNT,		"POPCNT" },
+-	{ AV_386_AMD_LZCNT,		"AMD_LZCNT" },
+-	{ AV_386_SSSE3,			"SSSE3" },
+-	{ AV_386_SSE4_1,		"SSE4.1" },
+-	{ AV_386_SSE4_2,		"SSE4.2" },
+-	{ 0, NULL }
+-};
+-
+-private int
+-doshn(struct magic_set *ms, int clazz, int swap, int fd, off_t off, int num,
+-    size_t size, off_t fsize, int *flags, int mach)
+-{
+-	Elf32_Shdr sh32;
+-	Elf64_Shdr sh64;
+-	int stripped = 1;
+-	void *nbuf;
+-	off_t noff, coff;
+-	uint64_t cap_hw1 = 0;	/* SunOS 5.x hardware capabilites */
+-	uint64_t cap_sf1 = 0;	/* SunOS 5.x software capabilites */
+-
+-	if (size != xsh_sizeof) {
+-		if (file_printf(ms, ", corrupted section header size") == -1)
+-			return -1;
+-		return 0;
+-	}
+-
+-	for ( ; num; num--) {
+-		if (FINFO_LSEEK_FUNC(fd, off, SEEK_SET) == (off_t)-1) {
+-			file_badseek(ms);
+-			return -1;
+-		}
+-		if (FINFO_READ_FUNC(fd, xsh_addr, xsh_sizeof) == -1) {
+-			file_badread(ms);
+-			return -1;
+-		}
+-		off += size;
+-
+-		/* Things we can determine before we seek */
+-		switch (xsh_type) {
+-		case SHT_SYMTAB:
+-#if 0
+-		case SHT_DYNSYM:
+-#endif
+-			stripped = 0;
+-			break;
+-		default:
+-			if (xsh_offset > fsize) {
+-				/* Perhaps warn here */
+-				continue;
+-			}
+-			break;
+-		}
+-
+-		/* Things we can determine when we seek */
+-		switch (xsh_type) {
+-		case SHT_NOTE:
+-			nbuf = emalloc((size_t)xsh_size);
+-			if ((noff = FINFO_LSEEK_FUNC(fd, (off_t)xsh_offset, SEEK_SET)) ==
+-			    (off_t)-1) {
+-				file_badread(ms);
+-				efree(nbuf);
+-				return -1;
+-			}
+-			if (FINFO_READ_FUNC(fd, nbuf, (size_t)xsh_size) !=
+-			    (ssize_t)xsh_size) {
+-				efree(nbuf);
+-				file_badread(ms);
+-				return -1;
+-			}
+-
+-			noff = 0;
+-			for (;;) {
+-				if (noff >= (off_t)xsh_size)
+-					break;
+-				noff = donote(ms, nbuf, (size_t)noff,
+-				    (size_t)xsh_size, clazz, swap, 4,
+-				    flags);
+-				if (noff == 0)
+-					break;
+-			}
+-			efree(nbuf);
+-			break;
+-		case SHT_SUNW_cap:
+-			if (FINFO_LSEEK_FUNC(fd, (off_t)xsh_offset, SEEK_SET) ==
+-			    (off_t)-1) {
+-				file_badseek(ms);
+-				return -1;
+-			}
+-			coff = 0;
+-			for (;;) {
+-				Elf32_Cap cap32;
+-				Elf64_Cap cap64;
+-				char cbuf[/*CONSTCOND*/
+-				    MAX(sizeof cap32, sizeof cap64)];
+-				if ((coff += xcap_sizeof) > (off_t)xsh_size)
+-					break;
+-				if (FINFO_READ_FUNC(fd, cbuf, (size_t)xcap_sizeof) !=
+-				    (ssize_t)xcap_sizeof) {
+-					file_badread(ms);
+-					return -1;
+-				}
+-				(void)memcpy(xcap_addr, cbuf, xcap_sizeof);
+-				switch (xcap_tag) {
+-				case CA_SUNW_NULL:
+-					break;
+-				case CA_SUNW_HW_1:
+-					cap_hw1 |= xcap_val;
+-					break;
+-				case CA_SUNW_SF_1:
+-					cap_sf1 |= xcap_val;
+-					break;
+-				default:
+-					if (file_printf(ms,
+-					    ", with unknown capability "
+-					    "0x%" INT64_T_FORMAT "x = 0x%"
+-					    INT64_T_FORMAT "x",
+-					    (unsigned long long)xcap_tag,
+-					    (unsigned long long)xcap_val) == -1)
+-						return -1;
+-					break;
+-				}
+-			}
+-			break;
+-
+-		default:
+-			break;
+-		}
+-	}
+-	if (file_printf(ms, ", %sstripped", stripped ? "" : "not ") == -1)
+-		return -1;
+-	if (cap_hw1) {
+-		const cap_desc_t *cdp;
+-		switch (mach) {
+-		case EM_SPARC:
+-		case EM_SPARC32PLUS:
+-		case EM_SPARCV9:
+-			cdp = cap_desc_sparc;
+-			break;
+-		case EM_386:
+-		case EM_IA_64:
+-		case EM_AMD64:
+-			cdp = cap_desc_386;
+-			break;
+-		default:
+-			cdp = NULL;
+-			break;
+-		}
+-		if (file_printf(ms, ", uses") == -1)
+-			return -1;
+-		if (cdp) {
+-			while (cdp->cd_name) {
+-				if (cap_hw1 & cdp->cd_mask) {
+-					if (file_printf(ms,
+-					    " %s", cdp->cd_name) == -1)
+-						return -1;
+-					cap_hw1 &= ~cdp->cd_mask;
+-				}
+-				++cdp;
+-			}
+-			if (cap_hw1)
+-				if (file_printf(ms,
+-				    " unknown hardware capability 0x%"
+-				    INT64_T_FORMAT "x",
+-				    (unsigned long long)cap_hw1) == -1)
+-					return -1;
+-		} else {
+-			if (file_printf(ms,
+-			    " hardware capability 0x%" INT64_T_FORMAT "x",
+-			    (unsigned long long)cap_hw1) == -1)
+-				return -1;
+-		}
+-	}
+-	if (cap_sf1) {
+-		if (cap_sf1 & SF1_SUNW_FPUSED) {
+-			if (file_printf(ms,
+-			    (cap_sf1 & SF1_SUNW_FPKNWN)
+-			    ? ", uses frame pointer"
+-			    : ", not known to use frame pointer") == -1)
+-				return -1;
+-		}
+-		cap_sf1 &= ~SF1_SUNW_MASK;
+-		if (cap_sf1)
+-			if (file_printf(ms,
+-			    ", with unknown software capability 0x%"
+-			    INT64_T_FORMAT "x",
+-			    (unsigned long long)cap_sf1) == -1)
+-				return -1;
+-	}
+-	return 0;
+-}
+-
+-/*
+- * Look through the program headers of an executable image, searching
+- * for a PT_INTERP section; if one is found, it's dynamically linked,
+- * otherwise it's statically linked.
+- */
+-private int
+-dophn_exec(struct magic_set *ms, int clazz, int swap, int fd, off_t off,
+-    int num, size_t size, off_t fsize, int *flags, int sh_num)
+-{
+-	Elf32_Phdr ph32;
+-	Elf64_Phdr ph64;
+-	const char *linking_style = "statically";
+-	const char *shared_libraries = "";
+-	unsigned char nbuf[BUFSIZ];
+-	ssize_t bufsize;
+-	size_t offset, align;
+-	
+-	if (size != xph_sizeof) {
+-		if (file_printf(ms, ", corrupted program header size") == -1)
+-			return -1;
+-		return 0;
+-	}
+-
+-  	for ( ; num; num--) {
+-		if (FINFO_LSEEK_FUNC(fd, off, SEEK_SET) == (off_t)-1) {
+-			file_badseek(ms);
+-			return -1;
+-		}
+-
+-  		if (FINFO_READ_FUNC(fd, xph_addr, xph_sizeof) == -1) {
+-  			file_badread(ms);
+-			return -1;
+-		}
+-
+-		off += size;
+-
+-		/* Things we can determine before we seek */
+-		switch (xph_type) {
+-		case PT_DYNAMIC:
+-			linking_style = "dynamically";
+-			break;
+-		case PT_INTERP:
+-			shared_libraries = " (uses shared libs)";
+-			break;
+-		default:
+-			if (xph_offset > fsize) {
+-				/* Maybe warn here? */
+-				continue;
+-			}
+-			break;
+-		}
+-
+-		/* Things we can determine when we seek */
+-		switch (xph_type) {
+-		case PT_NOTE:
+-			if ((align = xph_align) & 0x80000000UL) {
+-				if (file_printf(ms, 
+-				    ", invalid note alignment 0x%lx",
+-				    (unsigned long)align) == -1)
+-					return -1;
+-				align = 4;
+-			}
+-			if (sh_num)
+-				break;
+-			/*
+-			 * This is a PT_NOTE section; loop through all the notes
+-			 * in the section.
+-			 */
+-			if (FINFO_LSEEK_FUNC(fd, xph_offset, SEEK_SET) == (off_t)-1) {
+-				file_badseek(ms);
+-				return -1;
+-			}
+-			bufsize = FINFO_READ_FUNC(fd, nbuf, ((xph_filesz < sizeof(nbuf)) ?
+-			    xph_filesz : sizeof(nbuf)));
+-			if (bufsize == -1) {
+-				file_badread(ms);
+-				return -1;
+-			}
+-			offset = 0;
+-			for (;;) {
+-				if (offset >= (size_t)bufsize)
+-					break;
+-				offset = donote(ms, nbuf, offset,
+-				    (size_t)bufsize, clazz, swap, align,
+-				    flags);
+-				if (offset == 0)
+-					break;
+-			}
+-			break;
+-		default:
+-			break;
+-		}
+-	}
+-	if (file_printf(ms, ", %s linked%s", linking_style, shared_libraries)
+-	    == -1)
+-	    return -1;
+-	return 0;
+-}
+-
+-
+-protected int
+-file_tryelf(struct magic_set *ms, int fd, const unsigned char *buf,
+-    size_t nbytes)
+-{
+-	union {
+-		int32_t l;
+-		char c[sizeof (int32_t)];
+-	} u;
+-	int clazz;
+-	int swap;
+-	struct stat st;
+-	off_t fsize;
+-	int flags = 0;
+-	Elf32_Ehdr elf32hdr;
+-	Elf64_Ehdr elf64hdr;
+-	uint16_t type;
+-
+-	if (ms->flags & (MAGIC_MIME|MAGIC_APPLE))
+-		return 0;
+-	/*
+-	 * ELF executables have multiple section headers in arbitrary
+-	 * file locations and thus file(1) cannot determine it from easily.
+-	 * Instead we traverse thru all section headers until a symbol table
+-	 * one is found or else the binary is stripped.
+-	 * Return immediately if it's not ELF (so we avoid pipe2file unless needed).
+-	 */
+-	if (buf[EI_MAG0] != ELFMAG0
+-	    || (buf[EI_MAG1] != ELFMAG1 && buf[EI_MAG1] != OLFMAG1)
+-	    || buf[EI_MAG2] != ELFMAG2 || buf[EI_MAG3] != ELFMAG3)
+-		return 0;
+-
+-	/*
+-	 * If we cannot seek, it must be a pipe, socket or fifo.
+-	 */
+-	if((FINFO_LSEEK_FUNC(fd, (off_t)0, SEEK_SET) == (off_t)-1) && (errno == ESPIPE))
+-		fd = file_pipe2file(ms, fd, buf, nbytes);
+-
+-	if (fstat(fd, &st) == -1) {
+-  		file_badread(ms);
+-		return -1;
+-	}
+-	fsize = st.st_size;
+-
+-	clazz = buf[EI_CLASS];
+-
+-	switch (clazz) {
+-	case ELFCLASS32:
+-#undef elf_getu
+-#define elf_getu(a, b)	elf_getu32(a, b)
+-#undef elfhdr
+-#define elfhdr elf32hdr
+-#include "elfclass.h"
+-	case ELFCLASS64:
+-#undef elf_getu
+-#define elf_getu(a, b)	elf_getu64(a, b)
+-#undef elfhdr
+-#define elfhdr elf64hdr
+-#include "elfclass.h"
+-	default:
+-	    if (file_printf(ms, ", unknown class %d", clazz) == -1)
+-		    return -1;
+-	    break;
+-	}
+-	return 0;
+-}
+-#endif

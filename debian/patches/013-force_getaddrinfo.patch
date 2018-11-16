@@ -55,7 +55,7 @@ Last-Update: 2010-01-18
 -if test "$ac_cv_func_getaddrinfo" = yes; then
 +dnl AC_CACHE_CHECK([for getaddrinfo], ac_cv_func_getaddrinfo,
 +dnl [AC_TRY_LINK([#include <netdb.h>],
-+dnl                 [struct addrinfo *g,h;g=&h;getaddrinfo("","",g,&g);], 
++dnl                 [struct addrinfo *g,h;g=&h;getaddrinfo("","",g,&g);],
 +dnl   AC_TRY_RUN([
 +dnl #include <netdb.h>
 +dnl #include <sys/types.h>
@@ -64,20 +64,20 @@ Last-Update: 2010-01-18
 +dnl #endif
 +dnl int main(void) {
 +dnl   struct addrinfo *ai, *pai, hints;
-+dnl 
++dnl
 +dnl   memset(&hints, 0, sizeof(hints));
 +dnl   hints.ai_flags = AI_NUMERICHOST;
-+dnl 
++dnl
 +dnl   if (getaddrinfo("127.0.0.1", 0, &hints, &ai) < 0) {
 +dnl     exit(1);
 +dnl   }
-+dnl 
++dnl
 +dnl   if (ai == 0) {
 +dnl     exit(1);
 +dnl   }
-+dnl 
++dnl
 +dnl   pai = ai;
-+dnl   
++dnl
 +dnl   while (pai) {
 +dnl     if (pai->ai_family != AF_INET) {
 +dnl       /* 127.0.0.1/NUMERICHOST should only resolve ONE way */

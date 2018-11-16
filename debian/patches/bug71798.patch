@@ -1,0 +1,20 @@
+From 95433e8e339dbb6b5d5541473c1661db6ba2c451 Mon Sep 17 00:00:00 2001
+From: Stanislav Malyshev <stas@php.net>
+Date: Sun, 27 Mar 2016 14:22:19 -0700
+Subject: [PATCH] Fix bug #71798 - Integer Overflow in php_raw_url_encode
+
+---
+ ext/standard/url.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/ext/standard/url.c
++++ b/ext/standard/url.c
+@@ -596,7 +596,7 @@ PHPAPI int php_url_decode(char *str, int
+  */
+ PHPAPI char *php_raw_url_encode(char const *s, int len, int *new_length)
+ {
+-	register int x, y;
++	register size_t x, y;
+ 	unsigned char *str;
+ 
+ 	str = (unsigned char *) safe_emalloc(3, len, 1);

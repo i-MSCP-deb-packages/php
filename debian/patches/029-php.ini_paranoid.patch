@@ -76,9 +76,9 @@ Last-Update: 2010-01-18
 +; documented, you can go over each one,
 +; and decide whether you want to use it or not.
 +;
-+; For general information about the php.ini file, please consult the 
++; For general information about the php.ini file, please consult the
 +; php.ini-dist file, included in your PHP distribution.
-+; 
++;
 +; For further information see
 +; http://www.php.net/features.safe-mode
 +; http://www.phpsecure.info/
@@ -112,7 +112,7 @@ Last-Update: 2010-01-18
 +;
 +;     However, this feature by itself cannot be relied on to protect all applications.
 +;     It  is worthwhile reading also:
-+;     http://ilia.ws/archives/18_PHPs_safe_mode_or_how_not_to_implement_security.html 
++;     http://ilia.ws/archives/18_PHPs_safe_mode_or_how_not_to_implement_security.html
 +;     Bottomline: Do not trust that safe_mode will drive all your security vulnerabilities
 +;     away.
 +;
@@ -128,7 +128,7 @@ Last-Update: 2010-01-18
 +;     file operations.
 +;
 +; - disable_functions = dl, phpinfo, system, .... [Security]
-+;     Some functions can be used by attackers and can be malversed by 
++;     Some functions can be used by attackers and can be malversed by
 +;     applications, the list (not complete) of functions disabled includes
 +;     functions which might have a severe impact to the system if wrongly used
 +;     in scripts or subverted remotely by attackers.
@@ -136,16 +136,16 @@ Last-Update: 2010-01-18
 +; - expose_php = Off               [?Security?]
 +;      Not exposing that PHP is used in the site (nor its version) can affect
 +;      how some dumb worms attempt to attack the site. Many might
-+;      not check this and attempt to compromise the server nevertheless, 
++;      not check this and attempt to compromise the server nevertheless,
 +;      however. This setting is just 'security by obscurity' so no real
 +;      security at all (save vs. the dumbest attackers)
-+;      
++;
 +; - error_log = syslog              [Security, Performance log]
 +;      All errors are reported to syslog so that the errors can be easily
 +;      sent outsite the site to a syslog server. This prevents an intruder
 +;      from tampering with them in an attempt to hide his tracks since the
 +;      logs are stored in a different location. It also helps in forensic
-+;      investigation or when using automatic tools to produce reports or 
++;      investigation or when using automatic tools to produce reports or
 +;      generate alarms based on the syslog information.
 +;
 +; - error_reporting = E_ALL         [Code Cleanliness, Security(?)]
@@ -201,7 +201,7 @@ Last-Update: 2010-01-18
 +;     This features is deprecated in PHP 6.0, applications should be fixed to
 +;     prevent SQL injection attacks through input data and not rely on this feature.
 +; - magic_quotes_runtime = On       [Security]
-+;     Quotes in data returned from functions that access external data sources (such as 
++;     Quotes in data returned from functions that access external data sources (such as
 +;     databases) are escapted with a backslash.
 +;     This features is deprecated in PHP 6.0, applications should be fixed to
 +;     prevent SQL injection attacks through input data and not rely on this feature.
@@ -229,7 +229,7 @@ Last-Update: 2010-01-18
 +;     http://myhost/myapplication.php?include=http://roguesever/rogueapp.php
 +;
 +; - session.save_path = /var/lib/php5 [Security]
-+;     This is defined to a non-world readable directory so users cannot 
++;     This is defined to a non-world readable directory so users cannot
 +;     hihack sessions of other users by getting a list of the files.
 +;
 +;     Notice that on on shared servers on a per application basis, otherwise
@@ -270,7 +270,7 @@ Last-Update: 2010-01-18
 +; Enable compatibility mode with Zend Engine 1 (PHP 4.x)
 +zend.ze1_compatibility_mode = Off
 +
-+; Allow the <? tag.  Otherwise, only <?php and <script> tags are recognized. 
++; Allow the <? tag.  Otherwise, only <?php and <script> tags are recognized.
 +; NOTE: Using short tags should be avoided when developing applications or
 +; libraries that are meant for redistribution, or deployment on PHP
 +; servers which are not under your control, because short tags may not
@@ -302,10 +302,10 @@ Last-Update: 2010-01-18
 +; Setting any output handler automatically turns on output buffering.
 +; Note: People who wrote portable scripts should not depend on this ini
 +;       directive. Instead, explicitly set the output handler using ob_start().
-+;       Using this ini directive may cause problems unless you know what script 
++;       Using this ini directive may cause problems unless you know what script
 +;       is doing.
 +; Note: You cannot use both "mb_output_handler" with "ob_iconv_handler"
-+;       and you cannot use both "ob_gzhandler" and "zlib.output_compression". 
++;       and you cannot use both "ob_gzhandler" and "zlib.output_compression".
 +; Note: output_handler must be empty if this is set 'On' !!!!
 +;       Instead you must use zlib.output_handler.
 +;output_handler =
@@ -313,9 +313,9 @@ Last-Update: 2010-01-18
 +; Transparent output compression using the zlib library
 +; Valid values for this option are 'off', 'on', or a specific buffer size
 +; to be used for compression (default is 4KB)
-+; Note: Resulting chunk size may vary due to nature of compression. PHP 
-+;       outputs chunks that are few hundreds bytes each as a result of 
-+;       compression. If you prefer a larger chunk size for better 
++; Note: Resulting chunk size may vary due to nature of compression. PHP
++;       outputs chunks that are few hundreds bytes each as a result of
++;       compression. If you prefer a larger chunk size for better
 +;       performance, enable output_buffering in addition.
 +; Note: You need to use zlib.output_handler instead of the standard
 +;       output_handler, or otherwise the output will be corrupted.
@@ -364,8 +364,8 @@ Last-Update: 2010-01-18
 +;     Notice that with this mode on PHP will not create new files in
 +;     directories which have different owner than the owner of the script. This
 +;     typically applies to /tmp, so contrary to Unix intuition, you will not be able
-+;     to create new files there (even if the /tmp rights are set correctly). 
-+; 
++;     to create new files there (even if the /tmp rights are set correctly).
++;
 +; NOTE: this is considered a "broken" security measure.
 +;       Applications relying on this feature will not recieve full
 +;       support by the security team.  For more information please
@@ -382,11 +382,11 @@ Last-Update: 2010-01-18
 +; including files from this directory and its subdirectories.
 +; (directory must also be in include_path or full path must
 +; be used when including)
-+safe_mode_include_dir =								
++safe_mode_include_dir =
 +
 +; When safe_mode is on, only executables located in the safe_mode_exec_dir
 +; will be allowed to be executed via the exec family of functions.
-+; 
++;
 +; Note: This should be customised per site (if exec is permitted)
 +safe_mode_exec_dir =
 +
@@ -409,7 +409,7 @@ Last-Update: 2010-01-18
 +; and below.  This directive makes most sense if used in a per-directory
 +; or per-virtualhost web server configuration file. This directive is
 +; *NOT* affected by whether Safe Mode is turned On or Off.
-+; 
++;
 +; In Debian, the WebRoot is /var/www/ so we limit file operations to it.
 +;
 +; NOTE: this is considered a "broken" security measure.
@@ -421,14 +421,14 @@ Last-Update: 2010-01-18
 +; This directive allows you to disable certain functions for security reasons.
 +; It receives a comma-delimited list of function names. This directive is
 +; *NOT* affected by whether Safe Mode is turned On or Off.
-+; 
-+; Notes: 
++;
++; Notes:
 +;  - The list of functions disabled here might break some applications
 +;    however, they are considered dangerous and often subverted by attackers
 +;    remotely.
 +;  - 'include' is not in the list, if your applications do not depend on it
 +;    make sure you add it here too.
-+disable_functions = dl, phpinfo, system, mail, shell_exec, exec, escapeshellarg, escapeshellcmd, passthru, proc_close, proc_open, proc_get_status, proc_nice, proc_open, proc_terminate, popen, pclose, chown, disk_free_space, disk_total_space, diskfreespace, fileinode, max_execution_time, set_time_limit, highlight_file, show_source 
++disable_functions = dl, phpinfo, system, mail, shell_exec, exec, escapeshellarg, escapeshellcmd, passthru, proc_close, proc_open, proc_get_status, proc_nice, proc_open, proc_terminate, popen, pclose, chown, disk_free_space, disk_total_space, diskfreespace, fileinode, max_execution_time, set_time_limit, highlight_file, show_source
 +
 +; This directive allows you to disable certain classes for security reasons.
 +; It receives a comma-delimited list of class names. This directive is
@@ -557,13 +557,13 @@ Last-Update: 2010-01-18
 +; line until ignore_repeated_source is set true.
 +ignore_repeated_errors = Off
 +
-+; Ignore source of message when ignoring repeated messages. When this setting 
++; Ignore source of message when ignoring repeated messages. When this setting
 +; is On you will not log errors with repeated messages from different files or
 +; source lines.
 +ignore_repeated_source = Off
 +
 +; If this parameter is set to Off, then memory leaks will not be shown (on
-+; stdout or in the log). This has only effect in a debug compile, and if 
++; stdout or in the log). This has only effect in a debug compile, and if
 +; error reporting includes E_WARNING in the allowed list
 +report_memleaks = On
 +
@@ -576,16 +576,16 @@ Last-Update: 2010-01-18
 +; Note: Never use this feature for production boxes.
 +html_errors = Off
 +
-+; If html_errors is set On PHP produces clickable error messages that direct 
++; If html_errors is set On PHP produces clickable error messages that direct
 +; to a page describing the error or function causing the error in detail.
-+; You can download a copy of the PHP manual from http://www.php.net/docs.php 
++; You can download a copy of the PHP manual from http://www.php.net/docs.php
 +; and change docref_root to the base URL of your local copy including the
-+; leading '/'. You must also specify the file extension being used including 
++; leading '/'. You must also specify the file extension being used including
 +; the dot.
 +; Note: Never use this feature for production boxes.
 +;docref_root = "/phpmanual/"
 +;docref_ext = .html
-+  
++
 +; String to output before an error message.
 +;error_prepend_string = "<font color=ff0000>"
 +
@@ -606,11 +606,11 @@ Last-Update: 2010-01-18
 +; Note - track_vars is ALWAYS enabled as of PHP 4.0.3
 +
 +; The separator used in PHP generated URLs to separate arguments.
-+; Default is "&". 
++; Default is "&".
 +;arg_separator.output = "&amp;"
 +
 +; List of separator(s) used by PHP to parse input URLs into variables.
-+; Default is "&". 
++; Default is "&".
 +; NOTE: Every character in this directive is considered as separator!
 +;arg_separator.input = ";&"
 +
@@ -692,8 +692,8 @@ Last-Update: 2010-01-18
 +; Paths and Directories ;
 +;;;;;;;;;;;;;;;;;;;;;;;;;
 +
-+; UNIX: "/path1:/path2"  
-+; Note (paranoid): 
++; UNIX: "/path1:/path2"
++; Note (paranoid):
 +;      - '.' (the default) is not allowed here, applications that rely on it
 +;        need to be modified
 +;      - /usr is allowed, but files there should be protected against being
@@ -764,7 +764,7 @@ Last-Update: 2010-01-18
 +; is supported by Apache. When this option is set to 1 PHP will send
 +; RFC2616 compliant header.
 +; Default is zero.
-+;cgi.rfc2616_headers = 0 
++;cgi.rfc2616_headers = 0
 +
 +
 +;;;;;;;;;;;;;;;;
@@ -791,7 +791,7 @@ Last-Update: 2010-01-18
 +;;;;;;;;;;;;;;;;;;
 +
 +; Whether to allow the treatment of URLs (like http:// or ftp://) as files.
-+; 
++;
 +; This is turned off to avoid variable redefinition by remote attacker
 +; that attempts to have the server download (and execute) a remote file
 +; from a compromised host. This behaviour has been observed in automatic
@@ -836,7 +836,7 @@ Last-Update: 2010-01-18
 +;
 +;   extension=msql.so
 +;
-+; Note that it should be the name of the module only; no directory information 
++; Note that it should be the name of the module only; no directory information
 +; needs to go here.  Specify the location of the extension with the
 +; extension_dir directive above.
 +
@@ -875,9 +875,9 @@ Last-Update: 2010-01-18
 +;PCRE library backtracking limit.
 +;pcre.backtrack_limit=100000
 +
-+;PCRE library recursion limit. 
-+;Please note that if you set this value to a high number you may consume all 
-+;the available process stack and eventually crash PHP (due to reaching the 
++;PCRE library recursion limit.
++;Please note that if you set this value to a high number you may consume all
++;the available process stack and eventually crash PHP (due to reaching the
 +;stack size limit imposed by the Operating System).
 +;pcre.recursion_limit=100000
 +
@@ -1195,17 +1195,17 @@ Last-Update: 2010-01-18
 +; client and the substring was not found, the embedded session id will be marked
 +; as invalid. Defaults to the empty string.
 +; Note (paranoid): to prevent some XSS attacks should be defined to the server's URI
-+; session.referer_check = 
++; session.referer_check =
 +
 +
 +; Path to an external resource (file) which will be used as an additional
-+; entropy source in the session id creation process. 
++; entropy source in the session id creation process.
 +; Note (paranoid): /dev/urandom is not fully random but if /dev/random is used
-+; the entropy pool could be exhaused by constantly asking for session ids and 
++; the entropy pool could be exhaused by constantly asking for session ids and
 +; would compromise other applications relying on randomness
 +session.entropy_file = "/dev/urandom"
 +
-+; Number of bytes which will be read from the file specified above. 
++; Number of bytes which will be read from the file specified above.
 +; Defaults to 0 (disabled).
 +session.entropy_length = 6
 +
@@ -1217,7 +1217,7 @@ Last-Update: 2010-01-18
 +; (disabled by default)
 +session.cookie_secure = 1
 +
-+; This option enables administrators to make their users invulnerable to 
++; This option enables administrators to make their users invulnerable to
 +; attacks which involve passing session ids in URLs; defaults to 1 (since PHP 6.0).
 +session.use_only_cookies = 1
 +
@@ -1236,7 +1236,7 @@ Last-Update: 2010-01-18
 +session.cookie_path = /
 +
 +; The domain for which the cookie is valid.
-+; Note (paranoid): Make sure you configure this for your site 
++; Note (paranoid): Make sure you configure this for your site
 +session.cookie_domain =
 +
 +; Whether or not to add the httpOnly flag to the cookie, which makes it inaccessible to browser scripting languages such as JavaScript.
@@ -1380,7 +1380,7 @@ Last-Update: 2010-01-18
 +; FreeTDS defaults to 4096
 +;mssql.max_procs = -1
 +
-+; Specify client character set. 
++; Specify client character set.
 +; If empty or not set the client charset from freetds.comf is used
 +; This is only used when compiled with FreeTDS
 +;mssql.charset = "ISO-8859-1"
@@ -1430,7 +1430,7 @@ Last-Update: 2010-01-18
 +; registered as output buffer to function
 +;mbstring.http_output = SJIS
 +
-+; enable automatic encoding translation according to 
++; enable automatic encoding translation according to
 +; mbstring.internal_encoding setting. Input chars are
 +; converted to internal encoding by setting this to On.
 +; Note: Do _not_ use automatic encoding translation for
@@ -1503,7 +1503,7 @@ Last-Update: 2010-01-18
 +soap.wsdl_cache_enabled=1
 +; Sets the directory name where SOAP extension will put cache files.
 +soap.wsdl_cache_dir="/var/lib/php5/soap-cache"
-+; (time to live) Sets the number of second while cached file will be used 
++; (time to live) Sets the number of second while cached file will be used
 +; instead of original one.
 +soap.wsdl_cache_ttl=86400
 +
