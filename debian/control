@@ -1,4 +1,4 @@
-Source: php5
+Source: php5.4
 Section: php
 Priority: optional
 Maintainer: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
