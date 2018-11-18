@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | phar php single-file executable PHP extension                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 2005-2012 The PHP Group                                |
+  | Copyright (c) 2005-2014 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -600,50 +600,39 @@ int phar_open_parsed_phar(char *fname, int fname_len, char *alias, int alias_len
  *
  * Meta-data is in this format:
  * [len32][data...]
- * 
+ *
  * data is the serialized zval
  */
-int phar_parse_metadata(char **buffer, zval **metadata, int zip_metadata_len TSRMLS_DC) /* {{{ */
+int phar_parse_metadata(char **buffer, zval **metadata, php_uint32 zip_metadata_len TSRMLS_DC) /* {{{ */
 {
-	const unsigned char *p;
-	php_uint32 buf_len;
 	php_unserialize_data_t var_hash;
 
-	if (!zip_metadata_len) {
-		PHAR_GET_32(*buffer, buf_len);
-	} else {
-		buf_len = zip_metadata_len;
-	}
-
-	if (buf_len) {
+	if (zip_metadata_len) {
+		const unsigned char *p, *p_buff = estrndup(*buffer, zip_metadata_len);
+		p = p_buff;
 		ALLOC_ZVAL(*metadata);
 		INIT_ZVAL(**metadata);
-		p = (const unsigned char*) *buffer;
 		PHP_VAR_UNSERIALIZE_INIT(var_hash);
 
-		if (!php_var_unserialize(metadata, &p, p + buf_len, &var_hash TSRMLS_CC)) {
+		if (!php_var_unserialize(metadata, &p, p + zip_metadata_len, &var_hash TSRMLS_CC)) {
+			efree(p_buff);
 			PHP_VAR_UNSERIALIZE_DESTROY(var_hash);
 			zval_ptr_dtor(metadata);
 			*metadata = NULL;
 			return FAILURE;
 		}
-
+		efree(p_buff);
 		PHP_VAR_UNSERIALIZE_DESTROY(var_hash);
 
 		if (PHAR_G(persist)) {
 			/* lazy init metadata */
 			zval_ptr_dtor(metadata);
-			*metadata = (zval *) pemalloc(buf_len, 1);
-			memcpy(*metadata, *buffer, buf_len);
-			*buffer += buf_len;
+			*metadata = (zval *) pemalloc(zip_metadata_len, 1);
+			memcpy(*metadata, *buffer, zip_metadata_len);
 			return SUCCESS;
 		}
 	} else {
 		*metadata = NULL;
-	}
-
-	if (!zip_metadata_len) {
-		*buffer += buf_len;
 	}
 
 	return SUCCESS;
@@ -655,7 +644,7 @@ int phar_parse_metadata(char **buffer, zval **metadata, int zip_metadata_len TSR
  *
  * Parse a new one and add it to the cache, returning either SUCCESS or
  * FAILURE, and setting pphar to the pointer to the manifest entry
- * 
+ *
  * This is used by phar_open_from_filename to process the manifest, but can be called
  * directly.
  */
@@ -666,6 +655,7 @@ static int phar_parse_pharfile(php_stream *fp, char *fname, int fname_len, char 
 	phar_entry_info entry;
 	php_uint32 manifest_len, manifest_count, manifest_flags, manifest_index, tmp_len, sig_flags;
 	php_uint16 manifest_ver;
+	php_uint32 len;
 	long offset;
 	int sig_len, register_alias = 0, temp_alias = 0;
 	char *signature = NULL;
@@ -1031,16 +1021,21 @@ static int phar_parse_pharfile(php_stream *fp, char *fname, int fname_len, char 
 	mydata->is_persistent = PHAR_G(persist);
 
 	/* check whether we have meta data, zero check works regardless of byte order */
+	PHAR_GET_32(buffer, len);
 	if (mydata->is_persistent) {
-		PHAR_GET_32(buffer, mydata->metadata_len);
-		if (phar_parse_metadata(&buffer, &mydata->metadata, mydata->metadata_len TSRMLS_CC) == FAILURE) {
-			MAPPHAR_FAIL("unable to read phar metadata in .phar file \"%s\"");
-		}
-	} else {
-		if (phar_parse_metadata(&buffer, &mydata->metadata, 0 TSRMLS_CC) == FAILURE) {
-			MAPPHAR_FAIL("unable to read phar metadata in .phar file \"%s\"");
+		mydata->metadata_len = len;
+		if(!len) {
+			/* FIXME: not sure why this is needed but removing it breaks tests */
+			PHAR_GET_32(buffer, len);
 		}
 	}
+	if(len > endbuffer - buffer) {
+		MAPPHAR_FAIL("internal corruption of phar \"%s\" (trying to read past buffer end)");
+	}
+	if (phar_parse_metadata(&buffer, &mydata->metadata, len TSRMLS_CC) == FAILURE) {
+		MAPPHAR_FAIL("unable to read phar metadata in .phar file \"%s\"");
+	}
+	buffer += len;
 
 	/* set up our manifest */
 	zend_hash_init(&mydata->manifest, manifest_count,
@@ -1075,7 +1070,7 @@ static int phar_parse_pharfile(php_stream *fp, char *fname, int fname_len, char 
 			entry.manifest_pos = manifest_index;
 		}
 
-		if (buffer + entry.filename_len + 20 > endbuffer) {
+		if (entry.filename_len + 20 > endbuffer - buffer) {
 			MAPPHAR_FAIL("internal corruption of phar \"%s\" (truncated manifest entry)");
 		}
 
@@ -1111,19 +1106,21 @@ static int phar_parse_pharfile(php_stream *fp, char *fname, int fname_len, char 
 			entry.flags |= PHAR_ENT_PERM_DEF_DIR;
 		}
 
+		PHAR_GET_32(buffer, len);
 		if (entry.is_persistent) {
-			PHAR_GET_32(buffer, entry.metadata_len);
-			if (!entry.metadata_len) buffer -= 4;
-			if (phar_parse_metadata(&buffer, &entry.metadata, entry.metadata_len TSRMLS_CC) == FAILURE) {
-				pefree(entry.filename, entry.is_persistent);
-				MAPPHAR_FAIL("unable to read file metadata in .phar file \"%s\"");
-			}
+			entry.metadata_len = len;
 		} else {
-			if (phar_parse_metadata(&buffer, &entry.metadata, 0 TSRMLS_CC) == FAILURE) {
-				pefree(entry.filename, entry.is_persistent);
-				MAPPHAR_FAIL("unable to read file metadata in .phar file \"%s\"");
-			}
+			entry.metadata_len = 0;
 		}
+		if (len > endbuffer - buffer) {
+			pefree(entry.filename, entry.is_persistent);
+			MAPPHAR_FAIL("internal corruption of phar \"%s\" (truncated manifest entry)");
+		}
+		if (phar_parse_metadata(&buffer, &entry.metadata, len TSRMLS_CC) == FAILURE) {
+			pefree(entry.filename, entry.is_persistent);
+			MAPPHAR_FAIL("unable to read file metadata in .phar file \"%s\"");
+		}
+		buffer += len;
 
 		entry.offset = entry.offset_abs = offset;
 		offset += entry.compressed_filesize;
@@ -2145,7 +2142,7 @@ char *tsrm_strtok_r(char *s, const char *delim, char **last) /* {{{ */
  */
 char *phar_fix_filepath(char *path, int *new_len, int use_cwd TSRMLS_DC) /* {{{ */
 {
-	char newpath[MAXPATHLEN];
+	char *newpath;
 	int newpath_len;
 	char *ptr;
 	char *tok;
@@ -2153,8 +2150,10 @@ char *phar_fix_filepath(char *path, int *new_len, int use_cwd TSRMLS_DC) /* {{{ 
 
 	if (PHAR_G(cwd_len) && use_cwd && path_length > 2 && path[0] == '.' && path[1] == '/') {
 		newpath_len = PHAR_G(cwd_len);
+		newpath = emalloc(strlen(path) + newpath_len + 1);
 		memcpy(newpath, PHAR_G(cwd), newpath_len);
 	} else {
+		newpath = emalloc(strlen(path) + 2);
 		newpath[0] = '/';
 		newpath_len = 1;
 	}
@@ -2177,6 +2176,7 @@ char *phar_fix_filepath(char *path, int *new_len, int use_cwd TSRMLS_DC) /* {{{ 
 				if (*tok == '.') {
 					efree(path);
 					*new_len = 1;
+					efree(newpath);
 					return estrndup("/", 1);
 				}
 				break;
@@ -2184,9 +2184,11 @@ char *phar_fix_filepath(char *path, int *new_len, int use_cwd TSRMLS_DC) /* {{{ 
 				if (tok[0] == '.' && tok[1] == '.') {
 					efree(path);
 					*new_len = 1;
+					efree(newpath);
 					return estrndup("/", 1);
 				}
 		}
+		efree(newpath);
 		return path;
 	}
 
@@ -2235,13 +2237,14 @@ last_time:
 
 	efree(path);
 	*new_len = newpath_len;
-	return estrndup(newpath, newpath_len);
+	newpath[newpath_len] = '\0';
+	return erealloc(newpath, newpath_len + 1);
 }
 /* }}} */
 
 /**
  * Process a phar stream name, ensuring we can handle any of:
- * 
+ *
  * - whatever.phar
  * - whatever.phar.gz
  * - whatever.phar.bz2
@@ -2579,6 +2582,7 @@ int phar_flush(phar_archive_data *phar, char *user_stub, long len, int convert, 
 	php_serialize_data_t metadata_hash;
 	smart_str main_metadata_str = {0};
 	int free_user_stub, free_fp = 1, free_ufp = 1;
+	int manifest_hack = 0;
 
 	if (phar->is_persistent) {
 		if (error) {
@@ -2930,6 +2934,12 @@ int phar_flush(phar_archive_data *phar, char *user_stub, long len, int convert, 
 
 	manifest_len = offset + phar->alias_len + sizeof(manifest) + main_metadata_str.len;
 	phar_set_32(manifest, manifest_len);
+	/* Hack - see bug #65028, add padding byte to the end of the manifest */
+	if(manifest[0] == '\r' || manifest[0] == '\n') {
+		manifest_len++;
+		phar_set_32(manifest, manifest_len);
+		manifest_hack = 1;
+	}
 	phar_set_32(manifest+4, new_manifest_count);
 	if (has_dirs) {
 		*(manifest + 8) = (unsigned char) (((PHAR_API_VERSION) >> 8) & 0xFF);
@@ -3049,6 +3059,22 @@ int phar_flush(phar_archive_data *phar, char *user_stub, long len, int convert, 
 
 			if (error) {
 				spprintf(error, 0, "unable to write temporary manifest of file \"%s\" to manifest of new phar \"%s\"", entry->filename, phar->fname);
+			}
+
+			return EOF;
+		}
+	}
+	/* Hack - see bug #65028, add padding byte to the end of the manifest */
+	if(manifest_hack) {
+		if(1 != php_stream_write(newfile, manifest, 1)) {
+			if (closeoldfile) {
+				php_stream_close(oldfile);
+			}
+
+			php_stream_close(newfile);
+
+			if (error) {
+				spprintf(error, 0, "unable to write manifest padding byte");
 			}
 
 			return EOF;

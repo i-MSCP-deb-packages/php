@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2014 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        | 
@@ -452,7 +452,7 @@ ZEND_API int zend_user_serialize(zval *object, unsigned char **buffer, zend_uint
 		zval_ptr_dtor(&retval);
 	}
 
-	if (result == FAILURE) {
+	if (result == FAILURE && !EG(exception)) {
 		zend_throw_exception_ex(NULL, 0 TSRMLS_CC, "%s::serialize() must return a string or NULL", ce->name);
 	}
 	return result;

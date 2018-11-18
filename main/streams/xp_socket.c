@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2014 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -194,7 +194,7 @@ static int php_sockop_close(php_stream *stream, int close_handle TSRMLS_DC)
 			 * Essentially, we are waiting for the socket to become writeable, which means
 			 * that all pending data has been sent.
 			 * We use a small timeout which should encourage the OS to send the data,
-			 * but at the same time avoid hanging indefintely.
+			 * but at the same time avoid hanging indefinitely.
 			 * */
 			do {
 				n = php_pollfd_for_ms(sock->socket, POLLOUT, 500);
@@ -588,7 +588,8 @@ static inline int php_tcp_sockop_bind(php_stream *stream, php_netstream_data_t *
 
 		parse_unix_address(xparam, &unix_addr TSRMLS_CC);
 
-		return bind(sock->socket, (struct sockaddr *)&unix_addr, sizeof(unix_addr));
+		return bind(sock->socket, (const struct sockaddr *)&unix_addr,
+			(socklen_t) XtOffsetOf(struct sockaddr_un, sun_path) + xparam->inputs.namelen);
 	}
 #endif
 

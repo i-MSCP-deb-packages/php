@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2014 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -384,7 +384,7 @@ mysqli_stmt_bind_result_do_bind(MY_STMT *stmt, zval ***args, unsigned int argc, 
 				/* Changed to my_bool in MySQL 5.1. See MySQL Bug #16144 */
 				my_bool tmp;
 #else
-				uint tmp = 0;
+				ulong tmp = 0;
 #endif
 				stmt->result.buf[ofs].type = IS_STRING;
 				/*
@@ -1672,6 +1672,9 @@ static int mysqli_options_get_option_zval_type(int option)
 #ifdef MYSQL_OPT_SSL_VERIFY_SERVER_CERT
 	REGISTER_LONG_CONSTANT("MYSQLI_OPT_SSL_VERIFY_SERVER_CERT", MYSQL_OPT_SSL_VERIFY_SERVER_CERT, CONST_CS | CONST_PERSISTENT);
 #endif /* MySQL 5.1.1., mysqlnd @ PHP 5.3.3 */
+#if MYSQL_VERSION_ID >= 50611 || defined(MYSQLI_USE_MYSQLND)
+		case MYSQL_OPT_CAN_HANDLE_EXPIRED_PASSWORDS:
+#endif
 			return IS_LONG;
 
 #ifdef MYSQL_SHARED_MEMORY_BASE_NAME
@@ -1837,6 +1840,10 @@ PHP_FUNCTION(mysqli_prepare)
 		efree(stmt);
 		RETURN_FALSE;
 	}
+#ifndef MYSQLI_USE_MYSQLND
+	stmt->link_handle = Z_OBJ_HANDLE(*mysql_link);
+	zend_objects_store_add_ref_by_handle(stmt->link_handle TSRMLS_CC);
+#endif
 
 	mysqli_resource = (MYSQLI_RESOURCE *)ecalloc (1, sizeof(MYSQLI_RESOURCE));
 	mysqli_resource->ptr = (void *)stmt;
@@ -2365,6 +2372,10 @@ PHP_FUNCTION(mysqli_stmt_init)
 		efree(stmt);
 		RETURN_FALSE;
 	}
+#ifndef MYSQLI_USE_MYSQLND
+	stmt->link_handle = Z_OBJ_HANDLE(*mysql_link);
+	zend_objects_store_add_ref_by_handle(stmt->link_handle TSRMLS_CC);
+#endif
 
 	mysqli_resource = (MYSQLI_RESOURCE *)ecalloc (1, sizeof(MYSQLI_RESOURCE));
 	mysqli_resource->status = MYSQLI_STATUS_INITIALIZED;

@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2014 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -78,6 +78,11 @@ static int php_filter_parse_int(const char *str, unsigned int str_len, long *ret
 			str++;
 		default:
 			break;
+	}
+
+	if (*str == '0' && str + 1 == end) {
+		/* Special cases: +0 and -0 */
+		return 1;
 	}
 
 	/* must start with 1..9*/
@@ -479,10 +484,6 @@ void php_filter_validate_url(PHP_INPUT_FILTER_PARAM_DECL) /* {{{ */
 			}
 			s++;
 		}
-
-		if (*(e - 1) == '.') {
-			goto bad_url;
-		}
 	}
 
 	if (
@@ -713,8 +714,7 @@ void php_filter_validate_ip(PHP_INPUT_FILTER_PARAM_DECL) /* {{{ */
 			if (flags & FILTER_FLAG_NO_RES_RANGE) {
 				if (
 					(ip[0] == 0) ||
-					(ip[0] == 128 && ip[1] == 0) ||
-					(ip[0] == 191 && ip[1] == 255) ||
+					(ip[0] == 100 && (ip[1] >= 64 && ip[1] <= 127)) ||
 					(ip[0] == 169 && ip[1] == 254) ||
 					(ip[0] == 192 && ip[1] == 0 && ip[2] == 2) ||
 					(ip[0] == 127 && ip[1] == 0 && ip[2] == 0 && ip[3] == 1) ||

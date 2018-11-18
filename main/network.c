@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -24,6 +24,7 @@
 #include "php.h"
 
 #include <stddef.h>
+#include <errno.h>
 
 #ifdef PHP_WIN32
 # include "win32/inet.h"
@@ -243,7 +244,12 @@ PHPAPI int php_network_getaddresses(const char *host, int socktype, struct socka
 #else
 	if (!inet_aton(host, &in)) {
 		/* XXX NOT THREAD SAFE (is safe under win32) */
-		host_info = gethostbyname(host);
+		if(strlen(host) > MAXFQDNLEN) {
+			host_info = NULL;
+			errno = E2BIG;
+		} else {
+			host_info = gethostbyname(host);
+		}
 		if (host_info == NULL) {
 			if (error_string) {
 				spprintf(error_string, 0, "php_network_getaddresses: gethostbyname failed. errno=%d", errno);
@@ -989,6 +995,7 @@ PHPAPI char *php_socket_strerror(long err, char *buf, size_t bufsize)
 		buf = estrdup(errstr);
 	} else {
 		strncpy(buf, errstr, bufsize);
+		buf[bufsize?(bufsize-1):0] = 0;
 	}
 	return buf;
 #else
@@ -1013,6 +1020,7 @@ PHPAPI char *php_socket_strerror(long err, char *buf, size_t bufsize)
 		buf = estrdup(sysbuf);
 	} else {
 		strncpy(buf, sysbuf, bufsize);
+		buf[bufsize?(bufsize-1):0] = 0;
 	}
 
 	if (free_it) {
@@ -1076,11 +1084,6 @@ PHPAPI int php_set_sock_blocking(int socketd, int block TSRMLS_DC)
 	/* with ioctlsocket, a non-zero sets nonblocking, a zero sets blocking */
 	flags = !block;
 	if (ioctlsocket(socketd, FIONBIO, &flags) == SOCKET_ERROR) {
-		char *error_string;
-
-		error_string = php_socket_strerror(WSAGetLastError(), NULL, 0);
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s", error_string);
-		efree(error_string);
 		ret = FAILURE;
 	}
 #else

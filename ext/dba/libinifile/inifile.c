@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -460,7 +460,7 @@ static int inifile_filter(inifile *dba, inifile *from, const key_type *key TSRML
  */
 static int inifile_delete_replace_append(inifile *dba, const key_type *key, const val_type *value, int append TSRMLS_DC) 
 {
-	size_t pos_grp_start, pos_grp_next;
+	size_t pos_grp_start = 0, pos_grp_next;
 	inifile *ini_tmp = NULL;
 	php_stream *fp_tmp = NULL;
 	int ret;

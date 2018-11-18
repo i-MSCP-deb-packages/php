@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2014 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -1738,7 +1738,7 @@ static PHP_FUNCTION(xmlwriter_write_dtd_entity)
 /* }}} */
 #endif
 
-/* {{{ proto resource xmlwriter_open_uri(resource xmlwriter, string source)
+/* {{{ proto resource xmlwriter_open_uri(string source)
 Create new xmlwriter using source uri for output */
 static PHP_FUNCTION(xmlwriter_open_uri)
 {
@@ -1759,7 +1759,7 @@ static PHP_FUNCTION(xmlwriter_open_uri)
 	void *ioctx;
 #endif
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &source, &source_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "p", &source, &source_len) == FAILURE) {
 		return;
 	}
 	

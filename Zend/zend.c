@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2014 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -41,10 +41,6 @@
 # define GLOBAL_CLASS_TABLE			CG(class_table)
 # define GLOBAL_AUTO_GLOBALS_TABLE	CG(auto_globals)
 # define GLOBAL_CONSTANTS_TABLE		EG(zend_constants)
-#endif
-
-#if defined(ZEND_WIN32) && ZEND_DEBUG
-BOOL WINAPI IsDebuggerPresent(VOID);
 #endif
 
 /* true multithread-shared globals */
@@ -131,7 +127,7 @@ ZEND_API zval zval_used_for_init; /* True global variable */
 /* version information */
 static char *zend_version_info;
 static uint zend_version_info_length;
-#define ZEND_CORE_VERSION_INFO	"Zend Engine v" ZEND_VERSION ", Copyright (c) 1998-2012 Zend Technologies\n"
+#define ZEND_CORE_VERSION_INFO	"Zend Engine v" ZEND_VERSION ", Copyright (c) 1998-2014 Zend Technologies\n"
 #define PRINT_ZVAL_INDENT 4
 
 static void print_hash(zend_write_func_t write_func, HashTable *ht, int indent, zend_bool is_object TSRMLS_DC) /* {{{ */
@@ -817,6 +813,20 @@ void zend_shutdown(TSRMLS_D) /* {{{ */
 	zend_shutdown_timeout_thread();
 #endif
 	zend_destroy_rsrc_list(&EG(persistent_list) TSRMLS_CC);
+
+	if (EG(active))
+	{
+		/*
+		 * The order of destruction is important here.
+		 * See bugs #65463 and 66036.
+		 */
+		zend_hash_reverse_apply(GLOBAL_FUNCTION_TABLE, (apply_func_t) zend_cleanup_function_data_full TSRMLS_CC);
+		zend_hash_reverse_apply(GLOBAL_CLASS_TABLE, (apply_func_t) zend_cleanup_user_class_data TSRMLS_CC);
+		zend_cleanup_internal_classes(TSRMLS_C);
+		zend_hash_reverse_apply(GLOBAL_FUNCTION_TABLE, (apply_func_t) clean_non_persistent_function_full TSRMLS_CC);
+		zend_hash_reverse_apply(GLOBAL_CLASS_TABLE, (apply_func_t) clean_non_persistent_class_full TSRMLS_CC);
+	}
+
 	zend_destroy_modules();
 
 	zend_hash_destroy(GLOBAL_FUNCTION_TABLE);
@@ -1091,16 +1101,18 @@ ZEND_API void zend_error(int type, const char *format, ...) /* {{{ */
 		error_filename = "Unknown";
 	}
 
-	va_start(args, format);
-
 #ifdef HAVE_DTRACE
 	if(DTRACE_ERROR_ENABLED()) {
 		char *dtrace_error_buffer;
+		va_start(args, format);
 		zend_vspprintf(&dtrace_error_buffer, 0, format, args);
-		DTRACE_ERROR(dtrace_error_buffer, error_filename, error_lineno);
+		DTRACE_ERROR(dtrace_error_buffer, (char *)error_filename, error_lineno);
 		efree(dtrace_error_buffer);
+		va_end(args);
 	}
 #endif /* HAVE_DTRACE */
+
+	va_start(args, format);
 
 	/* if we don't have a user defined error handler */
 	if (!EG(user_error_handler)
@@ -1181,7 +1193,7 @@ ZEND_API void zend_error(int type, const char *format, ...) /* {{{ */
 			 * such scripts recursivly, but some CG() variables may be
 			 * inconsistent. */
 
-			in_compilation = zend_is_compiling(TSRMLS_C);
+			in_compilation = CG(in_compilation);
 			if (in_compilation) {
 				saved_class_entry = CG(active_class_entry);
 				CG(active_class_entry) = NULL;
@@ -1193,6 +1205,7 @@ ZEND_API void zend_error(int type, const char *format, ...) /* {{{ */
 				SAVE_STACK(declare_stack);
 				SAVE_STACK(list_stack);
 				SAVE_STACK(context_stack);
+				CG(in_compilation) = 0;
 			}
 
 			if (call_user_function_ex(CG(function_table), NULL, orig_user_error_handler, &retval, 5, params, 1, NULL TSRMLS_CC) == SUCCESS) {
@@ -1217,6 +1230,7 @@ ZEND_API void zend_error(int type, const char *format, ...) /* {{{ */
 				RESTORE_STACK(declare_stack);
 				RESTORE_STACK(list_stack);
 				RESTORE_STACK(context_stack);
+				CG(in_compilation) = 1;
 			}
 
 			if (!EG(user_error_handler)) {
@@ -1238,7 +1252,13 @@ ZEND_API void zend_error(int type, const char *format, ...) /* {{{ */
 	va_end(args);
 
 	if (type == E_PARSE) {
-		EG(exit_status) = 255;
+		/* eval() errors do not affect exit_status */
+		if (!(EG(current_execute_data) &&
+			EG(current_execute_data)->opline &&
+			EG(current_execute_data)->opline->opcode == ZEND_INCLUDE_OR_EVAL &&
+			EG(current_execute_data)->opline->extended_value == ZEND_EVAL)) {
+			EG(exit_status) = 255;
+		}
 		zend_init_compiler_data_structures(TSRMLS_C);
 	}
 }

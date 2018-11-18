@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -125,7 +125,11 @@ static void php_info_print_stream_hash(const char *name, HashTable *ht TSRMLS_DC
 			zend_hash_internal_pointer_reset_ex(ht, &pos);
 			while (zend_hash_get_current_key_ex(ht, &key, &len, NULL, 0, &pos) == HASH_KEY_IS_STRING)
 			{
-				php_info_print(key);
+				if (!sapi_module.phpinfo_as_text) {
+					php_info_print_html_esc(key, len-1);
+				} else {
+					php_info_print(key);
+				}
 				zend_hash_move_forward_ex(ht, &pos);
 				if (zend_hash_get_current_key_ex(ht, &key, &len, NULL, 0, &pos) == HASH_KEY_IS_STRING) {
 					php_info_print(", ");
@@ -291,7 +295,7 @@ void php_info_print_style(TSRMLS_D)
 PHPAPI char *php_info_html_esc(char *string TSRMLS_DC)
 {
 	size_t new_len;
-	return php_escape_html_entities(string, strlen(string), &new_len, 0, ENT_QUOTES, NULL TSRMLS_CC);
+	return php_escape_html_entities((unsigned char *) string, strlen(string), &new_len, 0, ENT_QUOTES, NULL TSRMLS_CC);
 }
 /* }}} */
 
@@ -324,7 +328,7 @@ char* php_get_windows_name()
 	}
 
 	if (VER_PLATFORM_WIN32_NT==osvi.dwPlatformId && osvi.dwMajorVersion > 4 ) {
-		if (osvi.dwMajorVersion == 6)	{
+		if (osvi.dwMajorVersion == 6) {
 			if( osvi.dwMinorVersion == 0 ) {
 				if( osvi.wProductType == VER_NT_WORKSTATION ) {
 					major = "Windows Vista";
@@ -338,6 +342,38 @@ char* php_get_windows_name()
 				} else {
 					major = "Windows Server 2008 R2";
 				}
+			} else if ( osvi.dwMinorVersion == 2 ) {
+				/* could be Windows 8/Windows Server 2012, could be Windows 8.1/Windows Server 2012 R2 */
+				OSVERSIONINFOEX osvi81;
+				DWORDLONG dwlConditionMask = 0;
+				int op = VER_GREATER_EQUAL;
+
+				ZeroMemory(&osvi81, sizeof(OSVERSIONINFOEX));
+				osvi81.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+				osvi81.dwMajorVersion = 6;
+				osvi81.dwMinorVersion = 3;
+				osvi81.wServicePackMajor = 0;
+
+				VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, op);
+				VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, op);
+				VER_SET_CONDITION(dwlConditionMask, VER_SERVICEPACKMAJOR, op);
+
+				if (VerifyVersionInfo(&osvi81, 
+					VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR,
+					dwlConditionMask)) {
+					osvi.dwMinorVersion = 3; /* Windows 8.1/Windows Server 2012 R2 */
+					if( osvi.wProductType == VER_NT_WORKSTATION )  {
+						major = "Windows 8.1";
+					} else {
+						major = "Windows Server 2012 R2";
+					}
+				} else {
+					if( osvi.wProductType == VER_NT_WORKSTATION )  {
+						major = "Windows 8";
+					} else {
+						major = "Windows Server 2012";
+					}
+				} 
 			} else {
 				major = "Unknown Windows version";
 			}
@@ -564,6 +600,14 @@ PHPAPI char *php_get_uname(char mode)
 
 		php_get_windows_cpu(wincpu, sizeof(wincpu));
 		dwBuild = (DWORD)(HIWORD(dwVersion));
+		
+		/* Windows "version" 6.2 could be Windows 8/Windows Server 2012, but also Windows 8.1/Windows Server 2012 R2 */
+		if (dwWindowsMajorVersion == 6 && dwWindowsMinorVersion == 2) {
+			if (strncmp(winver, "Windows 8.1", 11) == 0 || strncmp(winver, "Windows Server 2012 R2", 22) == 0) {
+				dwWindowsMinorVersion = 3;
+			}
+		}
+		
 		snprintf(tmp_uname, sizeof(tmp_uname), "%s %s %d.%d build %d (%s) %s",
 				 "Windows NT", ComputerName,
 				 dwWindowsMajorVersion, dwWindowsMinorVersion, dwBuild, winver?winver:"unknown", wincpu);
@@ -871,16 +915,16 @@ PHPAPI void php_print_info(int flag TSRMLS_DC)
 
 		php_info_print_table_start();
 		php_info_print_table_header(2, "Variable", "Value");
-		if (zend_hash_find(&EG(symbol_table), "PHP_SELF", sizeof("PHP_SELF"), (void **) &data) != FAILURE) {
+		if (zend_hash_find(&EG(symbol_table), "PHP_SELF", sizeof("PHP_SELF"), (void **) &data) != FAILURE && Z_TYPE_PP(data) == IS_STRING) {
 			php_info_print_table_row(2, "PHP_SELF", Z_STRVAL_PP(data));
 		}
-		if (zend_hash_find(&EG(symbol_table), "PHP_AUTH_TYPE", sizeof("PHP_AUTH_TYPE"), (void **) &data) != FAILURE) {
+		if (zend_hash_find(&EG(symbol_table), "PHP_AUTH_TYPE", sizeof("PHP_AUTH_TYPE"), (void **) &data) != FAILURE && Z_TYPE_PP(data) == IS_STRING) {
 			php_info_print_table_row(2, "PHP_AUTH_TYPE", Z_STRVAL_PP(data));
 		}
-		if (zend_hash_find(&EG(symbol_table), "PHP_AUTH_USER", sizeof("PHP_AUTH_USER"), (void **) &data) != FAILURE) {
+		if (zend_hash_find(&EG(symbol_table), "PHP_AUTH_USER", sizeof("PHP_AUTH_USER"), (void **) &data) != FAILURE && Z_TYPE_PP(data) == IS_STRING) {
 			php_info_print_table_row(2, "PHP_AUTH_USER", Z_STRVAL_PP(data));
 		}
-		if (zend_hash_find(&EG(symbol_table), "PHP_AUTH_PW", sizeof("PHP_AUTH_PW"), (void **) &data) != FAILURE) {
+		if (zend_hash_find(&EG(symbol_table), "PHP_AUTH_PW", sizeof("PHP_AUTH_PW"), (void **) &data) != FAILURE && Z_TYPE_PP(data) == IS_STRING) {
 			php_info_print_table_row(2, "PHP_AUTH_PW", Z_STRVAL_PP(data));
 		}
 		php_print_gpcse_array(ZEND_STRL("_REQUEST") TSRMLS_CC);

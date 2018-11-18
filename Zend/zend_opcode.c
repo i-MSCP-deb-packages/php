@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2014 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        | 
@@ -162,8 +162,9 @@ static inline void cleanup_user_class_data(zend_class_entry *ce TSRMLS_DC)
 
 		for (i = 0; i < ce->default_static_members_count; i++) {
 			if (ce->static_members_table[i]) {
-				zval_ptr_dtor(&ce->static_members_table[i]);
+				zval *p = ce->static_members_table[i];
 				ce->static_members_table[i] = NULL;
+				zval_ptr_dtor(&p);
 			}
 		}
 		ce->static_members_table = NULL;
@@ -215,12 +216,6 @@ ZEND_API int zend_cleanup_class_data(zend_class_entry **pce TSRMLS_DC)
 void _destroy_zend_class_traits_info(zend_class_entry *ce)
 {
 	if (ce->num_traits > 0 && ce->traits) {
-		size_t i;
-		for (i = 0; i < ce->num_traits; i++) {
-			if (ce->traits[i]) {
-				destroy_zend_class(&ce->traits[i]);
-			}
-		}
 		efree(ce->traits);
 	}
 	
@@ -267,15 +262,6 @@ void _destroy_zend_class_traits_info(zend_class_entry *ce)
 	}
 }
 
-static int zend_clear_trait_method_name(zend_op_array *op_array TSRMLS_DC)
-{
-	if (op_array->function_name && (op_array->fn_flags & ZEND_ACC_ALIAS) == 0) {
-		efree(op_array->function_name);
-		op_array->function_name = NULL;
-	}
-	return 0;
-}
-
 ZEND_API void destroy_zend_class(zend_class_entry **pce)
 {
 	zend_class_entry *ce = *pce;
@@ -307,10 +293,6 @@ ZEND_API void destroy_zend_class(zend_class_entry **pce)
 			}
 			zend_hash_destroy(&ce->properties_info);
 			str_efree(ce->name);
-			if ((ce->ce_flags & ZEND_ACC_TRAIT) == ZEND_ACC_TRAIT) {
-				TSRMLS_FETCH();
-				zend_hash_apply(&ce->function_table, (apply_func_t)zend_clear_trait_method_name TSRMLS_CC);
-			}
 			zend_hash_destroy(&ce->function_table);
 			zend_hash_destroy(&ce->constants_table);
 			if (ce->num_interfaces > 0 && ce->interfaces) {
@@ -400,7 +382,7 @@ ZEND_API void destroy_op_array(zend_op_array *op_array TSRMLS_DC)
 	}
 	efree(op_array->opcodes);
 
-	if (op_array->function_name && (op_array->fn_flags & ZEND_ACC_ALIAS) == 0) {
+	if (op_array->function_name) {
 		efree((char*)op_array->function_name);
 	}
 	if (op_array->doc_comment) {

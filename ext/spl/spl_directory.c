@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -710,6 +710,12 @@ void spl_filesystem_object_construct(INTERNAL_FUNCTION_PARAMETERS, long ctor_fla
 	}
 
 	intern = (spl_filesystem_object*)zend_object_store_get_object(getThis() TSRMLS_CC);
+	if (intern->_path) {
+		/* object is alreay initialized */
+		zend_restore_error_handling(&error_handling TSRMLS_CC);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Directory object is already initialized");
+		return;
+	}
 	intern->flags = flags;
 #ifdef HAVE_GLOB
 	if (SPL_HAS_FLAG(ctor_flags, DIT_CTOR_GLOB) && strstr(path, "glob://") != path) {
@@ -823,6 +829,7 @@ SPL_METHOD(DirectoryIterator, seek)
 		zend_call_method_with_0_params(&this_ptr, Z_OBJCE_P(getThis()), &intern->u.dir.func_rewind, "rewind", &retval);
 		if (retval) {
 			zval_ptr_dtor(&retval);
+			retval = NULL;
 		}
 	}
 
@@ -832,6 +839,7 @@ SPL_METHOD(DirectoryIterator, seek)
 		if (retval) {
 			valid = zend_is_true(retval);
 			zval_ptr_dtor(&retval);
+			retval = NULL;
 		}
 		if (!valid) {
 			break;
@@ -1504,7 +1512,7 @@ SPL_METHOD(RecursiveDirectoryIterator, hasChildren)
    Returns an iterator for the current entry if it is a directory */
 SPL_METHOD(RecursiveDirectoryIterator, getChildren)
 {
-	zval zpath, zflags;
+	zval *zpath, *zflags;
 	spl_filesystem_object *intern = (spl_filesystem_object*)zend_object_store_get_object(getThis() TSRMLS_CC);
 	spl_filesystem_object *subdir;
 	char slash = SPL_HAS_FLAG(intern->flags, SPL_FILE_DIR_UNIXPATHS) ? '/' : DEFAULT_SLASH;
@@ -1518,11 +1526,13 @@ SPL_METHOD(RecursiveDirectoryIterator, getChildren)
 	if (SPL_HAS_FLAG(intern->flags, SPL_FILE_DIR_CURRENT_AS_PATHNAME)) {
 		RETURN_STRINGL(intern->file_name, intern->file_name_len, 1);
 	} else {
-		INIT_PZVAL(&zflags);
-		INIT_PZVAL(&zpath);
-		ZVAL_LONG(&zflags, intern->flags);
-		ZVAL_STRINGL(&zpath, intern->file_name, intern->file_name_len, 0);
-		spl_instantiate_arg_ex2(Z_OBJCE_P(getThis()), &return_value, 0, &zpath, &zflags TSRMLS_CC);
+		MAKE_STD_ZVAL(zflags);
+		MAKE_STD_ZVAL(zpath);
+		ZVAL_LONG(zflags, intern->flags);
+		ZVAL_STRINGL(zpath, intern->file_name, intern->file_name_len, 1);
+		spl_instantiate_arg_ex2(Z_OBJCE_P(getThis()), &return_value, 0, zpath, zflags TSRMLS_CC);
+		zval_ptr_dtor(&zpath);
+		zval_ptr_dtor(&zflags);
 		
 		subdir = (spl_filesystem_object*)zend_object_store_get_object(return_value TSRMLS_CC);
 		if (subdir) {
@@ -1874,6 +1884,10 @@ static int spl_filesystem_object_cast(zval *readobj, zval *writeobj, int type TS
 	spl_filesystem_object *intern = (spl_filesystem_object*)zend_object_store_get_object(readobj TSRMLS_CC);
 
 	if (type == IS_STRING) {
+		if (Z_OBJCE_P(readobj)->__tostring) {
+			return std_object_handlers.cast_object(readobj, writeobj, type TSRMLS_CC);
+		}
+
 		switch (intern->type) {
 		case SPL_FS_INFO:
 		case SPL_FS_FILE:

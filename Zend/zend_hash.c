@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2014 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        | 
@@ -1513,11 +1513,10 @@ ZEND_API int zend_hash_compare(HashTable *ht1, HashTable *ht2, compare_func_t co
 		}
 		if (ordered) {
 			if (p1->nKeyLength==0 && p2->nKeyLength==0) { /* numeric indices */
-				result = p1->h - p2->h;
-				if (result!=0) {
+				if (p1->h != p2->h) {
 					HASH_UNPROTECT_RECURSION(ht1); 
 					HASH_UNPROTECT_RECURSION(ht2); 
-					return result;
+					return p1->h > p2->h ? 1 : -1;
 				}
 			} else { /* string indices */
 				result = p1->nKeyLength - p2->nKeyLength;

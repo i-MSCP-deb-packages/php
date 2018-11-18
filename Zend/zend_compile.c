@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2014 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        | 
@@ -219,6 +219,7 @@ ZEND_API void file_handle_dtor(zend_file_handle *fh) /* {{{ */
 void init_compiler(TSRMLS_D) /* {{{ */
 {
 	CG(active_op_array) = NULL;
+	memset(&CG(context), 0, sizeof(CG(context)));
 	zend_init_compiler_data_structures(TSRMLS_C);
 	zend_init_rsrc_list(TSRMLS_C);
 	zend_hash_init(&CG(filenames_table), 5, NULL, (dtor_func_t) free_estring, 0);
@@ -904,6 +905,7 @@ static zend_bool opline_is_fetch_this(const zend_op *opline TSRMLS_DC) /* {{{ */
 {
 	if ((opline->opcode == ZEND_FETCH_W) && (opline->op1_type == IS_CONST)
 		&& (Z_TYPE(CONSTANT(opline->op1.constant)) == IS_STRING)
+		&& ((opline->extended_value & ZEND_FETCH_STATIC_MEMBER) != ZEND_FETCH_STATIC_MEMBER)
 		&& (Z_HASH_P(&CONSTANT(opline->op1.constant)) == THIS_HASHVAL)
 		&& (Z_STRLEN(CONSTANT(opline->op1.constant)) == (sizeof("this")-1))
 		&& !memcmp(Z_STRVAL(CONSTANT(opline->op1.constant)), "this", sizeof("this"))) {
@@ -1722,7 +1724,7 @@ void zend_do_begin_function_declaration(znode *function_token, znode *function_n
 	}
 
 	{
-		/* Push a seperator to the switch and foreach stacks */
+		/* Push a separator to the switch and foreach stacks */
 		zend_switch_entry switch_entry;
 
 		switch_entry.cond.op_type = IS_UNUSED;
@@ -1797,7 +1799,7 @@ void zend_do_end_function_declaration(const znode *function_token TSRMLS_DC) /* 
 	zend_do_return(NULL, 0 TSRMLS_CC);
 
 	pass_two(CG(active_op_array) TSRMLS_CC);
-	zend_release_labels(TSRMLS_C);
+	zend_release_labels(0 TSRMLS_CC);
 
 	if (CG(active_class_entry)) {
 		zend_check_magic_method_implementation(CG(active_class_entry), (zend_function*)CG(active_op_array), E_COMPILE_ERROR TSRMLS_CC);
@@ -1816,7 +1818,7 @@ void zend_do_end_function_declaration(const znode *function_token TSRMLS_DC) /* 
 	CG(active_op_array) = function_token->u.op_array;
 
 
-	/* Pop the switch and foreach seperators */
+	/* Pop the switch and foreach separators */
 	zend_stack_del_top(&CG(switch_cond_stack));
 	zend_stack_del_top(&CG(foreach_copy_stack));
 }
@@ -2319,13 +2321,14 @@ void zend_do_goto(const znode *label TSRMLS_DC) /* {{{ */
 }
 /* }}} */
 
-void zend_release_labels(TSRMLS_D) /* {{{ */
+void zend_release_labels(int temporary TSRMLS_DC) /* {{{ */
 {
 	if (CG(context).labels) {
 		zend_hash_destroy(CG(context).labels);
 		FREE_HASHTABLE(CG(context).labels);
+		CG(context).labels = NULL;
 	}
-	if (!zend_stack_is_empty(&CG(context_stack))) {
+	if (!temporary && !zend_stack_is_empty(&CG(context_stack))) {
 		zend_compiler_context *ctx;
 
 		zend_stack_top(&CG(context_stack), (void**)&ctx);
@@ -2582,7 +2585,7 @@ static int generate_free_foreach_copy(const zend_op *foreach_copy TSRMLS_DC) /* 
 {
 	zend_op *opline;
 
-	/* If we reach the seperator then stop applying the stack */
+	/* If we reach the separator then stop applying the stack */
 	if (foreach_copy->result_type == IS_UNUSED && foreach_copy->op1_type == IS_UNUSED) {
 		return 1;
 	}
@@ -3147,8 +3150,11 @@ static char * zend_get_function_declaration(zend_function *fptr TSRMLS_DC) /* {{
 						*zv = *precv->op2.zv;
 						zval_copy_ctor(zv);
 						INIT_PZVAL(zv);
-						zval_update_constant_ex(&zv, (void*)1, fptr->common.scope TSRMLS_CC);
-						if (Z_TYPE_P(zv) == IS_BOOL) {
+						if ((Z_TYPE_P(zv) & IS_CONSTANT_TYPE_MASK) == IS_CONSTANT) {
+							REALLOC_BUF_IF_EXCEED(buf, offset, length, Z_STRLEN_P(zv));
+							memcpy(offset, Z_STRVAL_P(zv), Z_STRLEN_P(zv));
+							offset += Z_STRLEN_P(zv);
+						} else if (Z_TYPE_P(zv) == IS_BOOL) {
 							if (Z_LVAL_P(zv)) {
 								memcpy(offset, "true", 4);
 								offset += 4;
@@ -3170,7 +3176,7 @@ static char * zend_get_function_declaration(zend_function *fptr TSRMLS_DC) /* {{
 								*(offset++) = '.';
 							}
 							*(offset++) = '\'';
-						} else if (Z_TYPE_P(zv) == IS_ARRAY) {
+						} else if (Z_TYPE_P(zv) == IS_ARRAY || (Z_TYPE_P(zv) & IS_CONSTANT_TYPE_MASK) == IS_CONSTANT_ARRAY) {
 							memcpy(offset, "Array", 5);
 							offset += 5;
 						} else {
@@ -3265,11 +3271,11 @@ static void do_inheritance_check_on_method(zend_function *child, zend_function *
 
 	if (child->common.prototype && (child->common.prototype->common.fn_flags & ZEND_ACC_ABSTRACT)) {
 		if (!zend_do_perform_implementation_check(child, child->common.prototype TSRMLS_CC)) {
-			zend_error(E_COMPILE_ERROR, "Declaration of %s::%s() must be compatible with %s", ZEND_FN_SCOPE_NAME(child), child->common.function_name, zend_get_function_declaration(child->common.prototype? child->common.prototype : parent TSRMLS_CC)); 
+			zend_error(E_COMPILE_ERROR, "Declaration of %s::%s() must be compatible with %s", ZEND_FN_SCOPE_NAME(child), child->common.function_name, zend_get_function_declaration(child->common.prototype TSRMLS_CC)); 
 		}
 	} else if (EG(error_reporting) & E_STRICT || EG(user_error_handler)) { /* Check E_STRICT (or custom error handler) before the check so that we save some time */
 		if (!zend_do_perform_implementation_check(child, parent TSRMLS_CC)) {
-			char *method_prototype = zend_get_function_declaration(child->common.prototype? child->common.prototype : parent TSRMLS_CC);
+			char *method_prototype = zend_get_function_declaration(parent TSRMLS_CC);
 			zend_error(E_STRICT, "Declaration of %s::%s() should be compatible with %s", ZEND_FN_SCOPE_NAME(child), child->common.function_name, method_prototype); 
 			efree(method_prototype);
 		}
@@ -3332,7 +3338,7 @@ static zend_bool do_inherit_property_access_check(HashTable *target_ht, zend_pro
 		if ((child_info->flags & ZEND_ACC_PPP_MASK) > (parent_info->flags & ZEND_ACC_PPP_MASK)) {
 			zend_error(E_COMPILE_ERROR, "Access level to %s::$%s must be %s (as in class %s)%s", ce->name, hash_key->arKey, zend_visibility_string(parent_info->flags), parent_ce->name, (parent_info->flags&ZEND_ACC_PUBLIC) ? "" : " or weaker");
 		} else if ((child_info->flags & ZEND_ACC_STATIC) == 0) {
-			Z_DELREF_P(ce->default_properties_table[parent_info->offset]);
+			zval_ptr_dtor(&(ce->default_properties_table[parent_info->offset]));
 			ce->default_properties_table[parent_info->offset] = ce->default_properties_table[child_info->offset];
 			ce->default_properties_table[child_info->offset] = NULL;
 			child_info->offset = parent_info->offset;
@@ -3526,8 +3532,7 @@ ZEND_API void zend_do_inheritance(zend_class_entry *ce, zend_class_entry *parent
 
 	if (ce->ce_flags & ZEND_ACC_IMPLICIT_ABSTRACT_CLASS && ce->type == ZEND_INTERNAL_CLASS) {
 		ce->ce_flags |= ZEND_ACC_EXPLICIT_ABSTRACT_CLASS;
-	} else if (!(ce->ce_flags & ZEND_ACC_IMPLEMENT_INTERFACES)
-				&& !(ce->ce_flags & ZEND_ACC_IMPLEMENT_TRAITS)) {
+	} else if (!(ce->ce_flags & (ZEND_ACC_IMPLEMENT_INTERFACES|ZEND_ACC_IMPLEMENT_TRAITS))) {
 		/* The verification will be done in runtime by ZEND_VERIFY_ABSTRACT_CLASS */
 		zend_verify_abstract_class(ce TSRMLS_CC);
 	}
@@ -3624,7 +3629,6 @@ ZEND_API void zend_do_implement_trait(zend_class_entry *ce, zend_class_entry *tr
 			}
 		}
 		ce->traits[ce->num_traits++] = trait;
-		trait->refcount++;
 	}
 }
 /* }}} */
@@ -3635,93 +3639,9 @@ static zend_bool zend_traits_method_compatibility_check(zend_function *fn, zend_
 	zend_uint other_flags = other_fn->common.scope->ce_flags;
 	
 	return zend_do_perform_implementation_check(fn, other_fn TSRMLS_CC)
-		&& zend_do_perform_implementation_check(other_fn, fn TSRMLS_CC)
-		&& ((fn_flags & ZEND_ACC_FINAL) == (other_flags & ZEND_ACC_FINAL))   /* equal final qualifier */
-		&& ((fn_flags & ZEND_ACC_STATIC)== (other_flags & ZEND_ACC_STATIC)); /* equal static qualifier */
-}
-/* }}} */
-
-static int zend_traits_merge_functions(zend_function *fn TSRMLS_DC, int num_args, va_list args, zend_hash_key *hash_key) /* {{{ */
-{
-	size_t current;
-	size_t i;
-	size_t count;
-	HashTable* resulting_table;
-	HashTable** function_tables;
-	zend_class_entry *ce;
-	size_t collision = 0;
-	size_t abstract_solved = 0;
-	zend_function* other_trait_fn;
-
-	current			= va_arg(args, size_t);  /* index of current trait */
-	count			= va_arg(args, size_t);
-	resulting_table = va_arg(args, HashTable*);
-	function_tables = va_arg(args, HashTable**);
-	ce				= va_arg(args, zend_class_entry*);
-
-	for (i = 0; i < count; i++) {
-		if (i == current) {
-			continue; /* just skip this, cause its the table this function is applied on */
-		}
-		
-		if (zend_hash_quick_find(function_tables[i], hash_key->arKey, hash_key->nKeyLength, hash_key->h, (void **)&other_trait_fn) == SUCCESS) {
-			/* if it is an abstract method, there is no collision */
-			if (other_trait_fn->common.fn_flags & ZEND_ACC_ABSTRACT) {
-				/* Make sure they are compatible */
-				/* In case both are abstract, just check prototype, but need to do that in both directions */
-				if (!zend_traits_method_compatibility_check(fn, other_trait_fn TSRMLS_CC)) {
-					zend_error(E_COMPILE_ERROR, "Declaration of %s must be compatible with %s",
-												zend_get_function_declaration(fn TSRMLS_CC),
-												zend_get_function_declaration(other_trait_fn TSRMLS_CC));
-				}
-				
-				/* we can savely free and remove it from other table */
-				zend_function_dtor(other_trait_fn);
-				zend_hash_quick_del(function_tables[i], hash_key->arKey, hash_key->nKeyLength, hash_key->h);
-			} else {
-				/* if it is not an abstract method, there is still no collision */
-				/* if fn is an abstract method */
-				if (fn->common.fn_flags & ZEND_ACC_ABSTRACT) {
-					/* Make sure they are compatible.
-					   Here, we already know other_trait_fn cannot be abstract, full check ok. */
-					if (!zend_traits_method_compatibility_check(fn, other_trait_fn TSRMLS_CC)) {
-						zend_error(E_COMPILE_ERROR, "Declaration of %s must be compatible with %s",
-													zend_get_function_declaration(fn TSRMLS_CC),
-													zend_get_function_declaration(other_trait_fn TSRMLS_CC));
-					}
-					
-					/* just mark as solved, will be added if its own trait is processed */
-					abstract_solved = 1;
-				} else {
-					/* but else, we have a collision of non-abstract methods */
-					collision++;
-					zend_function_dtor(other_trait_fn);
-					zend_hash_quick_del(function_tables[i], hash_key->arKey, hash_key->nKeyLength, hash_key->h);
-				}
-			}
-		}
-	}
-
-	if (collision) {
-		zend_function* class_fn;
-
-		/* make sure method is not already overridden in class */
-		if (zend_hash_quick_find(&ce->function_table, hash_key->arKey, hash_key->nKeyLength, hash_key->h, (void **)&class_fn) == FAILURE
-			|| class_fn->common.scope != ce) {
-			zend_error(E_COMPILE_ERROR, "Trait method %s has not been applied, because there are collisions with other trait methods on %s", fn->common.function_name, ce->name);
-		}
-
-		zend_function_dtor(fn);
-	} else if (abstract_solved) {
-		zend_function_dtor(fn);
-	} else {
-		/* Add it to result function table */
-		if (zend_hash_quick_add(resulting_table, hash_key->arKey, hash_key->nKeyLength, hash_key->h, fn, sizeof(zend_function), NULL)==FAILURE) {
-			zend_error(E_COMPILE_ERROR, "Trait method %s has not been applied, because failure occurred during updating resulting trait method table", fn->common.function_name);
-		}
-	}
-
-	return ZEND_HASH_APPLY_REMOVE;
+		&& ((other_fn->common.scope->ce_flags & ZEND_ACC_INTERFACE) || zend_do_perform_implementation_check(other_fn, fn TSRMLS_CC))
+		&& ((fn_flags & (ZEND_ACC_FINAL|ZEND_ACC_STATIC)) == 
+		    (other_flags & (ZEND_ACC_FINAL|ZEND_ACC_STATIC))); /* equal final and static qualifier */
 }
 /* }}} */
 
@@ -3766,66 +3686,84 @@ static void zend_add_magic_methods(zend_class_entry* ce, const char* mname, uint
 }
 /* }}} */
 
-static int zend_traits_merge_functions_to_class(zend_function *fn TSRMLS_DC, int num_args, va_list args, zend_hash_key *hash_key) /* {{{ */
+static void zend_add_trait_method(zend_class_entry *ce, const char *name, const char *arKey, uint nKeyLength, zend_function *fn, HashTable **overriden TSRMLS_DC) /* {{{ */
 {
-	zend_class_entry *ce = va_arg(args, zend_class_entry*);
-	zend_function* existing_fn = NULL;
-	zend_function fn_copy, *fn_copy_p;
-	zend_function* prototype = NULL;  /* is used to determine the prototype according to the inheritance chain */
+	zend_function *existing_fn = NULL;
+	ulong h = zend_hash_func(arKey, nKeyLength);
 
-	if (zend_hash_quick_find(&ce->function_table, hash_key->arKey, hash_key->nKeyLength, hash_key->h, (void**) &existing_fn) == FAILURE ||
-	    existing_fn->common.scope != ce) {
-		/* not found or inherited from other class or interface */
-		zend_function* parent_function;
-
-		if (ce->parent && zend_hash_quick_find(&ce->parent->function_table, hash_key->arKey, hash_key->nKeyLength, hash_key->h, (void**) &parent_function) != FAILURE) {
-			prototype = parent_function; /* ->common.fn_flags |= ZEND_ACC_ABSTRACT; */
-			
-			/* we got that method in the parent class, and are going to override it,
-			  except, if the trait is just asking to have an abstract method implemented. */
-			if (fn->common.fn_flags & ZEND_ACC_ABSTRACT) {
-				/* then we clean up an skip this method */
-				zend_function_dtor(fn);
-				return ZEND_HASH_APPLY_REMOVE;
+	if (zend_hash_quick_find(&ce->function_table, arKey, nKeyLength, h, (void**) &existing_fn) == SUCCESS) {
+		if (existing_fn->common.scope == ce) {
+			/* members from the current class override trait methods */
+			/* use temporary *overriden HashTable to detect hidden conflict */
+			if (*overriden) {
+				if (zend_hash_quick_find(*overriden, arKey, nKeyLength, h, (void**) &existing_fn) == SUCCESS) {
+					if (existing_fn->common.fn_flags & ZEND_ACC_ABSTRACT) {
+						/* Make sure the trait method is compatible with previosly declared abstract method */
+						if (!zend_traits_method_compatibility_check(fn, existing_fn TSRMLS_CC)) {
+							zend_error(E_COMPILE_ERROR, "Declaration of %s must be compatible with %s",
+								zend_get_function_declaration(fn TSRMLS_CC),
+								zend_get_function_declaration(existing_fn TSRMLS_CC));
+						}
+					} else if (fn->common.fn_flags & ZEND_ACC_ABSTRACT) {
+						/* Make sure the abstract declaration is compatible with previous declaration */
+						if (!zend_traits_method_compatibility_check(existing_fn, fn TSRMLS_CC)) {
+							zend_error(E_COMPILE_ERROR, "Declaration of %s must be compatible with %s",
+								zend_get_function_declaration(fn TSRMLS_CC),
+								zend_get_function_declaration(existing_fn TSRMLS_CC));
+						}
+						return;
+					}
+				}
+			} else {
+				ALLOC_HASHTABLE(*overriden);
+				zend_hash_init_ex(*overriden, 2, NULL, NULL, 0, 0);
 			}
+			zend_hash_quick_update(*overriden, arKey, nKeyLength, h, fn, sizeof(zend_function), (void**)&fn);
+			return;
+		} else if (existing_fn->common.fn_flags & ZEND_ACC_ABSTRACT) {
+			/* Make sure the trait method is compatible with previosly declared abstract method */
+			if (!zend_traits_method_compatibility_check(fn, existing_fn TSRMLS_CC)) {
+				zend_error(E_COMPILE_ERROR, "Declaration of %s must be compatible with %s",
+					zend_get_function_declaration(fn TSRMLS_CC),
+					zend_get_function_declaration(existing_fn TSRMLS_CC));
+			}
+		} else if (fn->common.fn_flags & ZEND_ACC_ABSTRACT) {
+			/* Make sure the abstract declaration is compatible with previous declaration */
+			if (!zend_traits_method_compatibility_check(existing_fn, fn TSRMLS_CC)) {
+				zend_error(E_COMPILE_ERROR, "Declaration of %s must be compatible with %s",
+					zend_get_function_declaration(fn TSRMLS_CC),
+					zend_get_function_declaration(existing_fn TSRMLS_CC));
+			}
+			return;
+		} else if ((existing_fn->common.scope->ce_flags & ZEND_ACC_TRAIT) == ZEND_ACC_TRAIT) {
+			/* two trais can't define the same non-abstract method */
+#if 1
+			zend_error(E_COMPILE_ERROR, "Trait method %s has not been applied, because there are collisions with other trait methods on %s",
+				name, ce->name);
+#else		/* TODO: better errot message */
+			zend_error(E_COMPILE_ERROR, "Trait method %s::%s has not been applied as %s::%s, because of collision with %s::%s",
+				fn->common.scope->name, fn->common.function_name,
+				ce->name, name,
+				existing_fn->common.scope->name, existing_fn->common.function_name);
+#endif
+		} else {
+			/* inherited members are overridden by members inserted by traits */
+			/* check whether the trait method fulfills the inheritance requirements */
+			do_inheritance_check_on_method(fn, existing_fn TSRMLS_CC);
 		}
+	}
+
+	function_add_ref(fn);
+	zend_hash_quick_update(&ce->function_table, arKey, nKeyLength, h, fn, sizeof(zend_function), (void**)&fn);
+	zend_add_magic_methods(ce, arKey, nKeyLength, fn TSRMLS_CC);
+}
+/* }}} */
+
+static int zend_fixup_trait_method(zend_function *fn, zend_class_entry *ce TSRMLS_DC) /* {{{ */
+{
+	if ((fn->common.scope->ce_flags & ZEND_ACC_TRAIT) == ZEND_ACC_TRAIT) {
 
 		fn->common.scope = ce;
-		fn->common.prototype = prototype;
-
-		if (prototype
-			&& (prototype->common.fn_flags & ZEND_ACC_IMPLEMENTED_ABSTRACT
-			|| prototype->common.fn_flags & ZEND_ACC_ABSTRACT)) {
-			fn->common.fn_flags |= ZEND_ACC_IMPLEMENTED_ABSTRACT;
-		} else if (fn->common.fn_flags & ZEND_ACC_IMPLEMENTED_ABSTRACT) {
-			/* remove ZEND_ACC_IMPLEMENTED_ABSTRACT flag, think it shouldn't be copied to class */
-			fn->common.fn_flags = fn->common.fn_flags - ZEND_ACC_IMPLEMENTED_ABSTRACT;
-		}
-
-		/* check whether the trait method fullfills the inheritance requirements */
-		if (prototype) {
-			do_inheritance_check_on_method(fn, prototype TSRMLS_CC);
-		}
-
-		/* one more thing: make sure we properly implement an abstract method */
-		if (existing_fn && existing_fn->common.fn_flags & ZEND_ACC_ABSTRACT) {
-			prototype = fn->common.prototype;
-			do_inheritance_check_on_method(fn, existing_fn TSRMLS_CC);
-			fn->common.prototype = prototype;
-		}
-
-		/* delete inherited fn if the function to be added is not abstract */
-		if (existing_fn
-			&& existing_fn->common.scope != ce
-			&& (fn->common.fn_flags & ZEND_ACC_ABSTRACT) == 0) {
-			/* it is just a reference which was added to the subclass while doing
-			   the inheritance, so we can deleted now, and will add the overriding 
-			   method afterwards.
-			   Except, if we try to add an abstract function, then we should not
-			   delete the inherited one */
-			zend_hash_quick_del(&ce->function_table, hash_key->arKey, hash_key->nKeyLength, hash_key->h);
-		}
-
 
 		if (fn->common.fn_flags & ZEND_ACC_ABSTRACT) {
 			ce->ce_flags |= ZEND_ACC_IMPLICIT_ABSTRACT_CLASS;
@@ -3833,130 +3771,109 @@ static int zend_traits_merge_functions_to_class(zend_function *fn TSRMLS_DC, int
 		if (fn->op_array.static_variables) {
 			ce->ce_flags |= ZEND_HAS_STATIC_IN_METHODS;
 		}
-		fn_copy = *fn;
-		function_add_ref(&fn_copy);
-
-		if (zend_hash_quick_update(&ce->function_table, hash_key->arKey, hash_key->nKeyLength, hash_key->h, &fn_copy, sizeof(zend_function), (void**)&fn_copy_p)==FAILURE) {
-			zend_error(E_COMPILE_ERROR, "Trait method %s has not been applied, because failure occurred during updating class method table", hash_key->arKey);
-		}
-
-		zend_add_magic_methods(ce, hash_key->arKey, hash_key->nKeyLength, fn_copy_p TSRMLS_CC);
-
-		zend_function_dtor(fn);
-	} else {
-		zend_function_dtor(fn);
 	}
-
-	return ZEND_HASH_APPLY_REMOVE;
+	return ZEND_HASH_APPLY_KEEP;
 }
 /* }}} */
 
 static int zend_traits_copy_functions(zend_function *fn TSRMLS_DC, int num_args, va_list args, zend_hash_key *hash_key) /* {{{ */
 {
-	HashTable* target;
-	zend_trait_alias** aliases;
-	HashTable* exclude_table;
-	char* lcname;
-	unsigned int fnname_len;
-	zend_function fn_copy;
-	void* dummy;
-	size_t i = 0;
+	zend_class_entry  *ce;
+	HashTable         **overriden;
+	zend_trait_alias  *alias, **alias_ptr;
+	HashTable         *exclude_table;
+	char              *lcname;
+	unsigned int       fnname_len;
+	zend_function      fn_copy;
+	void              *dummy;
 
-	target        = va_arg(args, HashTable*);
-	aliases       = va_arg(args, zend_trait_alias**);
+	ce            = va_arg(args, zend_class_entry*);
+	overriden     = va_arg(args, HashTable**);
 	exclude_table = va_arg(args, HashTable*);
-
-	fnname_len = strlen(fn->common.function_name);
+	
+	fnname_len = hash_key->nKeyLength - 1;
 
 	/* apply aliases which are qualified with a class name, there should not be any ambiguity */
-	if (aliases) {
-		while (aliases[i]) {
+	if (ce->trait_aliases) {
+		alias_ptr = ce->trait_aliases;
+		alias = *alias_ptr;
+		while (alias) {
 			/* Scope unset or equal to the function we compare to, and the alias applies to fn */
-			if (aliases[i]->alias != NULL
-				&& (!aliases[i]->trait_method->ce || fn->common.scope == aliases[i]->trait_method->ce)
-				&& aliases[i]->trait_method->mname_len == fnname_len
-				&& (zend_binary_strcasecmp(aliases[i]->trait_method->method_name, aliases[i]->trait_method->mname_len, fn->common.function_name, fnname_len) == 0)) {
+			if (alias->alias != NULL
+				&& (!alias->trait_method->ce || fn->common.scope == alias->trait_method->ce)
+				&& alias->trait_method->mname_len == fnname_len
+				&& (zend_binary_strcasecmp(alias->trait_method->method_name, alias->trait_method->mname_len, hash_key->arKey, fnname_len) == 0)) {
 				fn_copy = *fn;
-				function_add_ref(&fn_copy);
-				/* this function_name is never destroyed, because ZEND_ACC_ALIAS
-				   flag is set */
-				fn_copy.common.function_name = aliases[i]->alias;
-				fn_copy.common.fn_flags |= ZEND_ACC_ALIAS;
 					
 				/* if it is 0, no modifieres has been changed */
-				if (aliases[i]->modifiers) { 
-					fn_copy.common.fn_flags = aliases[i]->modifiers;
-					if (!(aliases[i]->modifiers & ZEND_ACC_PPP_MASK)) {
-						fn_copy.common.fn_flags |= ZEND_ACC_PUBLIC;
-					}
-					fn_copy.common.fn_flags |= fn->common.fn_flags ^ (fn->common.fn_flags & ZEND_ACC_PPP_MASK);
+				if (alias->modifiers) { 
+					fn_copy.common.fn_flags = alias->modifiers | (fn->common.fn_flags ^ (fn->common.fn_flags & ZEND_ACC_PPP_MASK));
 				}
 
-				lcname = zend_str_tolower_dup(aliases[i]->alias, aliases[i]->alias_len);
-
-				if (zend_hash_add(target, lcname, aliases[i]->alias_len+1, &fn_copy, sizeof(zend_function), NULL)==FAILURE) {
-					zend_error(E_COMPILE_ERROR, "Failed to add aliased trait method (%s) to the trait table. There is probably already a trait method with the same name", fn_copy.common.function_name);
-				}
+				lcname = zend_str_tolower_dup(alias->alias, alias->alias_len);
+				zend_add_trait_method(ce, alias->alias, lcname, alias->alias_len+1, &fn_copy, overriden TSRMLS_CC);
 				efree(lcname);
 
-				/** Record the trait from which this alias was resolved. */
-				if (!aliases[i]->trait_method->ce) {
-					aliases[i]->trait_method->ce = fn->common.scope;
+				/* Record the trait from which this alias was resolved. */
+				if (!alias->trait_method->ce) {
+					alias->trait_method->ce = fn->common.scope;
 				}
 			}
-			i++;
+			alias_ptr++;
+			alias = *alias_ptr;
 		}
 	}
 
-	lcname = zend_str_tolower_dup(fn->common.function_name, fnname_len);
+	lcname = hash_key->arKey;
 
 	if (exclude_table == NULL || zend_hash_find(exclude_table, lcname, fnname_len, &dummy) == FAILURE) {
 		/* is not in hashtable, thus, function is not to be excluded */
 		fn_copy = *fn;
-		function_add_ref(&fn_copy);
-		fn_copy.common.fn_flags |= ZEND_ACC_ALIAS;
 
-		/* apply aliases which are not qualified by a class name, or which have not
-		 * alias name, just setting visibility */
-		if (aliases) {
-			i = 0;
-			while (aliases[i]) {
+		/* apply aliases which have not alias name, just setting visibility */
+		if (ce->trait_aliases) {
+			alias_ptr = ce->trait_aliases;
+			alias = *alias_ptr;
+			while (alias) {
 				/* Scope unset or equal to the function we compare to, and the alias applies to fn */
-				if (aliases[i]->alias == NULL && aliases[i]->modifiers != 0
-					&& (!aliases[i]->trait_method->ce || fn->common.scope == aliases[i]->trait_method->ce)
-					&& (aliases[i]->trait_method->mname_len == fnname_len)
-					&& (zend_binary_strcasecmp(aliases[i]->trait_method->method_name, aliases[i]->trait_method->mname_len, fn->common.function_name, fnname_len) == 0)) {
-					fn_copy.common.fn_flags = aliases[i]->modifiers;
+				if (alias->alias == NULL && alias->modifiers != 0
+					&& (!alias->trait_method->ce || fn->common.scope == alias->trait_method->ce)
+					&& (alias->trait_method->mname_len == fnname_len)
+					&& (zend_binary_strcasecmp(alias->trait_method->method_name, alias->trait_method->mname_len, lcname, fnname_len) == 0)) {
 
-					if (!(aliases[i]->modifiers & ZEND_ACC_PPP_MASK)) {
-						fn_copy.common.fn_flags |= ZEND_ACC_PUBLIC;
-					}
-					fn_copy.common.fn_flags |= fn->common.fn_flags ^ (fn->common.fn_flags & ZEND_ACC_PPP_MASK);
+					fn_copy.common.fn_flags = alias->modifiers | (fn->common.fn_flags ^ (fn->common.fn_flags & ZEND_ACC_PPP_MASK));
 
 					/** Record the trait from which this alias was resolved. */
-					if (!aliases[i]->trait_method->ce) {
-						aliases[i]->trait_method->ce = fn->common.scope;
+					if (!alias->trait_method->ce) {
+						alias->trait_method->ce = fn->common.scope;
 					}
 				}
-				i++;
+				alias_ptr++;
+				alias = *alias_ptr;
 			}
 		}
 
-		if (zend_hash_add(target, lcname, fnname_len+1, &fn_copy, sizeof(zend_function), NULL)==FAILURE) {
-			zend_error(E_COMPILE_ERROR, "Failed to add trait method (%s) to the trait table. There is probably already a trait method with the same name", fn_copy.common.function_name);
-		}
+		zend_add_trait_method(ce, fn->common.function_name, lcname, fnname_len+1, &fn_copy, overriden TSRMLS_CC);
 	}
-
-	efree(lcname);
 
 	return ZEND_HASH_APPLY_KEEP;
 }
 /* }}} */
 
-/* Copies function table entries to target function table with applied aliasing */
-static void zend_traits_copy_trait_function_table(HashTable *target, HashTable *source, zend_trait_alias** aliases, HashTable* exclude_table TSRMLS_DC) /* {{{ */
+static void zend_check_trait_usage(zend_class_entry *ce, zend_class_entry *trait TSRMLS_DC) /* {{{ */
 {
-	zend_hash_apply_with_arguments(source TSRMLS_CC, (apply_func_args_t)zend_traits_copy_functions, 3, target, aliases, exclude_table);
+	zend_uint i;
+
+	if ((trait->ce_flags & ZEND_ACC_TRAIT) != ZEND_ACC_TRAIT) {
+		zend_error(E_COMPILE_ERROR, "Class %s is not a trait, Only traits may be used in 'as' and 'insteadof' statements", trait->name);
+	}
+
+	for (i = 0; i < ce->num_traits; i++) {
+		if (ce->traits[i] == trait) {
+			return;
+		}
+	}
+	zend_error(E_COMPILE_ERROR, "Required Trait %s wasn't added to %s", trait->name, ce->name);
 }
 /* }}} */
 
@@ -3975,8 +3892,11 @@ static void zend_traits_init_trait_structures(zend_class_entry *ce TSRMLS_DC) /*
 			/** Resolve classes for all precedence operations. */
 			if (cur_precedence->exclude_from_classes) {
 				cur_method_ref = cur_precedence->trait_method;
-				cur_precedence->trait_method->ce = zend_fetch_class(cur_method_ref->class_name,
-																	cur_method_ref->cname_len, ZEND_FETCH_CLASS_TRAIT TSRMLS_CC);
+				if (!(cur_precedence->trait_method->ce = zend_fetch_class(cur_method_ref->class_name, cur_method_ref->cname_len,
+								ZEND_FETCH_CLASS_TRAIT|ZEND_FETCH_CLASS_NO_AUTOLOAD TSRMLS_CC))) {
+					zend_error(E_COMPILE_ERROR, "Could not find trait %s", cur_method_ref->class_name);
+				}
+				zend_check_trait_usage(ce, cur_precedence->trait_method->ce TSRMLS_CC);
 
 				/** Ensure that the prefered method is actually available. */
 				lcname = zend_str_tolower_dup(cur_method_ref->method_name,
@@ -3995,7 +3915,7 @@ static void zend_traits_init_trait_structures(zend_class_entry *ce TSRMLS_DC) /*
 				/** With the other traits, we are more permissive.
 					We do not give errors for those. This allows to be more
 					defensive in such definitions.
-					However, we want to make sure that the insteadof declartion
+					However, we want to make sure that the insteadof declaration
 					is consistent in itself.
 				 */
 				j = 0;
@@ -4003,8 +3923,11 @@ static void zend_traits_init_trait_structures(zend_class_entry *ce TSRMLS_DC) /*
 					char* class_name = (char*)cur_precedence->exclude_from_classes[j];
 					zend_uint name_length = strlen(class_name);
 
-					cur_precedence->exclude_from_classes[j] = zend_fetch_class(class_name, name_length, ZEND_FETCH_CLASS_TRAIT TSRMLS_CC);
-					
+					if (!(cur_precedence->exclude_from_classes[j] = zend_fetch_class(class_name, name_length, ZEND_FETCH_CLASS_TRAIT |ZEND_FETCH_CLASS_NO_AUTOLOAD TSRMLS_CC))) {
+						zend_error(E_COMPILE_ERROR, "Could not find trait %s", class_name);
+					}					
+					zend_check_trait_usage(ce, cur_precedence->exclude_from_classes[j] TSRMLS_CC);
+
 					/* make sure that the trait method is not from a class mentioned in
 					 exclude_from_classes, for consistency */
 					if (cur_precedence->trait_method->ce == cur_precedence->exclude_from_classes[i]) {
@@ -4030,7 +3953,10 @@ static void zend_traits_init_trait_structures(zend_class_entry *ce TSRMLS_DC) /*
 			/** For all aliases with an explicit class name, resolve the class now. */
 			if (ce->trait_aliases[i]->trait_method->class_name) {
 				cur_method_ref = ce->trait_aliases[i]->trait_method;
-				cur_method_ref->ce = zend_fetch_class(cur_method_ref->class_name, cur_method_ref->cname_len, ZEND_FETCH_CLASS_TRAIT TSRMLS_CC);
+				if (!(cur_method_ref->ce = zend_fetch_class(cur_method_ref->class_name, cur_method_ref->cname_len, ZEND_FETCH_CLASS_TRAIT|ZEND_FETCH_CLASS_NO_AUTOLOAD TSRMLS_CC))) {
+					zend_error(E_COMPILE_ERROR, "Could not find trait %s", cur_method_ref->class_name);
+				}
+				zend_check_trait_usage(ce, cur_method_ref->ce TSRMLS_CC);
 
 				/** And, ensure that the referenced method is resolvable, too. */
 				lcname = zend_str_tolower_dup(cur_method_ref->method_name,
@@ -4080,122 +4006,49 @@ static void zend_traits_compile_exclude_table(HashTable* exclude_table, zend_tra
 
 static void zend_do_traits_method_binding(zend_class_entry *ce TSRMLS_DC) /* {{{ */
 {
-	HashTable** function_tables;
-	HashTable* resulting_table;
-	HashTable exclude_table;
-	size_t i;
+	zend_uint i;
+	HashTable *overriden = NULL;
 
-	/* prepare copies of trait function tables for combination */
-	function_tables = emalloc(sizeof(HashTable*) * ce->num_traits);
-	resulting_table = (HashTable *)emalloc(sizeof(HashTable));
-	
-	/* TODO: revisit this start size, may be its not optimal */
-	zend_hash_init_ex(resulting_table, 10, NULL, NULL, 0, 0);
-  
 	for (i = 0; i < ce->num_traits; i++) {
-		function_tables[i] = (HashTable *)emalloc(sizeof(HashTable));
-		zend_hash_init_ex(function_tables[i], ce->traits[i]->function_table.nNumOfElements, NULL, NULL, 1, 0);
-
 		if (ce->trait_precedences) {
+			HashTable exclude_table;
+
 			/* TODO: revisit this start size, may be its not optimal */
 			zend_hash_init_ex(&exclude_table, 2, NULL, NULL, 0, 0);
 
 			zend_traits_compile_exclude_table(&exclude_table, ce->trait_precedences, ce->traits[i]);
 
 			/* copies functions, applies defined aliasing, and excludes unused trait methods */
-			zend_traits_copy_trait_function_table(function_tables[i], &ce->traits[i]->function_table, ce->trait_aliases, &exclude_table TSRMLS_CC);
+			zend_hash_apply_with_arguments(&ce->traits[i]->function_table TSRMLS_CC, (apply_func_args_t)zend_traits_copy_functions, 3, ce, &overriden, &exclude_table);
+
 			zend_hash_destroy(&exclude_table);
 		} else {
-			zend_traits_copy_trait_function_table(function_tables[i], &ce->traits[i]->function_table, ce->trait_aliases, NULL TSRMLS_CC);
+			zend_hash_apply_with_arguments(&ce->traits[i]->function_table TSRMLS_CC, (apply_func_args_t)zend_traits_copy_functions, 3, ce, &overriden, NULL);
 		}
 	}
   
-	/* now merge trait methods */
-	for (i = 0; i < ce->num_traits; i++) {
-		zend_hash_apply_with_arguments(function_tables[i] TSRMLS_CC, (apply_func_args_t)zend_traits_merge_functions, 5, i, ce->num_traits, resulting_table, function_tables, ce);
-	}
-  
-	/* Now the resulting_table contains all trait methods we would have to
-	 * add to the class in the following step the methods are inserted into the method table
-	 * if there is already a method with the same name it is replaced iff ce != fn.scope
-	 * --> all inherited methods are overridden, methods defined in the class are left untouched
-	 */
-	zend_hash_apply_with_arguments(resulting_table TSRMLS_CC, (apply_func_args_t)zend_traits_merge_functions_to_class, 1, ce);
-  
-	/* free temporary function tables */
-	for (i = 0; i < ce->num_traits; i++) {
-		/* zend_hash_destroy(function_tables[i]); */
-		zend_hash_graceful_destroy(function_tables[i]);
-		efree(function_tables[i]);
-	}
-	efree(function_tables);
+    zend_hash_apply_with_argument(&ce->function_table, (apply_func_arg_t)zend_fixup_trait_method, ce TSRMLS_CC);
 
-	/* free temporary resulting table */
-	/* zend_hash_destroy(resulting_table); */
-	zend_hash_graceful_destroy(resulting_table);
-	efree(resulting_table);
+	if (overriden) {
+		zend_hash_destroy(overriden);
+		FREE_HASHTABLE(overriden);
+	}
 }
 /* }}} */
 
 static zend_class_entry* find_first_definition(zend_class_entry *ce, size_t current_trait, const char* prop_name, int prop_name_length, ulong prop_hash, zend_class_entry *coliding_ce) /* {{{ */
 {
 	size_t i;
-	zend_property_info *coliding_prop;
-	for (i = 0; (i < current_trait) && (i < ce->num_traits); i++) {
-		if (zend_hash_quick_find(&ce->traits[i]->properties_info, prop_name, prop_name_length+1, prop_hash, (void **) &coliding_prop) == SUCCESS) {
-			return ce->traits[i];
+
+	if (coliding_ce == ce) {
+		for (i = 0; i < current_trait; i++) {
+			if (zend_hash_quick_exists(&ce->traits[i]->properties_info, prop_name, prop_name_length+1, prop_hash)) {
+				return ce->traits[i];
+			}
 		}
 	}
 
 	return coliding_ce;
-}
-/* }}} */
-
-static void zend_traits_register_private_property(zend_class_entry *ce, const char *name, int name_len, zend_property_info *old_info, zval *property TSRMLS_DC) /* {{{ */
-{
-	char *priv_name;
-	int priv_name_length;
-	const char *interned_name;
-	zend_property_info property_info;
-	ulong h = zend_get_hash_value(name, name_len+1);
-	property_info = *old_info;
-
-	if (old_info->flags & ZEND_ACC_STATIC) {
-		property_info.offset = ce->default_static_members_count++;
-		ce->default_static_members_table = perealloc(ce->default_static_members_table, sizeof(zval*) * ce->default_static_members_count, ce->type == ZEND_INTERNAL_CLASS);
-		ce->default_static_members_table[property_info.offset] = property;
-		if (ce->type == ZEND_USER_CLASS) {
-			ce->static_members_table = ce->default_static_members_table;
-		}
-	} else {
-		property_info.offset = ce->default_properties_count++;
-		ce->default_properties_table = perealloc(ce->default_properties_table, sizeof(zval*) * ce->default_properties_count, ce->type == ZEND_INTERNAL_CLASS);
-		ce->default_properties_table[property_info.offset] = property;
-	}
-
-	zend_mangle_property_name(&priv_name, &priv_name_length, ce->name, ce->name_length, name, name_len, ce->type & ZEND_INTERNAL_CLASS);
-	property_info.name = priv_name;
-	property_info.name_length = priv_name_length;
-
-	interned_name = zend_new_interned_string(property_info.name, property_info.name_length+1, 0 TSRMLS_CC);
-	if (interned_name != property_info.name) {
-		if (ce->type == ZEND_USER_CLASS) {
-			efree((char*)property_info.name);
-		} else {
-			free((char*)property_info.name);
-		}
-		property_info.name = interned_name;
-	}
-
-	property_info.h = zend_get_hash_value(property_info.name, property_info.name_length+1);
-
-	property_info.ce = ce;
-
-	if (property_info.doc_comment) {
-		property_info.doc_comment = estrndup(property_info.doc_comment, property_info.doc_comment_len);
-	}
-
-	zend_hash_quick_update(&ce->properties_info, name, name_len+1, h, &property_info, sizeof(zend_property_info), NULL);
 }
 /* }}} */
 
@@ -4212,7 +4065,8 @@ static void zend_do_traits_property_binding(zend_class_entry *ce TSRMLS_DC) /* {
 	zend_bool not_compatible;
 	zval* prop_value;
 	char* doc_comment;  
-  
+	zend_uint flags;
+
 	/* In the following steps the properties are inserted into the property table
 	 * for that, a very strict approach is applied:
 	 * - check for compatibility, if not compatible with any property in class -> fatal
@@ -4225,7 +4079,8 @@ static void zend_do_traits_property_binding(zend_class_entry *ce TSRMLS_DC) /* {
 			/* first get the unmangeld name if necessary,
 			 * then check whether the property is already there
 			 */
-			if ((property_info->flags & ZEND_ACC_PPP_MASK) == ZEND_ACC_PUBLIC) {
+			flags = property_info->flags;
+			if ((flags & ZEND_ACC_PPP_MASK) == ZEND_ACC_PUBLIC) {
 				prop_hash = property_info->h;
 				prop_name = property_info->name;
 				prop_name_length = property_info->name_length;
@@ -4239,61 +4094,50 @@ static void zend_do_traits_property_binding(zend_class_entry *ce TSRMLS_DC) /* {
 
 			/* next: check for conflicts with current class */
 			if (zend_hash_quick_find(&ce->properties_info, prop_name, prop_name_length+1, prop_hash, (void **) &coliding_prop) == SUCCESS) {
-				if (coliding_prop->flags & ZEND_ACC_SHADOW) {
-					/* this one is inherited, lets look it up in its own class */
-					zend_hash_quick_find(&coliding_prop->ce->properties_info, prop_name, prop_name_length+1, prop_hash, (void **) &coliding_prop);
-					if (coliding_prop->flags & ZEND_ACC_PRIVATE) {
-						/* private property, make the property_info.offset indenpended */
-						if (property_info->flags & ZEND_ACC_STATIC) {
-							prop_value = ce->traits[i]->default_static_members_table[property_info->offset];
+				if (coliding_prop->flags & ZEND_ACC_SHADOW) {					
+					zend_hash_quick_del(&ce->properties_info, prop_name, prop_name_length+1, prop_hash);
+					flags |= ZEND_ACC_CHANGED;
+				} else {				
+					if ((coliding_prop->flags & (ZEND_ACC_PPP_MASK | ZEND_ACC_STATIC))
+						== (flags & (ZEND_ACC_PPP_MASK | ZEND_ACC_STATIC))) {
+						/* flags are identical, now the value needs to be checked */
+						if (flags & ZEND_ACC_STATIC) {
+							not_compatible = (FAILURE == compare_function(&compare_result,
+											  ce->default_static_members_table[coliding_prop->offset],
+											  ce->traits[i]->default_static_members_table[property_info->offset] TSRMLS_CC))
+								  || (Z_LVAL(compare_result) != 0);
 						} else {
-							prop_value = ce->traits[i]->default_properties_table[property_info->offset];
+							not_compatible = (FAILURE == compare_function(&compare_result,
+											  ce->default_properties_table[coliding_prop->offset],
+											  ce->traits[i]->default_properties_table[property_info->offset] TSRMLS_CC))
+								  || (Z_LVAL(compare_result) != 0);
 						}
-						Z_ADDREF_P(prop_value);
-
-						zend_traits_register_private_property(ce, prop_name, prop_name_length, property_info, prop_value TSRMLS_CC);
-						continue;
-					}
-				}
-				
-				if ((coliding_prop->flags & (ZEND_ACC_PPP_MASK | ZEND_ACC_STATIC))
-					== (property_info->flags & (ZEND_ACC_PPP_MASK | ZEND_ACC_STATIC))) {
-					/* flags are identical, now the value needs to be checked */
-					if (property_info->flags & ZEND_ACC_STATIC) {
-						not_compatible = (FAILURE == compare_function(&compare_result,
-										  ce->default_static_members_table[coliding_prop->offset],
-										  ce->traits[i]->default_static_members_table[property_info->offset] TSRMLS_CC))
-							  || (Z_LVAL(compare_result) != 0);
 					} else {
-						not_compatible = (FAILURE == compare_function(&compare_result,
-										  ce->default_properties_table[coliding_prop->offset],
-										  ce->traits[i]->default_properties_table[property_info->offset] TSRMLS_CC))
-							  || (Z_LVAL(compare_result) != 0);
+						/* the flags are not identical, thus, we assume properties are not compatible */
+						not_compatible = 1;
 					}
-				} else {
-					/* the flags are not identical, thus, we assume properties are not compatible */
-					not_compatible = 1;
-				}
 
-				if (not_compatible) {
-					zend_error(E_COMPILE_ERROR, 
+					if (not_compatible) {
+						zend_error(E_COMPILE_ERROR, 
 							   "%s and %s define the same property ($%s) in the composition of %s. However, the definition differs and is considered incompatible. Class was composed",
 								find_first_definition(ce, i, prop_name, prop_name_length, prop_hash, coliding_prop->ce)->name,
 								property_info->ce->name,
 								prop_name,
 								ce->name);
-				} else {
-					zend_error(E_STRICT, 
+					} else {
+						zend_error(E_STRICT, 
 							   "%s and %s define the same property ($%s) in the composition of %s. This might be incompatible, to improve maintainability consider using accessor methods in traits instead. Class was composed",
 								find_first_definition(ce, i, prop_name, prop_name_length, prop_hash, coliding_prop->ce)->name,
 								property_info->ce->name,
 								prop_name,
 								ce->name);
+						continue;
+					}
 				}
 			}
 
 			/* property not found, so lets add it */
-			if (property_info->flags & ZEND_ACC_STATIC) {
+			if (flags & ZEND_ACC_STATIC) {
 				prop_value = ce->traits[i]->default_static_members_table[property_info->offset];
 			} else {
 				prop_value = ce->traits[i]->default_properties_table[property_info->offset];
@@ -4302,7 +4146,7 @@ static void zend_do_traits_property_binding(zend_class_entry *ce TSRMLS_DC) /* {
 
 			doc_comment = property_info->doc_comment ? estrndup(property_info->doc_comment, property_info->doc_comment_len) : NULL;
 			zend_declare_property_ex(ce, prop_name, prop_name_length, 
-									 prop_value, property_info->flags, 
+									 prop_value, flags, 
 								     doc_comment, property_info->doc_comment_len TSRMLS_CC);
 		}
 	}
@@ -4426,20 +4270,6 @@ ZEND_API int do_bind_function(const zend_op_array *op_array, zend_op *opline, Ha
 }
 /* }}} */
 
-void zend_add_trait_precedence(znode *precedence_znode TSRMLS_DC) /* {{{ */
-{
-	zend_class_entry *ce = CG(active_class_entry);
-	zend_add_to_list(&ce->trait_precedences, precedence_znode->u.op.ptr TSRMLS_CC);
-}
-/* }}} */
-
-void zend_add_trait_alias(znode *alias_znode TSRMLS_DC) /* {{{ */
-{
-	zend_class_entry *ce = CG(active_class_entry);
-	zend_add_to_list(&ce->trait_aliases, alias_znode->u.op.ptr TSRMLS_CC);
-}
-/* }}} */
-
 void zend_prepare_reference(znode *result, znode *class_name, znode *method_name TSRMLS_DC) /* {{{ */
 {
 	zend_trait_method_reference *method_ref = emalloc(sizeof(zend_trait_method_reference));
@@ -4464,18 +4294,25 @@ void zend_prepare_reference(znode *result, znode *class_name, znode *method_name
 }
 /* }}} */
 
-void zend_prepare_trait_alias(znode *result, znode *method_reference, znode *modifiers, znode *alias TSRMLS_DC) /* {{{ */
+void zend_add_trait_alias(znode *method_reference, znode *modifiers, znode *alias TSRMLS_DC) /* {{{ */
 {
-	zend_trait_alias *trait_alias = emalloc(sizeof(zend_trait_alias));
+	zend_class_entry *ce = CG(active_class_entry);
+	zend_trait_alias *trait_alias;
 
-	trait_alias->trait_method = (zend_trait_method_reference*)method_reference->u.op.ptr;
-	trait_alias->modifiers = Z_LVAL(modifiers->u.constant);
-	
 	if (Z_LVAL(modifiers->u.constant) == ZEND_ACC_STATIC) {
 		zend_error(E_COMPILE_ERROR, "Cannot use 'static' as method modifier");
 		return;
+	} else if (Z_LVAL(modifiers->u.constant) == ZEND_ACC_ABSTRACT) {
+		zend_error(E_COMPILE_ERROR, "Cannot use 'abstract' as method modifier");
+		return;
+	} else if (Z_LVAL(modifiers->u.constant) == ZEND_ACC_FINAL) {
+		zend_error(E_COMPILE_ERROR, "Cannot use 'final' as method modifier");
+		return;
 	}
 
+	trait_alias = emalloc(sizeof(zend_trait_alias));
+	trait_alias->trait_method = (zend_trait_method_reference*)method_reference->u.op.ptr;
+	trait_alias->modifiers = Z_LVAL(modifiers->u.constant);
 	if (alias) {
 		trait_alias->alias = Z_STRVAL(alias->u.constant);
 		trait_alias->alias_len = Z_STRLEN(alias->u.constant);
@@ -4484,12 +4321,13 @@ void zend_prepare_trait_alias(znode *result, znode *method_reference, znode *mod
 	}
 	trait_alias->function = NULL;
 
-	result->u.op.ptr = trait_alias;
+	zend_add_to_list(&ce->trait_aliases, trait_alias TSRMLS_CC);
 }
 /* }}} */
 
-void zend_prepare_trait_precedence(znode *result, znode *method_reference, znode *trait_list TSRMLS_DC) /* {{{ */
+void zend_add_trait_precedence(znode *method_reference, znode *trait_list TSRMLS_DC) /* {{{ */
 {
+	zend_class_entry *ce = CG(active_class_entry);
 	zend_trait_precedence *trait_precedence = emalloc(sizeof(zend_trait_precedence));
 
 	trait_precedence->trait_method = (zend_trait_method_reference*)method_reference->u.op.ptr;
@@ -4497,7 +4335,7 @@ void zend_prepare_trait_precedence(znode *result, znode *method_reference, znode
 
 	trait_precedence->function = NULL;
 
-	result->u.op.ptr = trait_precedence;
+	zend_add_to_list(&ce->trait_precedences, trait_precedence TSRMLS_CC);
 }
 /* }}} */
 
@@ -4532,7 +4370,7 @@ ZEND_API zend_class_entry *do_bind_class(const zend_op_array* op_array, const ze
 		}
 		return NULL;
 	} else {
-		if (!(ce->ce_flags & (ZEND_ACC_INTERFACE|ZEND_ACC_IMPLEMENT_INTERFACES))) {
+		if (!(ce->ce_flags & (ZEND_ACC_INTERFACE|ZEND_ACC_IMPLEMENT_INTERFACES|ZEND_ACC_IMPLEMENT_TRAITS))) {
 			zend_verify_abstract_class(ce TSRMLS_CC);
 		}
 		return ce;
@@ -4964,10 +4802,11 @@ void zend_do_begin_class_declaration(const znode *class_token, znode *class_name
 		/* Prefix class name with name of current namespace */
 		znode tmp;
 
+		tmp.op_type = IS_CONST;
 		tmp.u.constant = *CG(current_namespace);
 		zval_copy_ctor(&tmp.u.constant);
 		zend_do_build_namespace_name(&tmp, &tmp, class_name TSRMLS_CC);
-		class_name = &tmp;
+		*class_name = tmp;
 		efree(lcname);
 		lcname = zend_str_tolower_dup(Z_STRVAL(class_name->u.constant), Z_STRLEN(class_name->u.constant));
 	}
@@ -5100,9 +4939,9 @@ void zend_do_end_class_declaration(const znode *class_token, const znode *parent
 	}
 
 	if (!(ce->ce_flags & (ZEND_ACC_INTERFACE|ZEND_ACC_EXPLICIT_ABSTRACT_CLASS))
-		&& ((parent_token->op_type != IS_UNUSED) || (ce->num_interfaces > 0))) {
+		&& (parent_token || (ce->num_interfaces > 0))) {
 		zend_verify_abstract_class(ce TSRMLS_CC);
-		if (ce->num_interfaces) {
+		if (ce->num_interfaces && !(ce->ce_flags & ZEND_ACC_IMPLEMENT_TRAITS)) {
 			do_verify_abstract_class(TSRMLS_C);
 		}
 	}
@@ -5152,9 +4991,10 @@ void zend_do_implements_interface(znode *interface_name TSRMLS_DC) /* {{{ */
 }
 /* }}} */
 
-void zend_do_implements_trait(znode *trait_name TSRMLS_DC) /* {{{ */
+void zend_do_use_trait(znode *trait_name TSRMLS_DC) /* {{{ */
 {
 	zend_op *opline;
+
 	if ((CG(active_class_entry)->ce_flags & ZEND_ACC_INTERFACE)) {
 		zend_error(E_COMPILE_ERROR,
 				"Cannot use traits inside of interfaces. %s is used in %s",
@@ -5643,7 +5483,7 @@ void zend_do_shell_exec(znode *result, const znode *cmd TSRMLS_DC) /* {{{ */
 			break;
 	}
 	SET_NODE(opline->op1, cmd);
-	opline->op2.opline_num = 0;
+	opline->op2.opline_num = 1;
 	opline->extended_value = ZEND_DO_FCALL;
 	SET_UNUSED(opline->op2);
 
@@ -5884,7 +5724,11 @@ void zend_add_to_list(void *result, void *item TSRMLS_DC) /* {{{ */
 	void** list = *(void**)result;
 	size_t n = 0;
 
-	while (list && list[n]) { n++; }
+	if (list) {
+		while (list[n]) {
+			n++;
+		}
+	}
 
 	list = erealloc(list, sizeof(void*) * (n+2));
 
@@ -7103,7 +6947,7 @@ ZEND_API size_t zend_dirname(char *path, size_t len)
 	}
 #elif defined(NETWARE)
 	/*
-	 * Find the first occurence of : from the left 
+	 * Find the first occurrence of : from the left
 	 * move the path pointer to the position just after :
 	 * increment the len_adjust to the length of path till colon character(inclusive)
 	 * If there is no character beyond : simple return len

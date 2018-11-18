@@ -170,7 +170,7 @@ main() {
   ac_cv_crypt_blowfish=no
 ])])
 
-AC_CACHE_CHECK(for SHA512 crypt, ac_cv_crypt_SHA512,[
+AC_CACHE_CHECK(for SHA512 crypt, ac_cv_crypt_sha512,[
 AC_TRY_RUN([
 #if HAVE_UNISTD_H
 #include <unistd.h>
@@ -192,14 +192,14 @@ main() {
 	exit(0);
 #endif
 }],[
-  ac_cv_crypt_SHA512=yes
+  ac_cv_crypt_sha512=yes
 ],[
-  ac_cv_crypt_SHA512=no
+  ac_cv_crypt_sha512=no
 ],[
-  ac_cv_crypt_SHA512=no
+  ac_cv_crypt_sha512=no
 ])])
 
-AC_CACHE_CHECK(for SHA256 crypt, ac_cv_crypt_SHA256,[
+AC_CACHE_CHECK(for SHA256 crypt, ac_cv_crypt_sha256,[
 AC_TRY_RUN([
 #if HAVE_UNISTD_H
 #include <unistd.h>
@@ -221,11 +221,11 @@ main() {
 	exit(0);
 #endif
 }],[
-  ac_cv_crypt_SHA256=yes
+  ac_cv_crypt_sha256=yes
 ],[
-  ac_cv_crypt_SHA256=no
+  ac_cv_crypt_sha256=no
 ],[
-  ac_cv_crypt_SHA256=no
+  ac_cv_crypt_sha256=no
 ])])
 
 
@@ -358,7 +358,29 @@ else
   AC_MSG_RESULT(no)
 fi
 
-if test "$PHP_SAPI" = "cgi" || test "$PHP_SAPI" = "cli" || test "$PHP_SAPI" = "embed"; then
+PHP_ENABLE_CHROOT_FUNC=no
+case "$PHP_SAPI" in
+  embed)
+    PHP_ENABLE_CHROOT_FUNC=yes
+  ;;
+
+  none)
+    for PROG in $PHP_BINARIES; do
+      case "$PROG" in
+        cgi|cli)
+          PHP_ENABLE_CHROOT_FUNC=yes
+        ;;
+
+        *)
+          PHP_ENABLE_CHROOT_FUNC=no
+          break
+        ;;
+      esac
+   done
+  ;;
+esac
+
+if test "$PHP_ENABLE_CHROOT_FUNC" = "yes"; then
   AC_DEFINE(ENABLE_CHROOT_FUNC, 1, [Whether to enable chroot() function])
 fi
 

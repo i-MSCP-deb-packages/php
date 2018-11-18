@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -518,7 +518,7 @@ PHP_FUNCTION(file_get_contents)
 	char *contents;
 	zend_bool use_include_path = 0;
 	php_stream *stream;
-	int len;
+	long len;
 	long offset = -1;
 	long maxlen = PHP_STREAM_COPY_ALL;
 	zval *zcontext = NULL;
@@ -550,6 +550,10 @@ PHP_FUNCTION(file_get_contents)
 	}
 
 	if ((len = php_stream_copy_to_mem(stream, &contents, maxlen, 0)) > 0) {
+		if (len > INT_MAX) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "content truncated from %ld to %d bytes", len, INT_MAX);
+			len = INT_MAX;
+		}
 		RETVAL_STRINGL(contents, len, 0);
 	} else if (len == 0) {
 		RETVAL_EMPTY_STRING();
@@ -569,7 +573,7 @@ PHP_FUNCTION(file_put_contents)
 	char *filename;
 	int filename_len;
 	zval *data;
-	int numbytes = 0;
+	long numbytes = 0;
 	long flags = 0;
 	zval *zcontext = NULL;
 	php_stream_context *context = NULL;
@@ -621,6 +625,10 @@ PHP_FUNCTION(file_put_contents)
 			if (php_stream_copy_to_stream_ex(srcstream, stream, PHP_STREAM_COPY_ALL, &len) != SUCCESS) {
 				numbytes = -1;
 			} else {
+				if (len > LONG_MAX) {
+					php_error_docref(NULL TSRMLS_CC, E_WARNING, "content truncated from %lu to %ld bytes", (unsigned long) len, LONG_MAX);
+					len = LONG_MAX;
+				}
 				numbytes = len;
 			}
 			break;
@@ -636,7 +644,7 @@ PHP_FUNCTION(file_put_contents)
 			if (Z_STRLEN_P(data)) {
 				numbytes = php_stream_write(stream, Z_STRVAL_P(data), Z_STRLEN_P(data));
 				if (numbytes != Z_STRLEN_P(data)) {
-					php_error_docref(NULL TSRMLS_CC, E_WARNING, "Only %d of %d bytes written, possibly out of free disk space", numbytes, Z_STRLEN_P(data));
+					php_error_docref(NULL TSRMLS_CC, E_WARNING, "Only %ld of %d bytes written, possibly out of free disk space", numbytes, Z_STRLEN_P(data));
 					numbytes = -1;
 				}
 			}
@@ -679,7 +687,7 @@ PHP_FUNCTION(file_put_contents)
 				if (zend_std_cast_object_tostring(data, &out, IS_STRING TSRMLS_CC) == SUCCESS) {
 					numbytes = php_stream_write(stream, Z_STRVAL(out), Z_STRLEN(out));
 					if (numbytes != Z_STRLEN(out)) {
-						php_error_docref(NULL TSRMLS_CC, E_WARNING, "Only %d of %d bytes written, possibly out of free disk space", numbytes, Z_STRLEN(out));
+						php_error_docref(NULL TSRMLS_CC, E_WARNING, "Only %ld of %d bytes written, possibly out of free disk space", numbytes, Z_STRLEN(out));
 						numbytes = -1;
 					}
 					zval_dtor(&out);
@@ -805,7 +813,7 @@ PHP_FUNCTION(tempnam)
 	char *p;
 	int fd;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ps", &dir, &dir_len, &prefix, &prefix_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "pp", &dir, &dir_len, &prefix, &prefix_len) == FAILURE) {
 		return;
 	}
 
@@ -817,7 +825,7 @@ PHP_FUNCTION(tempnam)
 	if (p_len > 64) {
 		p[63] = '\0';
 	}
-	
+
 	RETVAL_FALSE;
 
 	if ((fd = php_open_temporary_fd_ex(dir, p, &opened_path, 1 TSRMLS_CC)) >= 0) {
@@ -1332,7 +1340,7 @@ PHP_FUNCTION(rmdir)
 	zval *zcontext = NULL;
 	php_stream_context *context;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|r", &dir, &dir_len, &zcontext) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "p|r", &dir, &dir_len, &zcontext) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -1377,13 +1385,13 @@ PHP_FUNCTION(umask)
 {
 	long arg1 = 0;
 	int oldumask;
-	
+
 	oldumask = umask(077);
 
 	if (BG(umask) == -1) {
 		BG(umask) = oldumask;
 	}
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l", &arg1) == FAILURE) {
 		RETURN_FALSE;
 	}
@@ -1657,7 +1665,7 @@ PHPAPI int php_copy_file_ctx(char *src, char *dest, int src_flg, php_stream_cont
 		return FAILURE;
 	}
 
-	switch (php_stream_stat_path_ex(dest, PHP_STREAM_URL_STAT_QUIET, &dest_s, ctx)) {
+	switch (php_stream_stat_path_ex(dest, PHP_STREAM_URL_STAT_QUIET | PHP_STREAM_URL_STAT_NOCACHE, &dest_s, ctx)) {
 		case -1:
 			/* non-statable stream */
 			goto safe_to_copy;

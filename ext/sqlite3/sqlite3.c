@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -730,7 +730,11 @@ static int sqlite3_do_callback(struct php_sqlite3_fci *fc, zval *cb, int argc, s
 
 		switch (sqlite3_value_type(argv[i])) {
 			case SQLITE_INTEGER:
+#if LONG_MAX > 2147483647
+				ZVAL_LONG(*zargs[i + is_agg], sqlite3_value_int64(argv[i]));
+#else
 				ZVAL_LONG(*zargs[i + is_agg], sqlite3_value_int(argv[i]));
+#endif
 				break;
 
 			case SQLITE_FLOAT:
@@ -774,7 +778,11 @@ static int sqlite3_do_callback(struct php_sqlite3_fci *fc, zval *cb, int argc, s
 		if (retval) {
 			switch (Z_TYPE_P(retval)) {
 				case IS_LONG:
+#if LONG_MAX > 2147483647
+					sqlite3_result_int64(context, Z_LVAL_P(retval));
+#else
 					sqlite3_result_int(context, Z_LVAL_P(retval));
+#endif
 					break;
 
 				case IS_NULL:
@@ -1266,6 +1274,8 @@ PHP_METHOD(sqlite3stmt, paramCount)
 	php_sqlite3_stmt *stmt_obj;
 	zval *object = getThis();
 	stmt_obj = (php_sqlite3_stmt *)zend_object_store_get_object(object TSRMLS_CC);
+	
+	SQLITE3_CHECK_INITIALIZED(stmt_obj->db_obj, stmt_obj->initialised, SQLite3)
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -1282,6 +1292,8 @@ PHP_METHOD(sqlite3stmt, close)
 	php_sqlite3_stmt *stmt_obj;
 	zval *object = getThis();
 	stmt_obj = (php_sqlite3_stmt *)zend_object_store_get_object(object TSRMLS_CC);
+	
+	SQLITE3_CHECK_INITIALIZED(stmt_obj->db_obj, stmt_obj->initialised, SQLite3)
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -1300,6 +1312,8 @@ PHP_METHOD(sqlite3stmt, reset)
 	php_sqlite3_stmt *stmt_obj;
 	zval *object = getThis();
 	stmt_obj = (php_sqlite3_stmt *)zend_object_store_get_object(object TSRMLS_CC);
+	
+	SQLITE3_CHECK_INITIALIZED(stmt_obj->db_obj, stmt_obj->initialised, SQLite3)
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -1320,6 +1334,8 @@ PHP_METHOD(sqlite3stmt, clear)
 	php_sqlite3_stmt *stmt_obj;
 	zval *object = getThis();
 	stmt_obj = (php_sqlite3_stmt *)zend_object_store_get_object(object TSRMLS_CC);
+	
+	SQLITE3_CHECK_INITIALIZED(stmt_obj->db_obj, stmt_obj->initialised, SQLite3)
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -1341,6 +1357,8 @@ PHP_METHOD(sqlite3stmt, readOnly)
 	php_sqlite3_stmt *stmt_obj;
 	zval *object = getThis();
 	stmt_obj = (php_sqlite3_stmt *)zend_object_store_get_object(object TSRMLS_CC);
+	
+	SQLITE3_CHECK_INITIALIZED(stmt_obj->db_obj, stmt_obj->initialised, SQLite3)
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -1401,13 +1419,15 @@ static int register_bound_parameter_to_sqlite(struct php_sqlite3_bound_param *pa
 /* }}} */
 
 /* {{{ proto bool SQLite3Stmt::bindParam(int parameter_number, mixed parameter [, int type])
-   Bind Paramater to a stmt variable. */
+   Bind Parameter to a stmt variable. */
 PHP_METHOD(sqlite3stmt, bindParam)
 {
 	php_sqlite3_stmt *stmt_obj;
 	zval *object = getThis();
 	struct php_sqlite3_bound_param param = {0};
 	stmt_obj = (php_sqlite3_stmt *)zend_object_store_get_object(object TSRMLS_CC);
+	
+	SQLITE3_CHECK_INITIALIZED(stmt_obj->db_obj, stmt_obj->initialised, SQLite3)
 
 	param.param_number = -1;
 	param.type = SQLITE3_TEXT;
@@ -1439,6 +1459,8 @@ PHP_METHOD(sqlite3stmt, bindValue)
 	zval *object = getThis();
 	struct php_sqlite3_bound_param param = {0};
 	stmt_obj = (php_sqlite3_stmt *)zend_object_store_get_object(object TSRMLS_CC);
+	
+	SQLITE3_CHECK_INITIALIZED(stmt_obj->db_obj, stmt_obj->initialised, SQLite3)
 
 	param.param_number = -1;
 	param.type = SQLITE3_TEXT;
@@ -1474,6 +1496,8 @@ PHP_METHOD(sqlite3stmt, execute)
 
 	stmt_obj = (php_sqlite3_stmt *)zend_object_store_get_object(object TSRMLS_CC);
 
+	SQLITE3_CHECK_INITIALIZED(stmt_obj->db_obj, stmt_obj->initialised, SQLite3)
+
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
@@ -1493,7 +1517,11 @@ PHP_METHOD(sqlite3stmt, execute)
 			switch (param->type) {
 				case SQLITE_INTEGER:
 					convert_to_long(param->parameter);
+#if LONG_MAX > 2147483647
+					sqlite3_bind_int64(stmt_obj->stmt, param->param_number, Z_LVAL_P(param->parameter));
+#else
 					sqlite3_bind_int(stmt_obj->stmt, param->param_number, Z_LVAL_P(param->parameter));
+#endif
 					break;
 
 				case SQLITE_FLOAT:

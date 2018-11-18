@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -373,7 +373,7 @@ static int php_array_element_export(zval **zv TSRMLS_DC, int num_args, va_list a
 
 	smart_str_appendc(buf, ',');
 	smart_str_appendc(buf, '\n');
-	
+
 	return 0;
 }
 /* }}} */
@@ -392,7 +392,7 @@ static int php_object_element_export(zval **zv TSRMLS_DC, int num_args, va_list 
 		const char *pname;
 		char *pname_esc;
 		int  pname_esc_len;
-		
+
 		zend_unmangle_property_name(hash_key->arKey, hash_key->nKeyLength - 1,
 				&class_name, &pname);
 		pname_esc = php_addcslashes(pname, strlen(pname), &pname_esc_len, 0,
@@ -436,7 +436,7 @@ PHPAPI void php_var_export_ex(zval **struc, int level, smart_str *buf TSRMLS_DC)
 		smart_str_append_long(buf, Z_LVAL_PP(struc));
 		break;
 	case IS_DOUBLE:
-		tmp_len = spprintf(&tmp_str, 0,"%.*H", (int) EG(precision), Z_DVAL_PP(struc));
+		tmp_len = spprintf(&tmp_str, 0,"%.*H", PG(serialize_precision), Z_DVAL_PP(struc));
 		smart_str_appendl(buf, tmp_str, tmp_len);
 		efree(tmp_str);
 		break;
@@ -469,7 +469,7 @@ PHPAPI void php_var_export_ex(zval **struc, int level, smart_str *buf TSRMLS_DC)
 			buffer_append_spaces(buf, level - 1);
 		}
 		smart_str_appendc(buf, ')');
-    
+
 		break;
 
 	case IS_OBJECT:
@@ -549,11 +549,9 @@ static inline int php_add_var_hash(HashTable *var_hash, zval *var, void *var_old
 	char id[32], *p;
 	register int len;
 
-	/* relies on "(long)" being a perfect hash function for data pointers,
-	 * however the actual identity of an object has had to be determined
-	 * by its object handle since 5.0. */
 	if ((Z_TYPE_P(var) == IS_OBJECT) && Z_OBJ_HT_P(var)->get_class_entry) {
-		p = smart_str_print_long(id + sizeof(id) - 1, (long) Z_OBJ_HANDLE_P(var));
+		p = smart_str_print_long(id + sizeof(id) - 1,
+				(long) zend_objects_get_address(var TSRMLS_CC));
 		*(--p) = 'O';
 		len = id + sizeof(id) - 1 - p;
 	} else {
@@ -714,6 +712,10 @@ static void php_var_serialize_intern(smart_str *buf, zval *struc, HashTable *var
 	ulong *var_already;
 	HashTable *myht;
 
+	if (EG(exception)) {
+		return;
+	}
+
 	if (var_hash && php_add_var_hash(var_hash, struc, (void *) &var_already TSRMLS_CC) == FAILURE) {
 		if (Z_ISREF_P(struc)) {
 			smart_str_appendl(buf, "R:", 2);
@@ -801,7 +803,14 @@ static void php_var_serialize_intern(smart_str *buf, zval *struc, HashTable *var
 					res = call_user_function_ex(CG(function_table), &struc, &fname, &retval_ptr, 0, 0, 1, NULL TSRMLS_CC);
 					BG(serialize_lock)--;
 
-					if (res == SUCCESS && !EG(exception)) {
+					if (EG(exception)) {
+						if (retval_ptr) {
+							zval_ptr_dtor(&retval_ptr);
+						}
+						return;
+					}
+
+					if (res == SUCCESS) {
 						if (retval_ptr) {
 							if (HASH_OF(retval_ptr)) {
 								php_var_serialize_class(buf, struc, retval_ptr, var_hash TSRMLS_CC);
@@ -921,6 +930,11 @@ PHP_FUNCTION(serialize)
 	php_var_serialize(&buf, struc, &var_hash TSRMLS_CC);
 	PHP_VAR_SERIALIZE_DESTROY(var_hash);
 
+	if (EG(exception)) {
+		smart_str_free(&buf);
+		RETURN_FALSE;
+	}
+
 	if (buf.c) {
 		RETURN_STRINGL(buf.c, buf.len, 0);
 	} else {
@@ -937,6 +951,8 @@ PHP_FUNCTION(unserialize)
 	int buf_len;
 	const unsigned char *p;
 	php_unserialize_data_t var_hash;
+	int oldlevel;
+	zval *old_rval = return_value;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &buf, &buf_len) == FAILURE) {
 		RETURN_FALSE;
@@ -951,8 +967,24 @@ PHP_FUNCTION(unserialize)
 	if (!php_var_unserialize(&return_value, &p, p + buf_len, &var_hash TSRMLS_CC)) {
 		PHP_VAR_UNSERIALIZE_DESTROY(var_hash);
 		zval_dtor(return_value);
-		php_error_docref(NULL TSRMLS_CC, E_NOTICE, "Error at offset %ld of %d bytes", (long)((char*)p - buf), buf_len);
+		if (!EG(exception)) {
+			php_error_docref(NULL TSRMLS_CC, E_NOTICE, "Error at offset %ld of %d bytes", (long)((char*)p - buf), buf_len);
+		}
 		RETURN_FALSE;
+	}
+	if (return_value != old_rval) {
+		/*
+		 * Terrible hack due to the fact that executor passes us zval *,
+		 * but unserialize with r/R wants to replace it with another zval *
+		 */
+		zval_dtor(old_rval);
+		*old_rval = *return_value;
+		zval_copy_ctor(old_rval);
+		var_push_dtor_no_addref(&var_hash, &return_value);
+		/* FIXME: old_rval is not freed in some scenarios, see bug #70172
+		   var_push_dtor_no_addref(&var_hash, &old_rval); */
+	} else {
+		var_push_dtor(&var_hash, &return_value);
 	}
 	PHP_VAR_UNSERIALIZE_DESTROY(var_hash);
 }

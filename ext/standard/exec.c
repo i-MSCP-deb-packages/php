@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -188,6 +188,10 @@ static void php_exec_ex(INTERNAL_FUNCTION_PARAMETERS, int mode) /* {{{ */
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Cannot execute a blank command");
 		RETURN_FALSE;
 	}
+	if (strlen(cmd) != cmd_len) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "NULL byte detected. Possible attack");
+		RETURN_FALSE;
+	}
 
 	if (!ret_array) {
 		ret = php_exec(mode, cmd, NULL, return_value TSRMLS_CC);
@@ -277,9 +281,10 @@ PHPAPI char *php_escape_shell_cmd(char *str)
 				break;
 #else
 			/* % is Windows specific for enviromental variables, ^%PATH% will 
-				output PATH whil ^%PATH^% not. escapeshellcmd will escape all %.
+				output PATH while ^%PATH^% will not. escapeshellcmd will escape all % and !.
 			*/
 			case '%':
+			case '!':
 			case '"':
 			case '\'':
 #endif
@@ -362,6 +367,7 @@ PHPAPI char *php_escape_shell_arg(char *str)
 #ifdef PHP_WIN32
 		case '"':
 		case '%':
+		case '!':
 			cmd[y++] = ' ';
 			break;
 #else
@@ -376,6 +382,14 @@ PHPAPI char *php_escape_shell_arg(char *str)
 		}
 	}
 #ifdef PHP_WIN32
+	if (y > 0 && '\\' == cmd[y - 1]) {
+		int k = 0, n = y - 1;
+		for (; n >= 0 && '\\' == cmd[n]; n--, k++);
+		if (k % 2) {
+			cmd[y++] = '\\';
+		}
+	}
+
 	cmd[y++] = '"';
 #else
 	cmd[y++] = '\'';

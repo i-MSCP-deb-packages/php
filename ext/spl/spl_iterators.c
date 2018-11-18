@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -861,6 +861,8 @@ static union _zend_function *spl_recursive_it_get_method(zval **object_ptr, char
 				*object_ptr = zobj;
 				function_handler = Z_OBJ_HT_P(*object_ptr)->get_method(object_ptr, method, method_len, key TSRMLS_CC);
 			}
+		} else {
+			*object_ptr = zobj;
 		}
 	}
 	return function_handler;
@@ -1027,12 +1029,12 @@ static void spl_recursive_tree_iterator_get_entry(spl_recursive_it_object * obje
 	zend_replace_error_handling(EH_THROW, spl_ce_UnexpectedValueException, &error_handling TSRMLS_CC);
 	if (data && *data) {
 		RETVAL_ZVAL(*data, 1, 0);
-	}
-	if (Z_TYPE_P(return_value) == IS_ARRAY) {
-		zval_dtor(return_value);
-		ZVAL_STRINGL(return_value, "Array", sizeof("Array")-1, 1);
-	} else {
-		convert_to_string(return_value);
+		if (Z_TYPE_P(return_value) == IS_ARRAY) {
+			zval_dtor(return_value);
+			ZVAL_STRINGL(return_value, "Array", sizeof("Array")-1, 1);
+		} else {
+			convert_to_string(return_value);
+		}
 	}
 	zend_restore_error_handling(&error_handling TSRMLS_CC);
 }
@@ -1133,8 +1135,15 @@ SPL_METHOD(RecursiveTreeIterator, current)
 		}
 	}
 
+	INIT_ZVAL(prefix);
+	INIT_ZVAL(entry);
 	spl_recursive_tree_iterator_get_prefix(object, &prefix TSRMLS_CC);
 	spl_recursive_tree_iterator_get_entry(object, &entry TSRMLS_CC);
+	if (Z_TYPE(entry) != IS_STRING) {
+		zval_dtor(&prefix);
+		zval_dtor(&entry);
+		RETURN_NULL();
+	}
 	spl_recursive_tree_iterator_get_postfix(object, &postfix TSRMLS_CC);
 
 	str_len = Z_STRLEN(prefix) + Z_STRLEN(entry) + Z_STRLEN(postfix);
