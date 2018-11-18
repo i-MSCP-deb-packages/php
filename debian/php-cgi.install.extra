@@ -1,0 +1,2 @@
+usr/bin/php-cgi@PHP_VERSION@
+usr/lib/cgi-bin/php@PHP_VERSION@
