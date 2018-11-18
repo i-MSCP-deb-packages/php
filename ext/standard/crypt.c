@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -204,7 +204,7 @@ PHP_FUNCTION(crypt)
 			salt[salt_in_len] = '\0';
 
 			crypt_res = php_sha512_crypt_r(str, salt, output, needed);
-			if (!crypt_res) {
+			if (!crypt_res || (salt[0]=='*' && salt[1]=='0')) {
 				if (salt[0]=='*' && salt[1]=='0') {
 					RETVAL_STRING("*1", 1);
 				} else {
@@ -227,7 +227,7 @@ PHP_FUNCTION(crypt)
 			salt[salt_in_len] = '\0';
 
 			crypt_res = php_sha256_crypt_r(str, salt, output, needed);
-			if (!crypt_res) {
+			if (!crypt_res || (salt[0]=='*' && salt[1]=='0')) {
 				if (salt[0]=='*' && salt[1]=='0') {
 					RETVAL_STRING("*1", 1);
 				} else {
@@ -242,7 +242,6 @@ PHP_FUNCTION(crypt)
 		} else if (
 				salt[0] == '$' &&
 				salt[1] == '2' &&
-				salt[2] >= 'a' && salt[2] <= 'z' &&
 				salt[3] == '$' &&
 				salt[4] >= '0' && salt[4] <= '3' &&
 				salt[5] >= '0' && salt[5] <= '9' &&
@@ -252,7 +251,7 @@ PHP_FUNCTION(crypt)
 			memset(output, 0, PHP_MAX_SALT_LEN + 1);
 
 			crypt_res = php_crypt_blowfish_rn(str, salt, output, sizeof(output));
-			if (!crypt_res) {
+			if (!crypt_res || (salt[0]=='*' && salt[1]=='0')) {
 				if (salt[0]=='*' && salt[1]=='0') {
 					RETVAL_STRING("*1", 1);
 				} else {
@@ -268,7 +267,7 @@ PHP_FUNCTION(crypt)
 			_crypt_extended_init_r();
 
 			crypt_res = _crypt_extended_r(str, salt, &buffer);
-			if (!crypt_res) {
+			if (!crypt_res || (salt[0]=='*' && salt[1]=='0')) {
 				if (salt[0]=='*' && salt[1]=='0') {
 					RETURN_STRING("*1", 1);
 				} else {
@@ -292,7 +291,7 @@ PHP_FUNCTION(crypt)
 #    error Data struct used by crypt_r() is unknown. Please report.
 #  endif
 		crypt_res = crypt_r(str, salt, &buffer);
-		if (!crypt_res) {
+		if (!crypt_res || (salt[0]=='*' && salt[1]=='0')) {
 				if (salt[0]=='*' && salt[1]=='0') {
 					RETURN_STRING("*1", 1);
 				} else {

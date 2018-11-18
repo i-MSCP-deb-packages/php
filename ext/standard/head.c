@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -131,7 +131,7 @@ PHPAPI int php_setcookie(char *name, int name_len, char *value, int value_len, t
 				efree(dt);
 				efree(cookie);
 				efree(encoded_value);
-				zend_error(E_WARNING, "Expiry date cannot have a year greater then 9999");
+				zend_error(E_WARNING, "Expiry date cannot have a year greater than 9999");
 				return FAILURE;
 			}
 			strlcat(cookie, dt, len + 100);

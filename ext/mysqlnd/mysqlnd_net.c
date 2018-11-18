@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 2006-2012 The PHP Group                                |
+  | Copyright (c) 2006-2014 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -758,7 +758,7 @@ MYSQLND_METHOD(mysqlnd_net, consume_uneaten_data)(MYSQLND_NET * const net, enum 
 	/*
 	  Switch to non-blocking mode and try to consume something from
 	  the line, if possible, then continue. This saves us from looking for
-	  the actuall place where out-of-order packets have been sent.
+	  the actual place where out-of-order packets have been sent.
 	  If someone is completely sure that everything is fine, he can switch it
 	  off.
 	*/

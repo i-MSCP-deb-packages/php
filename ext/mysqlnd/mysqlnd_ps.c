@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 2006-2012 The PHP Group                                |
+  | Copyright (c) 2006-2014 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -50,6 +50,7 @@ enum_func_status mysqlnd_fetch_stmt_row_cursor(MYSQLND_RES *result, void *param,
 static void mysqlnd_stmt_separate_result_bind(MYSQLND_STMT * const stmt TSRMLS_DC);
 static void mysqlnd_stmt_separate_one_result_bind(MYSQLND_STMT * const stmt, unsigned int param_no TSRMLS_DC);
 
+static void MYSQLND_METHOD(mysqlnd_stmt, free_stmt_result)(MYSQLND_STMT * const s TSRMLS_DC);
 
 /* {{{ mysqlnd_stmt::store_result */
 static MYSQLND_RES *
@@ -226,7 +227,7 @@ MYSQLND_METHOD(mysqlnd_stmt, next_result)(MYSQLND_STMT * s TSRMLS_DC)
 	DBG_INF_FMT("server_status=%u cursor=%u", stmt->upsert_status->server_status, stmt->upsert_status->server_status & SERVER_STATUS_CURSOR_EXISTS);
 
 	/* Free space for next result */
-	s->m->free_stmt_content(s TSRMLS_CC);
+	MYSQLND_METHOD(mysqlnd_stmt, free_stmt_result)(s TSRMLS_CC);
 	{
 		enum_func_status ret = s->m->parse_execute_response(s TSRMLS_CC);
 		DBG_RETURN(ret);
@@ -485,6 +486,7 @@ mysqlnd_stmt_execute_parse_response(MYSQLND_STMT * const s TSRMLS_DC)
 	ret = mysqlnd_query_read_result_set_header(stmt->conn, s TSRMLS_CC);
 	if (ret == FAIL) {
 		COPY_CLIENT_ERROR(*stmt->error_info, *conn->error_info);
+		memset(stmt->upsert_status, 0, sizeof(*stmt->upsert_status));
 		stmt->upsert_status->affected_rows = conn->upsert_status->affected_rows;
 		if (CONN_GET_STATE(conn) == CONN_QUIT_SENT) {
 			/* close the statement here, the connection has been closed */
@@ -913,6 +915,7 @@ mysqlnd_stmt_fetch_row_unbuffered(MYSQLND_RES *result, void *param, unsigned int
 		DBG_INF("EOF");
 		/* Mark the connection as usable again */
 		result->unbuf->eof_reached = TRUE;
+		memset(result->conn->upsert_status, 0, sizeof(*result->conn->upsert_status));
 		result->conn->upsert_status->warning_count = row_packet->warning_count;
 		result->conn->upsert_status->server_status = row_packet->server_status;
 		/*
@@ -1022,6 +1025,7 @@ mysqlnd_fetch_stmt_row_cursor(MYSQLND_RES *result, void *param, unsigned int fla
 
 	row_packet->skip_extraction = stmt->result_bind? FALSE:TRUE;
 
+	memset(stmt->upsert_status, 0, sizeof(*stmt->upsert_status));
 	if (PASS == (ret = PACKET_READ(row_packet, result->conn)) && !row_packet->eof) {
 		unsigned int i, field_count = result->field_count;
 
@@ -1478,7 +1482,7 @@ MYSQLND_METHOD(mysqlnd_stmt, bind_one_parameter)(MYSQLND_STMT * const s, unsigne
 
 	if (stmt->param_count) {
 		if (!stmt->param_bind) {
-			stmt->param_bind = mnd_ecalloc(stmt->param_count, sizeof(MYSQLND_PARAM_BIND));
+			stmt->param_bind = mnd_pecalloc(stmt->param_count, sizeof(MYSQLND_PARAM_BIND), stmt->persistent);
 			if (!stmt->param_bind) {
 				DBG_RETURN(FAIL);
 			}
@@ -2073,6 +2077,37 @@ mysqlnd_stmt_separate_one_result_bind(MYSQLND_STMT * const s, unsigned int param
 /* }}} */
 
 
+/* {{{ mysqlnd_stmt::free_stmt_result */
+static void
+MYSQLND_METHOD(mysqlnd_stmt, free_stmt_result)(MYSQLND_STMT * const s TSRMLS_DC)
+{
+	MYSQLND_STMT_DATA * stmt = s? s->data:NULL;
+	DBG_ENTER("mysqlnd_stmt::free_stmt_result");
+	if (!stmt) {
+		DBG_VOID_RETURN;
+	}
+
+	/*
+	  First separate the bound variables, which point to the result set, then
+	  destroy the set.
+	*/
+	mysqlnd_stmt_separate_result_bind(s TSRMLS_CC);
+	/* Not every statement has a result set attached */
+	if (stmt->result) {
+		stmt->result->m.free_result_internal(stmt->result TSRMLS_CC);
+		stmt->result = NULL;
+	}
+	if (stmt->error_info->error_list) {
+		zend_llist_clean(stmt->error_info->error_list);
+		mnd_pefree(stmt->error_info->error_list, s->persistent);
+		stmt->error_info->error_list = NULL;
+	}
+
+	DBG_VOID_RETURN;
+}
+/* }}} */
+
+
 /* {{{ mysqlnd_stmt::free_stmt_content */
 static void
 MYSQLND_METHOD(mysqlnd_stmt, free_stmt_content)(MYSQLND_STMT * const s TSRMLS_DC)
@@ -2105,22 +2140,7 @@ MYSQLND_METHOD(mysqlnd_stmt, free_stmt_content)(MYSQLND_STMT * const s TSRMLS_DC
 		stmt->param_bind = NULL;
 	}
 
-	/*
-	  First separate the bound variables, which point to the result set, then
-	  destroy the set.
-	*/
-	mysqlnd_stmt_separate_result_bind(s TSRMLS_CC);
-	/* Not every statement has a result set attached */
-	if (stmt->result) {
-		stmt->result->m.free_result_internal(stmt->result TSRMLS_CC);
-		stmt->result = NULL;
-	}
-	if (stmt->error_info->error_list) {
-		zend_llist_clean(stmt->error_info->error_list);
-		mnd_pefree(stmt->error_info->error_list, s->persistent);
-		stmt->error_info->error_list = NULL;
-	}
-
+	MYSQLND_METHOD(mysqlnd_stmt, free_stmt_result)(s TSRMLS_CC);
 	DBG_VOID_RETURN;
 }
 /* }}} */

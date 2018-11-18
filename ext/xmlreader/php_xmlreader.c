@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2014 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -708,7 +708,7 @@ PHP_METHOD(xmlreader, moveToAttribute)
 /* }}} */
 
 /* {{{ proto boolean XMLReader::moveToAttributeNo(int index)
-Positions reader at attribute at spcecified index.
+Positions reader at attribute at specified index.
 Returns TRUE on success and FALSE on failure */
 PHP_METHOD(xmlreader, moveToAttributeNo)
 {
@@ -805,7 +805,6 @@ PHP_METHOD(xmlreader, read)
 	if (intern != NULL && intern->ptr != NULL) {
 		retval = xmlTextReaderRead(intern->ptr);
 		if (retval == -1) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "An Error Occured while reading");
 			RETURN_FALSE;
 		} else {
 			RETURN_BOOL(retval);
@@ -847,7 +846,6 @@ PHP_METHOD(xmlreader, next)
 			retval = xmlTextReaderNext(intern->ptr); 
 		}
 		if (retval == -1) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "An Error Occured while reading");
 			RETURN_FALSE;
 		} else {
 			RETURN_BOOL(retval);
@@ -1155,7 +1153,7 @@ PHP_METHOD(xmlreader, expand)
 		node = xmlTextReaderExpand(intern->ptr);
 		
 		if (node == NULL) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "An Error Occured while expanding ");
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "An Error Occurred while expanding ");
 			RETURN_FALSE;
 		} else {
 			nodec = xmlDocCopyNode(node, docp, 1);
@@ -1320,6 +1318,7 @@ PHP_MINIT_FUNCTION(xmlreader)
 	xmlreader_object_handlers.read_property = xmlreader_read_property;
 	xmlreader_object_handlers.write_property = xmlreader_write_property;
 	xmlreader_object_handlers.get_property_ptr_ptr = xmlreader_get_property_ptr_ptr;
+	xmlreader_object_handlers.clone_obj = NULL;
 
 	INIT_CLASS_ENTRY(ce, "XMLReader", xmlreader_functions);
 	ce.create_object = xmlreader_objects_new;

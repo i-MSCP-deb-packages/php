@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2014 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -108,7 +108,7 @@ static int clean_non_persistent_function(zend_function *function TSRMLS_DC) /* {
 }
 /* }}} */
 
-static int clean_non_persistent_function_full(zend_function *function TSRMLS_DC) /* {{{ */
+ZEND_API int clean_non_persistent_function_full(zend_function *function TSRMLS_DC) /* {{{ */
 {
 	return (function->type == ZEND_INTERNAL_FUNCTION) ? ZEND_HASH_APPLY_KEEP : ZEND_HASH_APPLY_REMOVE;
 }
@@ -120,7 +120,7 @@ static int clean_non_persistent_class(zend_class_entry **ce TSRMLS_DC) /* {{{ */
 }
 /* }}} */
 
-static int clean_non_persistent_class_full(zend_class_entry **ce TSRMLS_DC) /* {{{ */
+ZEND_API int clean_non_persistent_class_full(zend_class_entry **ce TSRMLS_DC) /* {{{ */
 {
 	return ((*ce)->type == ZEND_INTERNAL_CLASS) ? ZEND_HASH_APPLY_KEEP : ZEND_HASH_APPLY_REMOVE;
 }
@@ -254,15 +254,13 @@ void shutdown_executor(TSRMLS_D) /* {{{ */
 		if (EG(user_error_handler)) {
 			zeh = EG(user_error_handler);
 			EG(user_error_handler) = NULL;
-			zval_dtor(zeh);
-			FREE_ZVAL(zeh);
+			zval_ptr_dtor(&zeh);
 		}
 
 		if (EG(user_exception_handler)) {
 			zeh = EG(user_exception_handler);
 			EG(user_exception_handler) = NULL;
-			zval_dtor(zeh);
-			FREE_ZVAL(zeh);
+			zval_ptr_dtor(&zeh);
 		}
 
 		zend_stack_destroy(&EG(user_error_handlers_error_reporting));
@@ -1074,7 +1072,7 @@ ZEND_API int zend_lookup_class_ex(const char *name, int name_length, const zend_
 	}
 
 	/* The compiler is not-reentrant. Make sure we __autoload() only during run-time
-	 * (doesn't impact fuctionality of __autoload()
+	 * (doesn't impact functionality of __autoload()
 	*/
 	if (!use_autoload || zend_is_compiling(TSRMLS_C)) {
 		if (!key) {
@@ -1083,6 +1081,14 @@ ZEND_API int zend_lookup_class_ex(const char *name, int name_length, const zend_
 		return FAILURE;
 	}
 
+	/* Verify class name before passing it to __autoload() */
+	if (strspn(name, "0123456789_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\177\200\201\202\203\204\205\206\207\210\211\212\213\214\215\216\217\220\221\222\223\224\225\226\227\230\231\232\233\234\235\236\237\240\241\242\243\244\245\246\247\250\251\252\253\254\255\256\257\260\261\262\263\264\265\266\267\270\271\272\273\274\275\276\277\300\301\302\303\304\305\306\307\310\311\312\313\314\315\316\317\320\321\322\323\324\325\326\327\330\331\332\333\334\335\336\337\340\341\342\343\344\345\346\347\350\351\352\353\354\355\356\357\360\361\362\363\364\365\366\367\370\371\372\373\374\375\376\377\\") != name_length) {
+		if (!key) {
+			free_alloca(lc_free, use_heap);
+		}
+		return FAILURE;
+	}
+	
 	if (EG(in_autoload) == NULL) {
 		ALLOC_HASHTABLE(EG(in_autoload));
 		zend_hash_init(EG(in_autoload), 0, NULL, NULL, 0);
@@ -1313,7 +1319,7 @@ void execute_new_code(TSRMLS_D) /* {{{ */
 		opline++;
 	}
 	
-	zend_release_labels(TSRMLS_C);
+	zend_release_labels(1 TSRMLS_CC);
 	
 	EG(return_value_ptr_ptr) = NULL;
 	EG(active_op_array) = CG(active_op_array);

@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -114,12 +114,16 @@ static PHP_GINIT_FUNCTION(sockets);
 
 static char *php_strerror(int error TSRMLS_DC);
 
+#define PHP_SOCKET_ERROR(socket, msg, errn) \
+		do { \
+			int _err = (errn); /* save value to avoid repeated calls to WSAGetLastError() on Windows */ \
+			(socket)->error = _err; \
+			SOCKETS_G(last_error) = _err; \
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s [%d]: %s", msg, _err, php_strerror(_err TSRMLS_CC)); \
+		} while (0)
+
 #define PHP_NORMAL_READ 0x0001
 #define PHP_BINARY_READ 0x0002
-
-#define PHP_SOCKET_ERROR(socket,msg,errn)	socket->error = errn;	\
-						SOCKETS_G(last_error) = errn; \
-						php_error_docref(NULL TSRMLS_CC, E_WARNING, "%s [%d]: %s", msg, errn, php_strerror(errn TSRMLS_CC))
 
 static int le_socket;
 #define le_socket_name php_sockets_le_socket_name
@@ -279,6 +283,41 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_socket_import_stream, 0, 0, 1)
 ZEND_END_ARG_INFO()
 /* }}} */
 
+PHP_MINIT_FUNCTION(sockets);
+PHP_MINFO_FUNCTION(sockets);
+PHP_RSHUTDOWN_FUNCTION(sockets);
+
+PHP_FUNCTION(socket_select);
+PHP_FUNCTION(socket_create_listen);
+#ifdef HAVE_SOCKETPAIR
+PHP_FUNCTION(socket_create_pair);
+#endif
+PHP_FUNCTION(socket_accept);
+PHP_FUNCTION(socket_set_nonblock);
+PHP_FUNCTION(socket_set_block);
+PHP_FUNCTION(socket_listen);
+PHP_FUNCTION(socket_close);
+PHP_FUNCTION(socket_write);
+PHP_FUNCTION(socket_read);
+PHP_FUNCTION(socket_getsockname);
+PHP_FUNCTION(socket_getpeername);
+PHP_FUNCTION(socket_create);
+PHP_FUNCTION(socket_connect);
+PHP_FUNCTION(socket_strerror);
+PHP_FUNCTION(socket_bind);
+PHP_FUNCTION(socket_recv);
+PHP_FUNCTION(socket_send);
+PHP_FUNCTION(socket_recvfrom);
+PHP_FUNCTION(socket_sendto);
+PHP_FUNCTION(socket_get_option);
+PHP_FUNCTION(socket_set_option);
+#ifdef HAVE_SHUTDOWN
+PHP_FUNCTION(socket_shutdown);
+#endif
+PHP_FUNCTION(socket_last_error);
+PHP_FUNCTION(socket_clear_error);
+PHP_FUNCTION(socket_import_stream);
+
 /* {{{ sockets_functions[]
  */
 const zend_function_entry sockets_functions[] = {
@@ -313,7 +352,7 @@ const zend_function_entry sockets_functions[] = {
 	PHP_FE(socket_clear_error,		arginfo_socket_clear_error)
 	PHP_FE(socket_import_stream,	arginfo_socket_import_stream)
 
-	/* for downwards compatability */
+	/* for downwards compatibility */
 	PHP_FALIAS(socket_getopt, socket_get_option, arginfo_socket_get_option)
 	PHP_FALIAS(socket_setopt, socket_set_option, arginfo_socket_set_option)
 
@@ -568,6 +607,8 @@ static char *php_strerror(int error TSRMLS_DC) /* {{{ */
 /* }}} */
 
 #if HAVE_IPV6
+static int php_get_if_index_from_string(const char *val, unsigned *out TSRMLS_DC);
+
 /* Sets addr by hostname, or by ip in string form (AF_INET6) */
 static int php_set_inet6_addr(struct sockaddr_in6 *sin6, char *string, php_socket *php_sock TSRMLS_DC) /* {{{ */
 {
@@ -576,6 +617,7 @@ static int php_set_inet6_addr(struct sockaddr_in6 *sin6, char *string, php_socke
 	struct addrinfo hints;
 	struct addrinfo *addrinfo = NULL;
 #endif
+	char *scope = strchr(string, '%');
 
 	if (inet_pton(AF_INET6, string, &tmp)) {
 		memcpy(&(sin6->sin6_addr.s6_addr), &(tmp.s6_addr), sizeof(struct in6_addr));
@@ -608,6 +650,22 @@ static int php_set_inet6_addr(struct sockaddr_in6 *sin6, char *string, php_socke
 		return 0;
 #endif
 
+	}
+
+	if (scope++) {
+		long lval = 0;
+		double dval = 0;
+		unsigned scope_id = 0;
+
+		if (IS_LONG == is_numeric_string(scope, strlen(scope), &lval, &dval, 0)) {
+			if (lval > 0 && lval <= UINT_MAX) {
+				scope_id = lval;
+			}
+		} else {
+			php_get_if_index_from_string(scope, &scope_id TSRMLS_CC);
+		}
+
+		sin6->sin6_scope_id = scope_id;
 	}
 
 	return 1;
@@ -675,6 +733,28 @@ static int php_set_inet46_addr(php_sockaddr_storage *ss, socklen_t *ss_len, char
 	return 0;
 }
 
+static int php_get_if_index_from_string(const char *val, unsigned *out TSRMLS_DC)
+{
+#if HAVE_IF_NAMETOINDEX
+	unsigned int ind;
+
+	ind = if_nametoindex(val);
+	if (ind == 0) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			"no interface with name \"%s\" could be found", val);
+		return FAILURE;
+	} else {
+		*out = ind;
+		return SUCCESS;
+	}
+#else
+	php_error_docref(NULL TSRMLS_CC, E_WARNING,
+			"this platform does not support looking up an interface by "
+			"name, an integer interface index must be supplied instead");
+	return FAILURE;
+#endif
+}
+
 static int php_get_if_index_from_zval(zval *val, unsigned *out TSRMLS_DC)
 {
 	int ret;
@@ -690,26 +770,10 @@ static int php_get_if_index_from_zval(zval *val, unsigned *out TSRMLS_DC)
 			ret = SUCCESS;
 		}
 	} else {
-#if HAVE_IF_NAMETOINDEX
-		unsigned int ind;
 		zval_add_ref(&val);
 		convert_to_string_ex(&val);
-		ind = if_nametoindex(Z_STRVAL_P(val));
-		if (ind == 0) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING,
-				"no interface with name \"%s\" could be found", Z_STRVAL_P(val));
-			ret = FAILURE;
-		} else {
-			*out = ind;
-			ret = SUCCESS;
-		}
+		ret = php_get_if_index_from_string(Z_STRVAL_P(val), out TSRMLS_CC);
 		zval_ptr_dtor(&val);
-#else
-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
-				"this platform does not support looking up an interface by "
-				"name, an integer interface index must be supplied instead");
-		ret = FAILURE;
-#endif
 	}
 
 	return ret;
@@ -788,6 +852,9 @@ PHP_MINIT_FUNCTION(sockets)
 #endif
 	REGISTER_LONG_CONSTANT("SO_DEBUG",		SO_DEBUG,		CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SO_REUSEADDR",	SO_REUSEADDR,	CONST_CS | CONST_PERSISTENT);
+#ifdef SO_REUSEPORT
+	REGISTER_LONG_CONSTANT("SO_REUSEPORT",	SO_REUSEPORT,	CONST_CS | CONST_PERSISTENT);
+#endif
 	REGISTER_LONG_CONSTANT("SO_KEEPALIVE",	SO_KEEPALIVE,	CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SO_DONTROUTE",	SO_DONTROUTE,	CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SO_LINGER",		SO_LINGER,		CONST_CS | CONST_PERSISTENT);
@@ -801,6 +868,9 @@ PHP_MINIT_FUNCTION(sockets)
 	REGISTER_LONG_CONSTANT("SO_RCVTIMEO",	SO_RCVTIMEO,	CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SO_TYPE",		SO_TYPE,		CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SO_ERROR",		SO_ERROR,		CONST_CS | CONST_PERSISTENT);
+#ifdef SO_BINDTODEVICE
+	REGISTER_LONG_CONSTANT("SO_BINDTODEVICE",       SO_BINDTODEVICE,        CONST_CS | CONST_PERSISTENT);
+#endif
 	REGISTER_LONG_CONSTANT("SOL_SOCKET",	SOL_SOCKET,		CONST_CS | CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SOMAXCONN",		SOMAXCONN,		CONST_CS | CONST_PERSISTENT);
 #ifdef TCP_NODELAY
@@ -1092,7 +1162,7 @@ PHP_FUNCTION(socket_set_nonblock)
 		if (stream != NULL) {
 			if (php_stream_set_option(stream, PHP_STREAM_OPTION_BLOCKING, 0,
 					NULL) != -1) {
-				php_sock->blocking = 1;
+				php_sock->blocking = 0;
 				RETURN_TRUE;
 			}
 		}
@@ -1780,8 +1850,8 @@ PHP_FUNCTION(socket_recvfrom)
 			retval = recvfrom(php_sock->bsd_socket, recv_buf, arg3, arg4, (struct sockaddr *)&s_un, (socklen_t *)&slen);
 
 			if (retval < 0) {
-				efree(recv_buf);
 				PHP_SOCKET_ERROR(php_sock, "unable to recvfrom", errno);
+				efree(recv_buf);
 				RETURN_FALSE;
 			}
 
@@ -1805,8 +1875,8 @@ PHP_FUNCTION(socket_recvfrom)
 			retval = recvfrom(php_sock->bsd_socket, recv_buf, arg3, arg4, (struct sockaddr *)&sin, (socklen_t *)&slen);
 
 			if (retval < 0) {
-				efree(recv_buf);
 				PHP_SOCKET_ERROR(php_sock, "unable to recvfrom", errno);
+				efree(recv_buf);
 				RETURN_FALSE;
 			}
 
@@ -1834,8 +1904,8 @@ PHP_FUNCTION(socket_recvfrom)
 			retval = recvfrom(php_sock->bsd_socket, recv_buf, arg3, arg4, (struct sockaddr *)&sin6, (socklen_t *)&slen);
 
 			if (retval < 0) {
-				efree(recv_buf);
 				PHP_SOCKET_ERROR(php_sock, "unable to recvfrom", errno);
+				efree(recv_buf);
 				RETURN_FALSE;
 			}
 
@@ -2313,7 +2383,19 @@ ipv6_loop_hops:
 #endif
 			break;
 		}
-		
+#ifdef SO_BINDTODEVICE
+		case SO_BINDTODEVICE: {
+			if (Z_TYPE_PP(arg4) == IS_STRING) {
+				opt_ptr = Z_STRVAL_PP(arg4);
+				optlen = Z_STRLEN_PP(arg4);
+			} else {
+				opt_ptr = "";
+				optlen = 0;
+			}
+			break;
+		}
+#endif
+
 		default:
 			convert_to_long_ex(arg4);
 			ov = Z_LVAL_PP(arg4);

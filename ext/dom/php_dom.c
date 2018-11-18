@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -518,7 +518,7 @@ static HashTable* dom_get_debug_info_helper(zval *object, int *is_temp TSRMLS_DC
 			value = null_value;
 		} else if (Z_TYPE_P(value) == IS_OBJECT) {
 			/* these are zvalues create on demand, with refcount and is_ref
-			 * status left in an uninitalized stated */
+			 * status left in an uninitialized stated */
 			zval_dtor(value);
 			efree(value);
 
@@ -1089,7 +1089,11 @@ void dom_xpath_objects_free_storage(void *object TSRMLS_DC)
 void dom_objects_free_storage(void *object TSRMLS_DC)
 {
 	dom_object *intern = (dom_object *)object;
+#if defined(__GNUC__) && __GNUC__ >= 3
+	int retcount __attribute__((unused)); /* keep compiler quiet */
+#else
 	int retcount;
+#endif
 
 	zend_object_std_dtor(&intern->std TSRMLS_CC);
 

@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -401,8 +401,11 @@ static timelib_sll timelib_meridian_with_check(char **ptr, timelib_sll h)
 {
 	timelib_sll retval = 0;
 
-	while (!strchr("AaPp", **ptr)) {
+	while (**ptr && !strchr("AaPp", **ptr)) {
 		++*ptr;
+	}
+	if(!**ptr) {
+		return TIMELIB_UNSET;
 	}
 	if (**ptr == 'a' || **ptr == 'A') {
 		if (h == 12) {
@@ -649,7 +652,8 @@ static const timelib_relunit* timelib_lookup_relunit(char **ptr)
 	char *begin = *ptr, *end;
 	const timelib_relunit *tp, *value = NULL;
 
-	while (**ptr != '\0' && **ptr != ' ' && **ptr != ',' && **ptr != '\t') {
+	while (**ptr != '\0' && **ptr != ' ' && **ptr != ',' && **ptr != '\t' && **ptr != ';' && **ptr != ':' &&
+           **ptr != '/' && **ptr != '.' && **ptr != '-' && **ptr != '(' && **ptr != ')' ) {
 		++*ptr;
 	}
 	end = *ptr;
@@ -749,7 +753,7 @@ const static timelib_tz_lookup_table* zone_search(const char *word, long gmtoffs
 	/* Still didn't find anything, let's find the zone solely based on
 	 * offset/isdst then */
 	for (fmp = timelib_timezone_fallbackmap; fmp->name; fmp++) {
-		if ((fmp->gmtoffset * 3600) == gmtoffset && fmp->type == isdst) {
+		if ((fmp->gmtoffset * 60) == gmtoffset && fmp->type == isdst) {
 			return fmp;
 		}
 	}
@@ -962,8 +966,8 @@ mssqltime        = hour12 ":" minutelz ":" secondlz [:.] [0-9]+ meridian;
 isoweekday       = year4 "-"? "W" weekofyear "-"? [0-7];
 isoweek          = year4 "-"? "W" weekofyear;
 exif             = year4 ":" monthlz ":" daylz " " hour24lz ":" minutelz ":" secondlz;
-firstdayof       = 'first day of'?;
-lastdayof        = 'last day of'?;
+firstdayof       = 'first day of';
+lastdayof        = 'last day of';
 backof           = 'back of ' hour24 space? meridian?;
 frontof          = 'front of ' hour24 space? meridian?;
 
@@ -2042,7 +2046,7 @@ timelib_time *timelib_parse_from_format(char *format, char *string, int len, tim
 					TIMELIB_CHECK_NUMBER;
 					sec = timelib_get_nr_ex((char **) &ptr, 2, &length);
 					if (sec == TIMELIB_UNSET || length != 2) {
-						add_pbf_error(s, "A two second minute could not be found", string, begin);
+						add_pbf_error(s, "A two digit second could not be found", string, begin);
 					} else {
 						s->time->s = sec;
 					}
@@ -2130,7 +2134,11 @@ timelib_time *timelib_parse_from_format(char *format, char *string, int len, tim
 				break;
 
 			case '\\': /* escaped char */
-				*fptr++;
+				if(!fptr[1]) {
+					add_pbf_error(s, "Escaped character expected", string, begin);
+					break;
+				}
+				fptr++;
 				if (*ptr == *fptr) {
 					++ptr;
 				} else {

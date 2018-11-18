@@ -25,9 +25,6 @@
 #undef BETHREADS
 
 /* */
-#undef BUGGY_SNMPRINT_VALUE
-
-/* */
 #undef CDB_INCLUDE_FILE
 
 /* Define if system uses EBCDIC */
@@ -574,6 +571,9 @@
 /* */
 #undef HAVE_DCNGETTEXT
 
+/* Define if the compiler supports Decimal32/64/128 types. */
+#undef HAVE_DECIMAL_FP_SUPPORT
+
 /* Whether system headers declare timezone */
 #undef HAVE_DECLARED_TIMEZONE
 
@@ -754,6 +754,12 @@
 
 /* */
 #undef HAVE_GD_IMAGESETTILE
+
+/* */
+#undef HAVE_GD_IMAGE_CONVOLUTION
+
+/* */
+#undef HAVE_GD_IMAGE_PIXELATE
 
 /* */
 #undef HAVE_GD_JPG
@@ -1801,6 +1807,12 @@
 /* Define to 1 if you have the <syslog.h> header file. */
 #undef HAVE_SYSLOG_H
 
+/* FPM use systemd integration */
+#undef HAVE_SYSTEMD
+
+/* Define to 1 if you have the <systemd/sd-daemon.h> header file. */
+#undef HAVE_SYSTEMD_SD_DAEMON_H
+
 /* */
 #undef HAVE_SYSVMSG
 
@@ -1976,7 +1988,7 @@
 /* Define to 1 if `utime(file, NULL)' sets file's timestamp to the present. */
 #undef HAVE_UTIME_NULL
 
-/* Wether struct utsname has domainname */
+/* Whether struct utsname has domainname */
 #undef HAVE_UTSNAME_DOMAINNAME
 
 /* Define to 1 if you have the `vasprintf' function. */
@@ -2153,6 +2165,9 @@
 /* fpm group name */
 #undef PHP_FPM_GROUP
 
+/* fpm systemd service type */
+#undef PHP_FPM_SYSTEMD
+
 /* fpm user name */
 #undef PHP_FPM_USER
 
@@ -2275,6 +2290,9 @@
 
 /* */
 #undef SOLARIS
+
+/* have sqlite3 with column metadata enabled */
+#undef SQLITE_ENABLE_COLUMN_METADATA
 
 /* have sqlite3 with extension support */
 #undef SQLITE_OMIT_LOAD_EXTENSION

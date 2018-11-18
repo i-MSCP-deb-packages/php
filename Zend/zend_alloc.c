@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2014 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -672,7 +672,7 @@ static inline unsigned int zend_mm_high_bit(size_t _size)
 #elif defined(__GNUC__) && defined(__x86_64__)
 	unsigned long n;
 
-        __asm__("bsrq %1,%0\n\t" : "=r" (n) : "rm"  (_size));
+        __asm__("bsr %1,%0\n\t" : "=r" (n) : "rm"  (_size));
         return (unsigned int)n;
 #elif defined(_MSC_VER) && defined(_M_IX86)
 	__asm {
@@ -698,12 +698,12 @@ static inline unsigned int zend_mm_low_bit(size_t _size)
 #elif defined(__GNUC__) && defined(__x86_64__)
         unsigned long n;
 
-        __asm__("bsfq %1,%0\n\t" : "=r" (n) : "rm"  (_size));
+        __asm__("bsf %1,%0\n\t" : "=r" (n) : "rm"  (_size));
         return (unsigned int)n;
 #elif defined(_MSC_VER) && defined(_M_IX86)
 	__asm {
 		bsf eax, _size
-   }
+	}
 #else
 	static const int offset[16] = {4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0};
 	unsigned int n;
@@ -980,7 +980,7 @@ static void zend_mm_random(unsigned char *buf, size_t size) /* {{{ */
 	int has_context = 0;
 
 	if (!CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL, 0)) {
-		/* Could mean that the key container does not exist, let try 
+		/* Could mean that the key container does not exist, let try
 		   again by asking for a new one */
 		if (GetLastError() == NTE_BAD_KEYSET) {
 			if (CryptAcquireContext(&hCryptProv, NULL, NULL, PROV_RSA_FULL, CRYPT_NEWKEYSET)) {
@@ -1344,7 +1344,7 @@ static int zend_mm_check_ptr(zend_mm_heap *heap, void *ptr, int silent ZEND_FILE
 	}
 	if (!silent) {
 		TSRMLS_FETCH();
-		
+
 		zend_message_dispatcher(ZMSG_LOG_SCRIPT_NAME, NULL TSRMLS_CC);
 		zend_debug_alloc_output("---------------------------------------\n");
 		zend_debug_alloc_output("%s(%d) : Block "PTR_FMT" status:\n" ZEND_FILE_LINE_RELAY_CC, ptr);
@@ -2171,7 +2171,7 @@ static void *_zend_mm_realloc_int(zend_mm_heap *heap, void *p, size_t size ZEND_
 #if ZEND_MM_CACHE
 	if (ZEND_MM_SMALL_SIZE(true_size)) {
 		size_t index = ZEND_MM_BUCKET_INDEX(true_size);
-		
+
 		if (heap->cache[index] != NULL) {
 			zend_mm_free_block *best_fit;
 			zend_mm_free_block **cache;
@@ -2184,7 +2184,7 @@ static void *_zend_mm_realloc_int(zend_mm_heap *heap, void *p, size_t size ZEND_
 			heap->cache[index] = best_fit->prev_free_block;
 			ZEND_MM_CHECK_MAGIC(best_fit, MEM_BLOCK_CACHED);
 			ZEND_MM_SET_DEBUG_INFO(best_fit, size, 1, 0);
-	
+
 			ptr = ZEND_MM_DATA_OF(best_fit);
 
 #if ZEND_DEBUG || ZEND_MM_HEAP_PROTECTION
@@ -2461,12 +2461,12 @@ static inline size_t safe_address(size_t nmemb, size_t size, size_t offset)
 	size_t res = nmemb;
 	unsigned long overflow = 0;
 
-	__asm__ ("mull %3\n\taddl %4,%0\n\tadcl %1,%1"
+	__asm__ ("mull %3\n\taddl %4,%0\n\tadcl $0,%1"
 	     : "=&a"(res), "=&d" (overflow)
 	     : "%0"(res),
 	       "rm"(size),
 	       "rm"(offset));
-	
+
 	if (UNEXPECTED(overflow)) {
 		zend_error_noreturn(E_ERROR, "Possible integer overflow in memory allocation (%zu * %zu + %zu)", nmemb, size, offset);
 		return 0;
@@ -2481,11 +2481,21 @@ static inline size_t safe_address(size_t nmemb, size_t size, size_t offset)
         size_t res = nmemb;
         unsigned long overflow = 0;
 
-        __asm__ ("mulq %3\n\taddq %4,%0\n\tadcq %1,%1"
+#ifdef __ILP32__ /* x32 */
+# define LP_SUFF "l"
+#else /* amd64 */
+# define LP_SUFF "q"
+#endif
+
+        __asm__ ("mul" LP_SUFF  " %3\n\t"
+                 "add %4,%0\n\t"
+                 "adc $0,%1"
              : "=&a"(res), "=&d" (overflow)
              : "%0"(res),
                "rm"(size),
                "rm"(offset));
+
+#undef LP_SUFF
 
         if (UNEXPECTED(overflow)) {
                 zend_error_noreturn(E_ERROR, "Possible integer overflow in memory allocation (%zu * %zu + %zu)", nmemb, size, offset);
@@ -2565,7 +2575,7 @@ ZEND_API void *_ecalloc(size_t nmemb, size_t size ZEND_FILE_LINE_DC ZEND_FILE_LI
 
 ZEND_API char *_estrdup(const char *s ZEND_FILE_LINE_DC ZEND_FILE_LINE_ORIG_DC)
 {
-	int length;
+	size_t length;
 	char *p;
 #ifdef ZEND_SIGNALS
 	TSRMLS_FETCH();
@@ -2573,13 +2583,13 @@ ZEND_API char *_estrdup(const char *s ZEND_FILE_LINE_DC ZEND_FILE_LINE_ORIG_DC)
 
 	HANDLE_BLOCK_INTERRUPTIONS();
 
-	length = strlen(s)+1;
-	p = (char *) _emalloc(length ZEND_FILE_LINE_RELAY_CC ZEND_FILE_LINE_ORIG_RELAY_CC);
+	length = strlen(s);
+	p = (char *) _emalloc(safe_address(length, 1, 1) ZEND_FILE_LINE_RELAY_CC ZEND_FILE_LINE_ORIG_RELAY_CC);
 	if (UNEXPECTED(p == NULL)) {
 		HANDLE_UNBLOCK_INTERRUPTIONS();
 		return p;
 	}
-	memcpy(p, s, length);
+	memcpy(p, s, length+1);
 	HANDLE_UNBLOCK_INTERRUPTIONS();
 	return p;
 }
@@ -2593,7 +2603,7 @@ ZEND_API char *_estrndup(const char *s, uint length ZEND_FILE_LINE_DC ZEND_FILE_
 
 	HANDLE_BLOCK_INTERRUPTIONS();
 
-	p = (char *) _emalloc(length+1 ZEND_FILE_LINE_RELAY_CC ZEND_FILE_LINE_ORIG_RELAY_CC);
+	p = (char *) _emalloc(safe_address(length, 1, 1) ZEND_FILE_LINE_RELAY_CC ZEND_FILE_LINE_ORIG_RELAY_CC);
 	if (UNEXPECTED(p == NULL)) {
 		HANDLE_UNBLOCK_INTERRUPTIONS();
 		return p;
@@ -2614,7 +2624,7 @@ ZEND_API char *zend_strndup(const char *s, uint length)
 
 	HANDLE_BLOCK_INTERRUPTIONS();
 
-	p = (char *) malloc(length+1);
+	p = (char *) malloc(safe_address(length, 1, 1));
 	if (UNEXPECTED(p == NULL)) {
 		HANDLE_UNBLOCK_INTERRUPTIONS();
 		return p;

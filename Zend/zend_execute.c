@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2014 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -1145,6 +1145,10 @@ convert_to_array:
 					zend_error_noreturn(E_ERROR, "[] operator not supported for strings");
 				}
 
+				if (type != BP_VAR_UNSET) {
+					SEPARATE_ZVAL_IF_NOT_REF(container_ptr);
+				}
+
 				if (Z_TYPE_P(dim) != IS_LONG) {
 
 					switch(Z_TYPE_P(dim)) {
@@ -1172,9 +1176,6 @@ convert_to_array:
 					zval_copy_ctor(&tmp);
 					convert_to_long(&tmp);
 					dim = &tmp;
-				}
-				if (type != BP_VAR_UNSET) {
-					SEPARATE_ZVAL_IF_NOT_REF(container_ptr);
 				}
 				container = *container_ptr;
 				result->str_offset.str = container;
@@ -1247,9 +1248,8 @@ convert_to_array:
 	}
 }
 
-static void zend_fetch_dimension_address_read(temp_variable *result, zval **container_ptr, zval *dim, int dim_type, int type TSRMLS_DC)
+static void zend_fetch_dimension_address_read(temp_variable *result, zval *container, zval *dim, int dim_type, int type TSRMLS_DC)
 {
-	zval *container = *container_ptr;
 	zval **retval;
 
 	switch (Z_TYPE_P(container)) {

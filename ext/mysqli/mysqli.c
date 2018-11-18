@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2014 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -176,8 +176,11 @@ void php_clear_stmt_bind(MY_STMT *stmt TSRMLS_DC)
 	php_free_stmt_bind_buffer(stmt->param, FETCH_SIMPLE);
 	/* Clean output bind */
 	php_free_stmt_bind_buffer(stmt->result, FETCH_RESULT);
-#endif
 
+	if (stmt->link_handle) {
+	    zend_objects_store_del_ref_by_handle(stmt->link_handle TSRMLS_CC);
+	}
+#endif
 	if (stmt->query) {
 		efree(stmt->query);
 	}
@@ -531,7 +534,7 @@ PHP_MYSQLI_EXPORT(zend_object_value) mysqli_objects_new(zend_class_entry *class_
 #include "ext/mysqlnd/mysqlnd_reverse_api.h"
 static MYSQLND *mysqli_convert_zv_to_mysqlnd(zval * zv TSRMLS_DC)
 {
-	if (Z_TYPE_P(zv) == IS_OBJECT && Z_OBJCE_P(zv) == mysqli_link_class_entry) {
+	if (Z_TYPE_P(zv) == IS_OBJECT && instanceof_function(Z_OBJCE_P(zv), mysqli_link_class_entry TSRMLS_CC)) {
 		MY_MYSQL * mysql;
 		MYSQLI_RESOURCE  * my_res;
 		mysqli_object * intern = (mysqli_object *)zend_object_store_get_object(zv TSRMLS_CC);
@@ -838,6 +841,9 @@ PHP_MINIT_FUNCTION(mysqli)
 	REGISTER_LONG_CONSTANT("MYSQLI_REFRESH_BACKUP_LOG", REFRESH_BACKUP_LOG, CONST_CS | CONST_PERSISTENT);
 #endif
 
+#if MYSQL_VERSION_ID >= 50611 || defined(MYSQLI_USE_MYSQLND)
+	REGISTER_LONG_CONSTANT("MYSQLI_OPT_CAN_HANDLE_EXPIRED_PASSWORDS", MYSQL_OPT_CAN_HANDLE_EXPIRED_PASSWORDS, CONST_CS | CONST_PERSISTENT);
+#endif
 
 #ifdef MYSQLI_USE_MYSQLND
 	mysqlnd_reverse_api_register_api(&mysqli_reverse_api TSRMLS_CC);
@@ -1052,6 +1058,10 @@ PHP_FUNCTION(mysqli_stmt_construct)
 		efree(stmt);
 		RETURN_FALSE;
 	}
+#ifndef MYSQLI_USE_MYSQLND
+	stmt->link_handle = Z_OBJ_HANDLE(*mysql_link);
+	zend_objects_store_add_ref_by_handle(stmt->link_handle TSRMLS_CC);
+#endif
 
 	mysqli_resource = (MYSQLI_RESOURCE *)ecalloc (1, sizeof(MYSQLI_RESOURCE));
 	mysqli_resource->ptr = (void *)stmt;
@@ -1254,7 +1264,7 @@ void php_mysqli_fetch_into_hash(INTERNAL_FUNCTION_PARAMETERS, int override_flags
 
 	php_mysqli_fetch_into_hash_aux(return_value, result, fetchtype TSRMLS_CC);
 
-	if (into_object && Z_TYPE_P(return_value) != IS_NULL) {
+	if (into_object && Z_TYPE_P(return_value) == IS_ARRAY) {
 		zval dataset = *return_value;
 		zend_fcall_info fci;
 		zend_fcall_info_cache fcc;

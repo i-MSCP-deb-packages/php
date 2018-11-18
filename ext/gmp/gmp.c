@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -324,30 +324,6 @@ static void _php_gmpnum_free(zend_rsrc_list_entry *rsrc TSRMLS_DC);
 #	define MAX_BASE 36
 #endif
 
-/* {{{ gmp_emalloc
- */
-static void *gmp_emalloc(size_t size)
-{
-	return emalloc(size);
-}
-/* }}} */
-
-/* {{{ gmp_erealloc
- */
-static void *gmp_erealloc(void *ptr, size_t old_size, size_t new_size)
-{
-	return erealloc(ptr, new_size);
-}
-/* }}} */
-
-/* {{{ gmp_efree
- */
-static void gmp_efree(void *ptr, size_t size)
-{
-	efree(ptr);
-}
-/* }}} */
-
 /* {{{ ZEND_GINIT_FUNCTION
  */
 static ZEND_GINIT_FUNCTION(gmp)
@@ -368,8 +344,6 @@ ZEND_MODULE_STARTUP_D(gmp)
 	REGISTER_STRING_CONSTANT("GMP_MPIR_VERSION", (char *)mpir_version, CONST_CS | CONST_PERSISTENT);
 #endif
 	REGISTER_STRING_CONSTANT("GMP_VERSION", (char *)gmp_version, CONST_CS | CONST_PERSISTENT);
-
-	mp_set_memory_functions(gmp_emalloc, gmp_erealloc, gmp_efree);
 
 	return SUCCESS;
 }
@@ -1069,7 +1043,7 @@ ZEND_FUNCTION(gmp_powm)
 	zval **base_arg, **exp_arg, **mod_arg;
 	mpz_t *gmpnum_base, *gmpnum_exp, *gmpnum_mod, *gmpnum_result;
 	int use_ui = 0;
-	int temp_base, temp_exp, temp_mod;
+	int temp_base = 0, temp_exp = 0, temp_mod;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ZZZ", &base_arg, &exp_arg, &mod_arg) == FAILURE){
 		return;
@@ -1333,6 +1307,7 @@ ZEND_FUNCTION(gmp_cmp)
 		res = mpz_cmp_si(*gmpnum_a, Z_LVAL_PP(b_arg));
 	} else {
 		res = mpz_cmp(*gmpnum_a, *gmpnum_b);
+		FREE_GMP_TEMP(temp_b);
 	}
 	FREE_GMP_TEMP(temp_a);
 	
@@ -1528,6 +1503,7 @@ ZEND_FUNCTION(gmp_testbit)
 	if (mpz_tstbit(*gmpnum_a, index)) {
 		RETURN_TRUE;
 	}
+
 	RETURN_FALSE;
 }
 /* }}} */

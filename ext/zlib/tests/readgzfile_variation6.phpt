@@ -1,5 +1,5 @@
 --TEST--
-Test function readgzfile() by substituting agument 1 with object values.
+Test function readgzfile() by substituting argument 1 with object values.
 --SKIPIF--
 <?php
 if (!extension_loaded('zlib')) die ('skip zlib extension not available in this build');
@@ -45,5 +45,5 @@ foreach ( $variation as $var ) {
 --EXPECTF--
 Error: 2 - readgzfile(Class A object): failed to open stream: No such file or directory, %s(%d)
 bool(false)
-Error: 2 - readgzfile() expects parameter 1 to be string, object given, %s(%d)
+Error: 2 - readgzfile() expects parameter 1 to be a valid path, object given, %s(%d)
 NULL

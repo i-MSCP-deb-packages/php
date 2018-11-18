@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | Zend Engine                                                          |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1998-2012 Zend Technologies Ltd. (http://www.zend.com) |
+   | Copyright (c) 1998-2014 Zend Technologies Ltd. (http://www.zend.com) |
    +----------------------------------------------------------------------+
    | This source file is subject to version 2.00 of the Zend license,     |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -206,8 +206,6 @@ typedef struct _zend_try_catch_element {
 
 #define ZEND_ACC_RETURN_REFERENCE		0x4000000
 #define ZEND_ACC_DONE_PASS_TWO			0x8000000
-
-#define ZEND_ACC_ALIAS					0x10000000
 
 char *zend_visibility_string(zend_uint fn_flags);
 
@@ -509,16 +507,13 @@ ZEND_API void zend_do_implement_interface(zend_class_entry *ce, zend_class_entry
 void zend_do_implements_interface(znode *interface_znode TSRMLS_DC);
 
 /* Trait related functions */
-void zend_add_trait_precedence(znode *precedence_znode TSRMLS_DC);
-void zend_add_trait_alias(znode *alias_znode TSRMLS_DC);
+void zend_do_use_trait(znode *trait_znode TSRMLS_DC);
+void zend_prepare_reference(znode *result, znode *class_name, znode *method_name TSRMLS_DC);
+void zend_add_trait_precedence(znode *method_reference, znode *trait_list TSRMLS_DC);
+void zend_add_trait_alias(znode *method_reference, znode *modifiers, znode *alias TSRMLS_DC);
 
-
-void zend_do_implements_trait(znode *interface_znode /*, znode* aliases */ TSRMLS_DC);
 ZEND_API void zend_do_implement_trait(zend_class_entry *ce, zend_class_entry *trait TSRMLS_DC);
 ZEND_API void zend_do_bind_traits(zend_class_entry *ce TSRMLS_DC);
-void zend_prepare_trait_precedence(znode *result, znode *method_reference, znode *trait_list TSRMLS_DC);
-void zend_prepare_reference(znode *result, znode *class_name, znode *method_name TSRMLS_DC);
-void zend_prepare_trait_alias(znode *result, znode *method_reference, znode *modifiers, znode *alias TSRMLS_DC);
 
 ZEND_API void zend_do_inheritance(zend_class_entry *ce, zend_class_entry *parent_ce TSRMLS_DC);
 void zend_do_early_binding(TSRMLS_D);
@@ -621,7 +616,7 @@ void zend_do_end_compilation(TSRMLS_D);
 void zend_do_label(znode *label TSRMLS_DC);
 void zend_do_goto(const znode *label TSRMLS_DC);
 void zend_resolve_goto_label(zend_op_array *op_array, zend_op *opline, int pass2 TSRMLS_DC);
-void zend_release_labels(TSRMLS_D);
+void zend_release_labels(int temporary TSRMLS_DC);
 
 ZEND_API void function_add_ref(zend_function *function);
 
@@ -644,6 +639,8 @@ ZEND_API void zend_cleanup_internal_class_data(zend_class_entry *ce TSRMLS_DC);
 ZEND_API void zend_cleanup_internal_classes(TSRMLS_D);
 ZEND_API int zend_cleanup_function_data(zend_function *function TSRMLS_DC);
 ZEND_API int zend_cleanup_function_data_full(zend_function *function TSRMLS_DC);
+ZEND_API int clean_non_persistent_function_full(zend_function *function TSRMLS_DC);
+ZEND_API int clean_non_persistent_class_full(zend_class_entry **ce TSRMLS_DC);
 
 ZEND_API void destroy_zend_function(zend_function *function TSRMLS_DC);
 ZEND_API void zend_function_dtor(zend_function *function);

@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2014 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -564,7 +564,7 @@ PHP_FUNCTION(mysqli_query)
 	MY_MYSQL			*mysql;
 	zval				*mysql_link;
 	MYSQLI_RESOURCE		*mysqli_resource;
-	MYSQL_RES 			*result;
+	MYSQL_RES 			*result = NULL;
 	char				*query = NULL;
 	int 				query_len;
 	long 				resultmode = MYSQLI_STORE_RESULT;
@@ -683,7 +683,7 @@ static int mysqlnd_zval_array_from_mysqlnd_array(MYSQLND **in_array, zval *out_a
 	MYSQLND **p = in_array;
 	HashTable *new_hash;
 	zval **elem, **dest_elem;
-	int ret = 0;
+	int ret = 0, i = 0;
 
 	ALLOC_HASHTABLE(new_hash);
 	zend_hash_init(new_hash, zend_hash_num_elements(Z_ARRVAL_P(out_array)), NULL, ZVAL_PTR_DTOR, 0);
@@ -692,13 +692,19 @@ static int mysqlnd_zval_array_from_mysqlnd_array(MYSQLND **in_array, zval *out_a
 		 zend_hash_get_current_data(Z_ARRVAL_P(out_array), (void **) &elem) == SUCCESS;
 		 zend_hash_move_forward(Z_ARRVAL_P(out_array)))
 	{
+		i++;
 		if (Z_TYPE_PP(elem) != IS_OBJECT || !instanceof_function(Z_OBJCE_PP(elem), mysqli_link_class_entry TSRMLS_CC)) {
 			continue;
 		}
 		{
 			MY_MYSQL *mysql;
+			MYSQLI_RESOURCE *my_res;
 			mysqli_object *intern = (mysqli_object *)zend_object_store_get_object(*elem TSRMLS_CC);
-			mysql = (MY_MYSQL *) ((MYSQLI_RESOURCE *)intern->ptr)->ptr;
+			if (!(my_res = (MYSQLI_RESOURCE *)intern->ptr)) {
+		  		php_error_docref(NULL TSRMLS_CC, E_WARNING, "[%d] Couldn't fetch %s", i, intern->zo.ce->name);
+				continue;
+		  	}
+			mysql = (MY_MYSQL *) my_res->ptr;
 			if (mysql->mysql == *p) {
 				zend_hash_next_index_insert(new_hash, (void *)elem, sizeof(zval *), (void **)&dest_elem);
 				if (dest_elem) {
@@ -771,7 +777,7 @@ PHP_FUNCTION(mysqli_poll)
 	MYSQLND			**new_r_array = NULL, **new_e_array = NULL, **new_dont_poll_array = NULL;
 	long			sec = 0, usec = 0;
 	enum_func_status ret;
-	uint 			desc_num;
+	int 			desc_num;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "a!a!al|l", &r_array, &e_array, &dont_poll_array, &sec, &usec) == FAILURE) {
 		return;
@@ -829,7 +835,7 @@ PHP_FUNCTION(mysqli_reap_async_query)
 	MY_MYSQL		*mysql;
 	zval			*mysql_link;
 	MYSQLI_RESOURCE		*mysqli_resource;
-	MYSQL_RES 			*result;
+	MYSQL_RES 			*result = NULL;
 
 	if (zend_parse_method_parameters(ZEND_NUM_ARGS() TSRMLS_CC, getThis(), "O", &mysql_link, mysqli_link_class_entry) == FAILURE) {
 		return;

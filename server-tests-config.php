@@ -52,14 +52,14 @@ $conf = array(
 
 /* file extension of pages requested via http
    this allows for php to be configured to parse
-   extensions other than php, usefull for multiple
+   extensions other than php, useful for multiple
    configurations under a single webserver */
 'TEST_WEB_EXT'         =>    'php',
 
 /* if true doesn't run tests, just outputs executable info */
 'TEST_CONTEXT_INFO'    =>    false,
 
-/* : or ; seperated list of paths */
+/* : or ; separated list of paths */
 'TEST_PATHS'           =>    NULL
 /* additional configuration items that may be set
    to provide proxy support for testes:

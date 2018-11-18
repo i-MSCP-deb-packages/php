@@ -2,7 +2,7 @@
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 2006-2012 The PHP Group                                |
+  | Copyright (c) 2006-2014 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -41,7 +41,7 @@
 #define MYSQLND_SQLSTATE_LENGTH		5
 #define MYSQLND_SQLSTATE_NULL		"00000"
 
-#define MYSQLND_MAX_ALLOWED_USER_LEN	256		/* 64 char * 4byte . MySQL supports now only 16 char, but let it be forward compatible */
+#define MYSQLND_MAX_ALLOWED_USER_LEN	252		/* 63 char * 4byte . MySQL supports now only 16 char, but let it be forward compatible */
 #define MYSQLND_MAX_ALLOWED_DB_LEN		1024	/* 256 char * 4byte. MySQL supports now only 64 char in the tables, but on the FS could be different. Forward compatible. */
 
 #define MYSQLND_NET_CMD_BUFFER_MIN_SIZE			4096
@@ -95,7 +95,9 @@
 #define CLIENT_MULTI_RESULTS		(1UL << 17) /* Enable/disable multi-results */
 #define CLIENT_PS_MULTI_RESULTS		(1UL << 18) /* Multi-results in PS-protocol */
 #define CLIENT_PLUGIN_AUTH			(1UL << 19) /* Client supports plugin authentication */
-
+#define CLIENT_CONNECT_ATTRS		(1UL << 20) /* Client supports connection attributes */
+#define CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA	(1UL << 21) /* Enable authentication response packet to be larger than 255 bytes. */
+#define CLIENT_CAN_HANDLE_EXPIRED_PASSWORDS		(1UL << 22) /* Don't close the connection for a connection with expired password. */
 #define CLIENT_SSL_VERIFY_SERVER_CERT (1UL << 30)
 
 #define MYSQLND_CAPABILITIES (CLIENT_LONG_PASSWORD | CLIENT_LONG_FLAG | CLIENT_TRANSACTIONS | \
@@ -164,6 +166,9 @@ typedef enum mysqlnd_option
 	MYSQL_OPT_SSL_VERIFY_SERVER_CERT,
 	MYSQL_PLUGIN_DIR,
 	MYSQL_DEFAULT_AUTH,
+	MYSQL_SERVER_PUBLIC_KEY,
+	MYSQL_ENABLE_CLEARTEXT_PLUGIN,
+	MYSQL_OPT_CAN_HANDLE_EXPIRED_PASSWORDS,
 #if MYSQLND_UNICODE
 	MYSQLND_OPT_NUMERIC_AND_DATETIME_AS_UNICODE = 200,
 #endif
@@ -539,6 +544,10 @@ enum mysqlnd_packet_type
 };
 
 
+/*
+  After adding new elements please update
+  `mysqlnd_command_to_text` in mysqlnd_wireprotocol.c
+*/
 enum php_mysqlnd_server_command
 {
 	COM_SLEEP = 0,
@@ -571,6 +580,8 @@ enum php_mysqlnd_server_command
 	COM_SET_OPTION = 27,
 	COM_STMT_FETCH = 28,
 	COM_DAEMON,
+	COM_BINLOG_DUMP_GTID,
+	COM_RESET_CONNECTION,
 	COM_END
 };
 

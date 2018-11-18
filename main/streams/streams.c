@@ -2,7 +2,7 @@
    +----------------------------------------------------------------------+
    | PHP Version 5                                                        |
    +----------------------------------------------------------------------+
-   | Copyright (c) 1997-2012 The PHP Group                                |
+   | Copyright (c) 1997-2014 The PHP Group                                |
    +----------------------------------------------------------------------+
    | This source file is subject to version 3.01 of the PHP license,      |
    | that is bundled with this package in the file LICENSE, and is        |
@@ -573,7 +573,7 @@ fprintf(stderr, "stream_free: %s:%p[%s] preserve_handle=%d release_cast=%d remov
 
 /* {{{ generic stream operations */
 
-static void php_stream_fill_read_buffer(php_stream *stream, size_t size TSRMLS_DC)
+PHPAPI void _php_stream_fill_read_buffer(php_stream *stream, size_t size TSRMLS_DC)
 {
 	/* allocate/fill the buffer */
 
@@ -736,8 +736,12 @@ PHPAPI size_t _php_stream_read(php_stream *stream, char *buf, size_t size TSRMLS
 
 		if (!stream->readfilters.head && (stream->flags & PHP_STREAM_FLAG_NO_BUFFER || stream->chunk_size == 1)) {
 			toread = stream->ops->read(stream, buf, size TSRMLS_CC);
+			if (toread == (size_t) -1) {
+				/* e.g. underlying read(2) returned -1 */
+				break;
+			}
 		} else {
-			php_stream_fill_read_buffer(stream, size TSRMLS_CC);
+			php_stream_fill_read_buffer(stream, size);
 
 			toread = stream->writepos - stream->readpos;
 			if (toread > size) {
@@ -973,7 +977,7 @@ PHPAPI char *_php_stream_get_line(php_stream *stream, char *buf, size_t maxlen,
 				}
 			}
 
-			php_stream_fill_read_buffer(stream, toread TSRMLS_CC);
+			php_stream_fill_read_buffer(stream, toread);
 
 			if (stream->writepos - stream->readpos == 0) {
 				break;
@@ -1048,7 +1052,7 @@ PHPAPI char *php_stream_get_record(php_stream *stream, size_t maxlen, size_t *re
 
 		to_read_now = MIN(maxlen - buffered_len, stream->chunk_size);
 
-		php_stream_fill_read_buffer(stream, buffered_len + to_read_now TSRMLS_CC);
+		php_stream_fill_read_buffer(stream, buffered_len + to_read_now);
 
 		just_read = STREAM_BUFFERED_AMOUNT(stream) - buffered_len;
 
@@ -1060,9 +1064,17 @@ PHPAPI char *php_stream_get_record(php_stream *stream, size_t maxlen, size_t *re
 		if (has_delim) {
 			/* search for delimiter, but skip buffered_len (the number of bytes
 			 * buffered before this loop iteration), as they have already been
-			 * searched for the delimiter */
+			 * searched for the delimiter.
+			 * The left part of the delimiter may still remain in the buffer,
+			 * so subtract up to <delim_len - 1> from buffered_len, which is
+			 * the ammount of data we skip on this search  as an optimization
+			 */
 			found_delim = _php_stream_search_delim(
-				stream, maxlen, buffered_len, delim, delim_len TSRMLS_CC);
+				stream, maxlen,
+				buffered_len >= (delim_len - 1)
+						? buffered_len - (delim_len - 1)
+						: 0,
+				delim, delim_len TSRMLS_CC);
 			if (found_delim) {
 				break;
 			}
@@ -1393,11 +1405,16 @@ PHPAPI size_t _php_stream_passthru(php_stream * stream STREAMS_DC TSRMLS_DC)
 		p = php_stream_mmap_range(stream, php_stream_tell(stream), PHP_STREAM_MMAP_ALL, PHP_STREAM_MAP_MODE_SHARED_READONLY, &mapped);
 
 		if (p) {
-			PHPWRITE(p, mapped);
+			do {
+				/* output functions return int, so pass in int max */
+				if (0 < (b = PHPWRITE(p, MIN(mapped - bcount, INT_MAX)))) {
+					bcount += b;
+				}
+			} while (b > 0 && mapped > bcount);
 
 			php_stream_mmap_unmap_ex(stream, mapped);
 
-			return mapped;
+			return bcount;
 		}
 	}
 
@@ -1486,7 +1503,7 @@ PHPAPI int _php_stream_copy_to_stream_ex(php_stream *src, php_stream *dest, size
 	char buf[CHUNK_SIZE];
 	size_t readchunk;
 	size_t haveread = 0;
-	size_t didread;
+	size_t didread, didwrite, towrite;
 	size_t dummy;
 	php_stream_statbuf ssbuf;
 
@@ -1521,16 +1538,16 @@ PHPAPI int _php_stream_copy_to_stream_ex(php_stream *src, php_stream *dest, size
 		p = php_stream_mmap_range(src, php_stream_tell(src), maxlen, PHP_STREAM_MAP_MODE_SHARED_READONLY, &mapped);
 
 		if (p) {
-			mapped = php_stream_write(dest, p, mapped);
+			didwrite = php_stream_write(dest, p, mapped);
 
 			php_stream_mmap_unmap_ex(src, mapped);
 
-			*len = mapped;
+			*len = didwrite;
 
-			/* we've got at least 1 byte to read.
-			 * less than 1 is an error */
-
-			if (mapped > 0) {
+			/* we've got at least 1 byte to read
+			 * less than 1 is an error
+			 * AND read bytes match written */
+			if (mapped > 0 && mapped == didwrite) {
 				return SUCCESS;
 			}
 			return FAILURE;
@@ -1548,7 +1565,6 @@ PHPAPI int _php_stream_copy_to_stream_ex(php_stream *src, php_stream *dest, size
 
 		if (didread) {
 			/* extra paranoid */
-			size_t didwrite, towrite;
 			char *writeptr;
 
 			towrite = didread;
@@ -1913,16 +1929,18 @@ PHPAPI int _php_stream_stat_path(char *path, int flags, php_stream_statbuf *ssb,
 	char *path_to_open = path;
 	int ret;
 
-	/* Try to hit the cache first */
-	if (flags & PHP_STREAM_URL_STAT_LINK) {
-		if (BG(CurrentLStatFile) && strcmp(path, BG(CurrentLStatFile)) == 0) {
-			memcpy(ssb, &BG(lssb), sizeof(php_stream_statbuf));
-			return 0;
-		}
-	} else {
-		if (BG(CurrentStatFile) && strcmp(path, BG(CurrentStatFile)) == 0) {
-			memcpy(ssb, &BG(ssb), sizeof(php_stream_statbuf));
-			return 0;
+	if (!(flags & PHP_STREAM_URL_STAT_NOCACHE)) {
+		/* Try to hit the cache first */
+		if (flags & PHP_STREAM_URL_STAT_LINK) {
+			if (BG(CurrentLStatFile) && strcmp(path, BG(CurrentLStatFile)) == 0) {
+				memcpy(ssb, &BG(lssb), sizeof(php_stream_statbuf));
+				return 0;
+			}
+		} else {
+			if (BG(CurrentStatFile) && strcmp(path, BG(CurrentStatFile)) == 0) {
+				memcpy(ssb, &BG(ssb), sizeof(php_stream_statbuf));
+				return 0;
+			}
 		}
 	}
 
@@ -1930,19 +1948,21 @@ PHPAPI int _php_stream_stat_path(char *path, int flags, php_stream_statbuf *ssb,
 	if (wrapper && wrapper->wops->url_stat) {
 		ret = wrapper->wops->url_stat(wrapper, path_to_open, flags, ssb, context TSRMLS_CC);
 		if (ret == 0) {
-			/* Drop into cache */
-			if (flags & PHP_STREAM_URL_STAT_LINK) {
-				if (BG(CurrentLStatFile)) {
-					efree(BG(CurrentLStatFile));
+		        if (!(flags & PHP_STREAM_URL_STAT_NOCACHE)) {
+				/* Drop into cache */
+				if (flags & PHP_STREAM_URL_STAT_LINK) {
+					if (BG(CurrentLStatFile)) {
+						efree(BG(CurrentLStatFile));
+					}
+					BG(CurrentLStatFile) = estrdup(path);
+					memcpy(&BG(lssb), ssb, sizeof(php_stream_statbuf));
+				} else {
+					if (BG(CurrentStatFile)) {
+						efree(BG(CurrentStatFile));
+					}
+					BG(CurrentStatFile) = estrdup(path);
+					memcpy(&BG(ssb), ssb, sizeof(php_stream_statbuf));
 				}
-				BG(CurrentLStatFile) = estrdup(path);
-				memcpy(&BG(lssb), ssb, sizeof(php_stream_statbuf));
-			} else {
-				if (BG(CurrentStatFile)) {
-					efree(BG(CurrentStatFile));
-				}
-				BG(CurrentStatFile) = estrdup(path);
-				memcpy(&BG(ssb), ssb, sizeof(php_stream_statbuf));
 			}
 		}
 		return ret;
@@ -2351,6 +2371,7 @@ PHPAPI int _php_stream_scandir(char *dirname, char **namelist[], int flags, php_
 			} else {
 				if(vector_size*2 < vector_size) {
 					/* overflow */
+					php_stream_closedir(stream);
 					efree(vector);
 					return FAILURE;
 				}
@@ -2364,6 +2385,7 @@ PHPAPI int _php_stream_scandir(char *dirname, char **namelist[], int flags, php_
 		nfiles++;
 		if(vector_size < 10 || nfiles == 0) {
 			/* overflow */
+			php_stream_closedir(stream);
 			efree(vector);
 			return FAILURE;
 		}
@@ -2372,7 +2394,7 @@ PHPAPI int _php_stream_scandir(char *dirname, char **namelist[], int flags, php_
 
 	*namelist = vector;
 
-	if (compare) {
+	if (nfiles > 0 && compare) {
 		qsort(*namelist, nfiles, sizeof(char *), (int(*)(const void *, const void *))compare);
 	}
 	return nfiles;

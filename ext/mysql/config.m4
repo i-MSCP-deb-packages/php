@@ -45,7 +45,7 @@ PHP_ARG_WITH(mysql, for MySQL support,
                           mysqlnd the MySQL native driver will be used])
 
 PHP_ARG_WITH(mysql-sock, for specified location of the MySQL UNIX socket,
-[  --with-mysql-sock[=DIR]   MySQL/MySQLi/PDO_MYSQL: Location of the MySQL unix socket pointer.
+[  --with-mysql-sock[=SOCKPATH]   MySQL/MySQLi/PDO_MYSQL: Location of the MySQL unix socket pointer.
                             If unspecified, the default locations are searched], no, no)
 
 if test -z "$PHP_ZLIB_DIR"; then
@@ -95,6 +95,13 @@ Note that the MySQL client library is not bundled anymore!])
   for i in $PHP_LIBDIR $PHP_LIBDIR/mysql; do
     MYSQL_LIB_CHK($i)
   done
+
+  if test -z "$MYSQL_LIB_DIR"; then
+    MYSQL_LIB_CHK(lib/x86_64-linux-gnu)
+  fi
+  if test -z "$MYSQL_LIB_DIR"; then
+    MYSQL_LIB_CHK(lib/i386-linux-gnu)
+  fi
 
   if test -z "$MYSQL_LIB_DIR"; then
     AC_MSG_ERROR([Cannot find lib$MYSQL_LIBNAME under $MYSQL_DIR.
