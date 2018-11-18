@@ -1,0 +1,56 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Sun, 16 Aug 2015 10:32:54 +0200
+Subject: Remove warning about mysql library minor version mismatch to help
+ during transition periods
+
+---
+Index: php/ext/mysql/php_mysql.c
+===================================================================
+--- php.orig/ext/mysql/php_mysql.c
++++ php/ext/mysql/php_mysql.c
+@@ -701,13 +701,13 @@ static void php_mysql_do_connect(INTERNA
+ 	zend_bool free_host=0, new_link=0;
+ 	long connect_timeout;
+ 
+-#if !defined(MYSQL_USE_MYSQLND)
+-	if ((MYSQL_VERSION_ID / 100) != (mysql_get_client_version() / 100)) {
+-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+-						"Headers and client library minor version mismatch. Headers:%d Library:%ld",
+-						MYSQL_VERSION_ID, mysql_get_client_version());
+-	}
+-#endif
++/*#if !defined(MYSQL_USE_MYSQLND) */
++/*	if ((MYSQL_VERSION_ID / 100) != (mysql_get_client_version() / 100)) { */
++/*		php_error_docref(NULL TSRMLS_CC, E_WARNING, */
++/*						"Headers and client library minor version mismatch. Headers:%d Library:%ld", */
++/*						MYSQL_VERSION_ID, mysql_get_client_version()); */
++/*	} */
++/*#endif */
+ 
+ 	connect_timeout = MySG(connect_timeout);
+ 
+Index: php/ext/mysqli/mysqli_nonapi.c
+===================================================================
+--- php.orig/ext/mysqli/mysqli_nonapi.c
++++ php/ext/mysqli/mysqli_nonapi.c
+@@ -73,13 +73,13 @@ void mysqli_common_connect(INTERNAL_FUNC
+ 	zend_bool			self_alloced = 0;
+ 
+ 
+-#if !defined(MYSQL_USE_MYSQLND)
+-	if ((MYSQL_VERSION_ID / 100) != (mysql_get_client_version() / 100)) {
+-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+-						"Headers and client library minor version mismatch. Headers:%d Library:%ld",
+-						MYSQL_VERSION_ID, mysql_get_client_version());
+-	}
+-#endif
++/*#if !defined(MYSQL_USE_MYSQLND) */
++/*	if ((MYSQL_VERSION_ID / 100) != (mysql_get_client_version() / 100)) { */
++/*		php_error_docref(NULL TSRMLS_CC, E_WARNING, */
++/*						"Headers and client library minor version mismatch. Headers:%d Library:%ld", */
++/*						MYSQL_VERSION_ID, mysql_get_client_version()); */
++/*	} */
++/*#endif */
+ 
+ 	if (getThis() && !ZEND_NUM_ARGS() && in_ctor) {
+ 		php_mysqli_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);

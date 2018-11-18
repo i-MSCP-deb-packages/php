@@ -1,0 +1,155 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Sat, 8 Apr 2017 10:40:20 +0200
+Subject: Fix PHP bug #64827: Segfault in zval_mark_grey (zend_gc.c)
+
+---
+Index: php/Zend/zend_gc.c
+===================================================================
+--- php.orig/Zend/zend_gc.c
++++ php/Zend/zend_gc.c
+@@ -295,15 +295,19 @@ tail_call:
+ 		}
+ 	}
+ 	while (p != NULL) {
+-		pz = *(zval**)p->pData;
+-		if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
+-			pz->refcount__gc++;
+-		}
+-		if (GC_ZVAL_GET_COLOR(pz) != GC_BLACK) {
+-			if (p->pListNext == NULL) {
+-				goto tail_call;
+-			} else {
+-				zval_scan_black(pz TSRMLS_CC);
++		if (p->pData != NULL) {
++			pz = *(zval**)p->pData;
++			if (pz != NULL) {
++				if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
++					pz->refcount__gc++;
++				}
++				if (GC_ZVAL_GET_COLOR(pz) != GC_BLACK) {
++					if (p->pListNext == NULL) {
++						goto tail_call;
++					} else {
++						zval_scan_black(pz TSRMLS_CC);
++					}
++				}
+ 			}
+ 		}
+ 		p = p->pListNext;
+@@ -323,12 +327,16 @@ static void zobj_scan_black(struct _stor
+ 		}
+ 		p = props->pListHead;
+ 		while (p != NULL) {
+-			pz = *(zval**)p->pData;
+-			if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
+-				pz->refcount__gc++;
+-			}
+-			if (GC_ZVAL_GET_COLOR(pz) != GC_BLACK) {
+-				zval_scan_black(pz TSRMLS_CC);
++			if (p->pData != NULL) {
++				pz = *(zval**)p->pData;
++				if (pz != NULL) {
++					if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
++						pz->refcount__gc++;
++					}
++					if (GC_ZVAL_GET_COLOR(pz) != GC_BLACK) {
++						zval_scan_black(pz TSRMLS_CC);
++					}
++				}
+ 			}
+ 			p = p->pListNext;
+ 		}
+@@ -369,14 +377,18 @@ tail_call:
+ 			}
+ 		}
+ 		while (p != NULL) {
+-			pz = *(zval**)p->pData;
+-			if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
+-				pz->refcount__gc--;
+-			}
+-			if (p->pListNext == NULL) {
+-				goto tail_call;
+-			} else {
+-				zval_mark_grey(pz TSRMLS_CC);
++			if (p->pData != NULL) {
++				pz = *(zval**)p->pData;
++				if (pz != NULL) {
++					if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
++						pz->refcount__gc--;
++					}
++					if (p->pListNext == NULL) {
++						goto tail_call;
++					} else {
++						zval_mark_grey(pz TSRMLS_CC);
++					}
++				}
+ 			}
+ 			p = p->pListNext;
+ 		}
+@@ -398,11 +410,15 @@ static void zobj_mark_grey(struct _store
+ 			}
+ 			p = props->pListHead;
+ 			while (p != NULL) {
+-				pz = *(zval**)p->pData;
+-				if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
+-					pz->refcount__gc--;
++				if (p->pData != NULL) {
++					pz = *(zval**)p->pData;
++					if (pz != NULL) {
++						if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
++							pz->refcount__gc--;
++						}
++						zval_mark_grey(pz TSRMLS_CC);
++					}
+ 				}
+-				zval_mark_grey(pz TSRMLS_CC);
+ 				p = p->pListNext;
+ 			}
+ 		}
+@@ -577,14 +593,18 @@ tail_call:
+ 		GC_G(zval_to_free) = (zval_gc_info*)pz;
+ 
+ 		while (p != NULL) {
+-			pz = *(zval**)p->pData;
+-			if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
+-				pz->refcount__gc++;
+-			}
+-			if (p->pListNext == NULL) {
+-				goto tail_call;
+-			} else {
+-				zval_collect_white(pz TSRMLS_CC);
++			if(p->pData != NULL) {
++				pz = *(zval**)p->pData;
++				if(pz != NULL) {
++					if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
++						pz->refcount__gc--;
++					}
++					if (p->pListNext == NULL) {
++						goto tail_call;
++					} else {
++						zval_collect_white(pz TSRMLS_CC);
++					}
++				}
+ 			}
+ 			p = p->pListNext;
+ 		}
+@@ -610,11 +630,15 @@ static void zobj_collect_white(zval *pz
+ 				}
+ 				p = props->pListHead;
+ 				while (p != NULL) {
+-					pz = *(zval**)p->pData;
+-					if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
+-						pz->refcount__gc++;
++					if(p->pData != NULL) {
++						pz = *(zval**)p->pData;
++						if(pz != NULL) {
++							if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
++								pz->refcount__gc++;
++							}
++							zval_collect_white(pz TSRMLS_CC);
++						}
+ 					}
+-					zval_collect_white(pz TSRMLS_CC);
+ 					p = p->pListNext;
+ 				}
+ 			}

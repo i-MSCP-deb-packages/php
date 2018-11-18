@@ -1,17 +1,18 @@
-Description: Add major version number to paths and allow process pools
- to be configured in individual files in /etc/php5/fpm/pool.d/
-Origin: vendor
-Forwarded: not-needed
-Last-Update: 2010-07-30
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:54 +0200
+Subject: fpm-config
 
---- a/sapi/fpm/php-fpm.conf.in
-+++ b/sapi/fpm/php-fpm.conf.in
+---
+Index: php/sapi/fpm/php-fpm.conf.in
+===================================================================
+--- php.orig/sapi/fpm/php-fpm.conf.in
++++ php/sapi/fpm/php-fpm.conf.in
 @@ -12,7 +12,7 @@
  ; Relative path can also be used. They will be prefixed by:
  ;  - the global prefix if it's been set (-p arguement)
  ;  - @prefix@ otherwise
 -;include=etc/fpm.d/*.conf
-+;include=@EXPANDED_SYSCONFDIR@/php5/fpm/*.conf
++include=@php_fpm_sysconfdir@/pool.d/*.conf
  
  ;;;;;;;;;;;;;;;;;;
  ; Global Options ;
@@ -19,7 +20,7 @@ Last-Update: 2010-07-30
  ; Note: the default prefix is @EXPANDED_LOCALSTATEDIR@
  ; Default Value: none
  ;pid = run/php-fpm.pid
-+pid = @EXPANDED_LOCALSTATEDIR@/run/php5-fpm.pid
++pid = @EXPANDED_LOCALSTATEDIR@/run/php/php@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@-fpm.pid
  
  ; Error log file
  ; If it's set to "syslog", log is sent to syslogd instead of being written
@@ -27,54 +28,7 @@ Last-Update: 2010-07-30
  ; Note: the default prefix is @EXPANDED_LOCALSTATEDIR@
  ; Default Value: log/php-fpm.log
  ;error_log = log/php-fpm.log
-+error_log = @EXPANDED_LOCALSTATEDIR@/log/php5-fpm.log
++error_log = @EXPANDED_LOCALSTATEDIR@/log/php@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@-fpm.log
  
  ; syslog_facility is used to specify what type of program is logging the
  ; message. This lets syslogd specify that messages from different facilities
-@@ -116,6 +118,10 @@
- ; used in logs and stats. There is no limitation on the number of pools which
- ; FPM can handle. Your system will tell you anyway :)
- 
-+; To configure the pools it is recommended to have one .conf file per
-+; pool in the following directory:
-+include=@EXPANDED_SYSCONFDIR@/php5/fpm/pool.d/*.conf
-+
- ; Start a new pool named 'www'.
- ; the variable $pool can we used in any directive and will be replaced by the
- ; pool name ('www' here)
-@@ -214,22 +220,22 @@ pm = dynamic
- ; forget to tweak pm.* to fit your needs.
- ; Note: Used when pm is set to 'static', 'dynamic' or 'ondemand'
- ; Note: This value is mandatory.
--pm.max_children = 5
-+pm.max_children = 10
- 
- ; The number of child processes created on startup.
- ; Note: Used only when pm is set to 'dynamic'
- ; Default Value: min_spare_servers + (max_spare_servers - min_spare_servers) / 2
--pm.start_servers = 2
-+pm.start_servers = 4
- 
- ; The desired minimum number of idle server processes.
- ; Note: Used only when pm is set to 'dynamic'
- ; Note: Mandatory when pm is set to 'dynamic'
--pm.min_spare_servers = 1
-+pm.min_spare_servers = 2
- 
- ; The desired maximum number of idle server processes.
- ; Note: Used only when pm is set to 'dynamic'
- ; Note: Mandatory when pm is set to 'dynamic'
--pm.max_spare_servers = 3
-+pm.max_spare_servers = 6
- 
- ; The number of seconds after which an idle process will be killed.
- ; Note: Used only when pm is set to 'ondemand'
-@@ -458,7 +464,7 @@ pm.max_spare_servers = 3
- ; Chdir to this directory at the start.
- ; Note: relative path can be used.
- ; Default Value: current directory or / when chroot
--;chdir = /var/www
-+chdir = /
-  
- ; Redirect worker stdout and stderr into main error log. If not set, stdout and
- ; stderr will be redirected to /dev/null according to FastCGI specs.
