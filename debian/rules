@@ -485,6 +485,11 @@ override_dh_install-arch: remove-files-stamp prepare-fpm-pools
 	install -d -m 755 debian/tmp/usr/lib/cgi-bin/
 	ln debian/tmp/usr/bin/php-cgi$(PHP_NAME_VERSION) debian/tmp/usr/lib/cgi-bin/php$(PHP_NAME_VERSION)
 
+# Install missing man-pages
+	cp -u debian/phar.1 debian/tmp/usr/share/man/man1/phar$(PHP_NAME_VERSION).1
+	cp -u debian/phar.phar.1 debian/tmp/usr/share/man/man1/phar.phar$(PHP_NAME_VERSION).1
+	cp -u debian/tmp/usr/share/man/man1/php$(PHP_NAME_VERSION).1 debian/tmp/usr/share/man/man1/php-cgi$(PHP_NAME_VERSION).1
+
 	dh_install --fail-missing
 
 # Install a helper script for checking PHP FPM configuration
