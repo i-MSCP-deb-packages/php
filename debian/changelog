@@ -1,8 +1,10 @@
-php5.4 (5.4.45-1) unstable; urgency=low
+php5.4 (5.4.45-1) UNRELEASED; urgency=low
 
   * Updated gbp conffile
+  * Renamed source package
+  * New upstream version 5.4.45
 
- -- Laurent Declercq <l.declercq@nuxwin.com>  Mon, 19 Nov 2018 00:22:29 +0100
+ -- Laurent Declercq <l.declercq@nuxwin.com>  Tue, 20 Nov 2018 07:48:47 +0100
 
 php5 (5.4.8-1) experimental; urgency=low
 

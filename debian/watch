@@ -1,5 +1,6 @@
 version=3
 opts=downloadurlmangle=s#/a/#/this/#,\
-filenamemangle=s#/get/(php-(5\.[0-9\.]*)\.tar\.gz)/.*#$1#,\
-dversionmangle=s/\.dfsg\.\d+// \
-http://www.php.net/downloads.php /get/php-(5\.[0-9\.]*)\.tar\.gz/from/a/mirror debian
+filenamemangle=s#/get/(php-(5\.4\..*)\.tar\.xz)/.*#$1#,\
+dversionmangle=s/\+dfsg$//,\
+pgpsigurlmangle=s/\.tar\.xz/.tar.xz.asc/ \
+https://secure.php.net/downloads.php /get/php-(5\.4\..*)\.tar\.xz/from/a/mirror debian

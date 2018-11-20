@@ -21,8 +21,11 @@ fi
 
 socket=$datadir/mysql.sock
 # Commands:
+mysql="mysql --no-defaults --user root --socket=$socket --no-beep"
 mysqladmin="mysqladmin --no-defaults --user root --port $port --host 127.0.0.1 --socket=$socket --no-beep"
-mysqld="/usr/sbin/mysqld --no-defaults --user=$user --bind-address=127.0.0.1 --port=$port --socket=$socket --datadir=$datadir"
+mysqld="/usr/sbin/mysqld --no-defaults --skip-grant-tables --user=$user --bind-address=127.0.0.1 --port=$port --socket=$socket --datadir=$datadir/data"
+
+mysqld_version=$($mysqld -V 2>/dev/null | sed -ne 's/.*Ver \([0-9]\+\.[0-9]\+\).*/\1/p')
 
 # Main code #
 
@@ -36,18 +39,14 @@ mkdir -p $datadir
 chmod go-rx $datadir
 chown $user: $datadir
 
-mysql_install_db --no-defaults --user=$user --datadir=$datadir --rpm --force
-
-tmpf=$(mktemp)
-cat > "$tmpf" <<EOF
-USE mysql;
-UPDATE user SET password=PASSWORD('') WHERE user='root';
-FLUSH PRIVILEGES;
-EOF
-
-$mysqld --bootstrap --skip-grant-tables < "$tmpf"
-
-unlink "$tmpf"
+case "$mysqld_version" in
+    5.7)
+	$mysqld --initialize-insecure
+	;;
+    5.5|5.6|10.0|*)
+	mysql_install_db --no-defaults --user=$user --datadir=$datadir/data
+	;;
+esac
 
 # Start the daemon
 $mysqld &
