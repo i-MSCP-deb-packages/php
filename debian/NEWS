@@ -11,7 +11,5 @@ php5.3 (5.3.29-1) unstable; urgency=low
   * Most modules that have been builtin before are now included in
     phpX.Y-common package and they are enabled by default for your
     convenience.  You can disable unneeded modules via phpdismod tool.
-  * Build of php-imap extension has been disabled due to conflict with newest
-    libc-client2007e package (build against openssl 1.1 but << 1.1 expected).
 
  -- Laurent Declercq <l.declercq@nuxwin.com>  Fri, 16 Nov 2018 04:26:03 +0100

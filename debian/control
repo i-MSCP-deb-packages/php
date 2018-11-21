@@ -19,6 +19,7 @@ Build-Depends: apache2-dev (>= 2.4),
                libapparmor-dev,
                libapr1-dev (>= 1.2.7-8),
                libbz2-dev,
+               libc-client-dev,
                libcurl4-openssl-dev | libcurl-dev,
                libdb-dev,
                libedit-dev (>= 2.11-20080614-4),
@@ -711,6 +712,29 @@ Provides: ${php-enchant:Provides}
 Recommends: ${php-enchant:Recommends}
 Description: Enchant module for PHP
  This package provides the Enchant module(s) for PHP.
+ .
+ PHP (recursive acronym for PHP: Hypertext Preprocessor) is a widely-used
+ open source general-purpose scripting language that is especially suited
+ for web development and can be embedded into HTML.
+
+Package: php5.3-imap
+Architecture: any
+Depends: php-common (>= 1:35),
+         ucf,
+         ${misc:Depends},
+         ${php:Depends},
+	 ${php-imap:Depends},
+         ${shlibs:Depends}
+Pre-Depends: ${misc:Pre-Depends},
+	     ${php-imap:Pre-Depends}
+Built-Using: ${php:Built-Using}
+Replaces: ${php-imap:Replaces}
+Breaks: ${php-imap:Breaks}
+Conflicts: ${php-imap:Conflicts}
+Provides: ${php-imap:Provides}
+Recommends: ${php-imap:Recommends}
+Description: IMAP module for PHP
+ This package provides the IMAP module(s) for PHP.
  .
  PHP (recursive acronym for PHP: Hypertext Preprocessor) is a widely-used
  open source general-purpose scripting language that is especially suited
