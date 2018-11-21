@@ -146,7 +146,7 @@ ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 else
   DEB_CFLAGS_MAINT_APPEND += -O0
 endif
-DEB_CFLAGS_MAINT_APPEND += -Wall -pedantic -fsigned-char -fno-strict-aliasing 
+DEB_CFLAGS_MAINT_APPEND += -Wall -Wno-deprecated-declarations -pedantic -fsigned-char -fno-strict-aliasing 
 DEB_CFLAGS_MAINT_APPEND += $(shell getconf LFS_CFLAGS)
 
 # Enable IEEE-conformant floating point math on alphas (not the default)

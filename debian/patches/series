@@ -193,3 +193,4 @@ fix_gd_210.patch
 gmp_path.patch
 curl_path.patch
 fix_broken_openssl_pkg_config_test.patch
+openssl_1.1_compatibility.patch
