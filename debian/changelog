@@ -14,8 +14,9 @@ php5.3 (5.3.29-1) UNRELEASED; urgency=low
   * Wrong process start-up type for FPM service unit
   * Missing man-pages for cgi and phar binaries
   * Typo in d/NEWS
+  * Added OpenSSL 1.1 compatibility patch
 
- -- Laurent Declercq <l.declercq@nuxwin.com>  Tue, 20 Nov 2018 07:15:04 +0100
+ -- Laurent Declercq <l.declercq@nuxwin.com>  Wed, 21 Nov 2018 21:16:54 +0100
 
 php5 (5.3.9-6) unstable; urgency=low
 
