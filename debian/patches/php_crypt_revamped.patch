@@ -1,3 +1,9 @@
+---
+ configure.in           |    5 
+ ext/standard/config.m4 |  132 ++++++++++----------
+ ext/standard/crypt.c   |  313 +++++++++++++++++++++++--------------------------
+ 3 files changed, 221 insertions(+), 229 deletions(-)
+
 --- a/ext/standard/config.m4
 +++ b/ext/standard/config.m4
 @@ -60,6 +60,12 @@ if test "$ac_cv_func_crypt" = "no"; then

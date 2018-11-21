@@ -3,10 +3,12 @@ Date: Sat, 8 Apr 2017 10:40:20 +0200
 Subject: Fix PHP bug #64827: Segfault in zval_mark_grey (zend_gc.c)
 
 ---
-Index: php/Zend/zend_gc.c
-===================================================================
---- php.orig/Zend/zend_gc.c
-+++ php/Zend/zend_gc.c
+---
+ Zend/zend_gc.c |  102 +++++++++++++++++++++++++++++++++++----------------------
+ 1 file changed, 63 insertions(+), 39 deletions(-)
+
+--- a/Zend/zend_gc.c
++++ b/Zend/zend_gc.c
 @@ -295,15 +295,19 @@ tail_call:
  		}
  	}

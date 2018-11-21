@@ -1,3 +1,10 @@
+---
+ TSRM/tsrm_config_common.h |    4 ++++
+ ext/date/lib/parse_tz.c   |    4 ++++
+ ext/standard/proc_open.c  |    4 ++++
+ main/php.h                |    4 ++++
+ 4 files changed, 16 insertions(+)
+
 --- a/TSRM/tsrm_config_common.h
 +++ b/TSRM/tsrm_config_common.h
 @@ -1,6 +1,10 @@

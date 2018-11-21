@@ -5,6 +5,10 @@ Origin: vendor
 Forwarded: no
 Last-Update: 2010-01-18
 
+---
+ configure.in |   86 +++++++++++++++++++++++++++++------------------------------
+ 1 file changed, 43 insertions(+), 43 deletions(-)
+
 --- a/configure.in
 +++ b/configure.in
 @@ -616,50 +616,50 @@ PHP_CHECK_FUNC_LIB(nanosleep, rt)

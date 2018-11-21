@@ -6,6 +6,12 @@ Origin: other, http://bugs.debian.org/469081
 Forwarded: not-needed
 Last-Update: 2010-01-18
 
+---
+ ext/mysql/config.m4     |    2 +-
+ ext/mysqli/config.m4    |    2 +-
+ ext/pdo_mysql/config.m4 |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
 --- a/ext/mysql/config.m4
 +++ b/ext/mysql/config.m4
 @@ -78,7 +78,7 @@ elif test "$PHP_MYSQL" != "no"; then

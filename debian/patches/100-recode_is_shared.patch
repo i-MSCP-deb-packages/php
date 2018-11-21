@@ -4,6 +4,10 @@ Origin: vendor
 Forwarded: no
 Last-Update: 2010-01-18
 
+---
+ ext/recode/config9.m4 |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 --- a/ext/recode/config9.m4
 +++ b/ext/recode/config9.m4
 @@ -13,6 +13,6 @@ if test "$PHP_RECODE" != "no"; then

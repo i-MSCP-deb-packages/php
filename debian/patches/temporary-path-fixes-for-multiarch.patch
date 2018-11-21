@@ -7,6 +7,17 @@ Bug-Ubuntu: https://bugs.launchpad.net/bugs/739977
 Forwarded: not-needed
 Reviewed-by: Steve Langasek <steve.langasek@ubuntu.com>
 
+---
+ acinclude.m4            |    4 ++--
+ ext/dba/config.m4       |    2 +-
+ ext/gd/config.m4        |    2 +-
+ ext/ldap/config.m4      |    2 +-
+ ext/mssql/config.m4     |    2 +-
+ ext/mysql/config.m4     |    2 +-
+ ext/pcre/config0.m4     |    2 +-
+ ext/pdo_dblib/config.m4 |    2 +-
+ 8 files changed, 9 insertions(+), 9 deletions(-)
+
 --- a/ext/dba/config.m4
 +++ b/ext/dba/config.m4
 @@ -204,7 +204,7 @@ AC_DEFUN([PHP_DBA_DB_CHECK],[

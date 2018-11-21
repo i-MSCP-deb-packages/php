@@ -1,3 +1,8 @@
+---
+ TSRM/configure.in |    3 ---
+ configure.in      |    3 ---
+ 2 files changed, 6 deletions(-)
+
 --- a/TSRM/configure.in
 +++ b/TSRM/configure.in
 @@ -13,9 +13,6 @@ TSRM_BASIC_CHECKS

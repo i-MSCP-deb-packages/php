@@ -5,6 +5,13 @@ Description: Silence warnings about using the default system timezone info
  set the timezone explicitly), though with our use of the system timezonedb
  patch, we actually feel quite comfortable using the default timezone info.
 Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=571762
+---
+ ext/date/php_date.c                             |    2 +-
+ ext/date/tests/date_default_timezone_get-1.phpt |   20 --------------------
+ ext/date/tests/date_default_timezone_get-2.phpt |   16 ----------------
+ ext/date/tests/date_default_timezone_set-1.phpt |    3 ---
+ 4 files changed, 1 insertion(+), 40 deletions(-)
+
 --- a/ext/date/php_date.c
 +++ b/ext/date/php_date.c
 @@ -905,7 +905,7 @@ static char* guess_timezone(const timeli

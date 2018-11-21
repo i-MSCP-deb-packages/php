@@ -10,10 +10,13 @@ Origin: vendor
 Forwarded: no
 Last-Update: 2010-01-18
 
-Index: php/ext/standard/info.c
-===================================================================
---- php.orig/ext/standard/info.c
-+++ php/ext/standard/info.c
+---
+ ext/standard/info.c                               |    2 +-
+ ext/standard/tests/general_functions/phpinfo.phpt |    1 -
+ 2 files changed, 1 insertion(+), 2 deletions(-)
+
+--- a/ext/standard/info.c
++++ b/ext/standard/info.c
 @@ -703,7 +703,7 @@ PHPAPI void php_print_info(int flag TSRM
  #ifdef ARCHITECTURE
  		php_info_print_table_row(2, "Architecture", ARCHITECTURE);
@@ -23,10 +26,8 @@ Index: php/ext/standard/info.c
  		php_info_print_table_row(2, "Configure Command", CONFIGURE_COMMAND );
  #endif
  
-Index: php/ext/standard/tests/general_functions/phpinfo.phpt
-===================================================================
---- php.orig/ext/standard/tests/general_functions/phpinfo.phpt
-+++ php/ext/standard/tests/general_functions/phpinfo.phpt
+--- a/ext/standard/tests/general_functions/phpinfo.phpt
++++ b/ext/standard/tests/general_functions/phpinfo.phpt
 @@ -20,7 +20,6 @@ PHP Version => %s
  
  System => %s

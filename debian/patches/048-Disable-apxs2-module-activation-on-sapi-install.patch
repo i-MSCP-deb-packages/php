@@ -3,10 +3,12 @@ Date: Fri, 16 Oct 2015 18:49:09 +0200
 Subject: Disable apxs2 module activation on sapi install
 
 ---
-Index: php/sapi/apache2handler/config.m4
-===================================================================
---- php.orig/sapi/apache2handler/config.m4
-+++ php/sapi/apache2handler/config.m4
+---
+ sapi/apache2handler/config.m4 |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/sapi/apache2handler/config.m4
++++ b/sapi/apache2handler/config.m4
 @@ -77,7 +77,7 @@ if test "$PHP_APXS2" != "no"; then
                  \$(mkinstalldirs) '$APXS_SYSCONFDIR' && \
                   $APXS -S LIBEXECDIR='$APXS_LIBEXECDIR' \

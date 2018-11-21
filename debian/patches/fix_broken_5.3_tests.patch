@@ -15,6 +15,10 @@ Description: Fix another small batch of broken test cases
    variable hardcoded to 9 instead.  Did i mention that this test is
    sketchy?
 Origin: vendor
+---
+ ext/posix/tests/posix_errno_variation2.phpt |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
 --- a/ext/posix/tests/posix_errno_variation2.phpt
 +++ b/ext/posix/tests/posix_errno_variation2.phpt
 @@ -21,7 +21,9 @@ do {

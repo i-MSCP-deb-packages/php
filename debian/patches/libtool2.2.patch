@@ -1,3 +1,7 @@
+---
+ scripts/phpize.in |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
 --- a/scripts/phpize.in
 +++ b/scripts/phpize.in
 @@ -5,10 +5,16 @@ prefix='@prefix@'

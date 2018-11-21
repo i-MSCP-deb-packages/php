@@ -3,14 +3,12 @@ Date: Sat, 2 May 2015 10:26:56 +0200
 Subject: expose_all_built_and_installed_apis
 
 ---
- scripts/man1/php-config.1.in | 2 +-
- scripts/php-config.in        | 5 ++++-
+ scripts/man1/php-config.1.in |    2 +-
+ scripts/php-config.in        |    5 ++++-
  2 files changed, 5 insertions(+), 2 deletions(-)
 
-Index: php/scripts/man1/php-config.1.in
-===================================================================
---- php.orig/scripts/man1/php-config.1.in
-+++ php/scripts/man1/php-config.1.in
+--- a/scripts/man1/php-config.1.in
++++ b/scripts/man1/php-config.1.in
 @@ -44,7 +44,7 @@ Full path to php CLI or CGI binary
  .TP
  .PD 0
@@ -20,10 +18,8 @@ Index: php/scripts/man1/php-config.1.in
  .TP
  .PD 0
  .B \-\-configure-options
-Index: php/scripts/php-config.in
-===================================================================
---- php.orig/scripts/php-config.in
-+++ php/scripts/php-config.in
+--- a/scripts/php-config.in
++++ b/scripts/php-config.in
 @@ -17,9 +17,12 @@ exe_extension="@EXEEXT@"
  php_cli_binary=NONE
  php_cgi_binary=NONE

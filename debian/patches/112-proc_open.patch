@@ -1,3 +1,7 @@
+---
+ ext/standard/proc_open.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 --- a/ext/standard/proc_open.c
 +++ b/ext/standard/proc_open.c
 @@ -62,7 +62,7 @@

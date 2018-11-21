@@ -2,6 +2,11 @@ Description: add support for the new tidy-html5 library
 Author: Laurent Declercq <l.declercq@nuxwin.com>
 ---
 This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+---
+ ext/tidy/config.m4 |    8 ++++++++
+ ext/tidy/tidy.c    |    5 +++++
+ 2 files changed, 13 insertions(+)
+
 --- a/ext/tidy/config.m4
 +++ b/ext/tidy/config.m4
 @@ -25,6 +25,14 @@ if test "$PHP_TIDY" != "no"; then

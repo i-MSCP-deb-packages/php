@@ -3,10 +3,12 @@ Date: Mon, 14 Mar 2016 16:09:34 +0100
 Subject: Really expand $libdir/$datadir into @EXPANDED_LIBDIR/DATADIR@
 
 ---
-Index: php/configure.in
-===================================================================
---- php.orig/configure.in
-+++ php/configure.in
+---
+ configure.in |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/configure.in
++++ b/configure.in
 @@ -1170,9 +1170,9 @@ EXPANDED_LOCALSTATEDIR=`eval echo $local
  EXPANDED_BINDIR=`eval echo $bindir`
  EXPANDED_SBINDIR=`eval echo $sbindir`

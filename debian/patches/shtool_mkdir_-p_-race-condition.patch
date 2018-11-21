@@ -8,6 +8,10 @@ Origin: vendor
 Forwarded: yes
 Last-Update: 2010-02-18
 
+---
+ build/shtool |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
 --- a/build/shtool
 +++ b/build/shtool
 @@ -1003,7 +1003,11 @@ mkdir )

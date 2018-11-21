@@ -3,6 +3,10 @@ Origin: vendor
 Forwarded: no
 Last-Update: 2010-01-18
 
+---
+ ext/exif/exif.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 --- a/ext/exif/exif.c
 +++ b/ext/exif/exif.c
 @@ -109,7 +109,7 @@ typedef unsigned char uchar;

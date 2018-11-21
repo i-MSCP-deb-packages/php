@@ -7,6 +7,11 @@ Bug-Debian: http://bugs.debian.org/208608
 Forwarded: no
 Last-Update: 2010-01-18
 
+---
+ ext/zlib/zconf.h |  326 ++++++++++++++
+ ext/zlib/zlib.h  | 1200 +++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 1526 insertions(+)
+
 --- /dev/null
 +++ b/ext/zlib/zconf.h
 @@ -0,0 +1,326 @@

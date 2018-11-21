@@ -1,3 +1,7 @@
+---
+ ext/standard/tests/strings/bug51059.phpt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 --- a/ext/standard/tests/strings/bug51059.phpt
 +++ b/ext/standard/tests/strings/bug51059.phpt
 @@ -3,7 +3,7 @@ Bug #51059 crypt() segfaults on certain

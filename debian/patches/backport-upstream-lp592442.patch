@@ -1,3 +1,7 @@
+---
+ ext/openssl/xp_ssl.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
 --- a/ext/openssl/xp_ssl.c
 +++ b/ext/openssl/xp_ssl.c
 @@ -391,6 +391,18 @@ static inline int php_openssl_setup_cryp

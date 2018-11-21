@@ -1,3 +1,9 @@
+---
+ ext/dba/dba.c     |    2 +-
+ ext/dba/dba_db3.c |    2 +-
+ ext/dba/dba_db4.c |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
 --- a/ext/dba/dba.c
 +++ b/ext/dba/dba.c
 @@ -912,7 +912,7 @@ static void php_dba_open(INTERNAL_FUNCTI

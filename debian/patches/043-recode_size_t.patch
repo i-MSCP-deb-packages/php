@@ -4,6 +4,10 @@ Bug-Debian: http://bugs.debian.org/294986, http://bugs.debian.org/459020
 Forwarded: no
 Last-Update: 2010-01-18
 
+---
+ ext/recode/recode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 --- a/ext/recode/recode.c
 +++ b/ext/recode/recode.c
 @@ -149,7 +149,7 @@ PHP_FUNCTION(recode_string)

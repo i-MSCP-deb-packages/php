@@ -1,3 +1,7 @@
+---
+ ext/sqlite/config.m4 |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 --- a/ext/sqlite/config.m4
 +++ b/ext/sqlite/config.m4
 @@ -84,7 +84,7 @@ if test "$PHP_SQLITE" != "no"; then

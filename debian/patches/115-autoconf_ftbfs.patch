@@ -1,3 +1,9 @@
+---
+ configure.in           |   10 +++++-----
+ ext/standard/config.m4 |    4 ++--
+ scripts/phpize.m4      |    2 +-
+ 3 files changed, 8 insertions(+), 8 deletions(-)
+
 --- a/configure.in
 +++ b/configure.in
 @@ -1,7 +1,7 @@

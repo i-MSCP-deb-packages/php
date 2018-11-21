@@ -3,6 +3,10 @@ Origin: vendor
 Forwarded: not-needed
 Last-Update: 2010-01-18
 
+---
+ php.ini-development |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
 --- a/php.ini-development
 +++ b/php.ini-development
 @@ -335,6 +335,11 @@ allow_call_time_pass_reference = Off

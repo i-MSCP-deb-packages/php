@@ -3,10 +3,14 @@ Date: Sat, 2 May 2015 10:26:56 +0200
 Subject: php-fpm-do-reload-on-SIGHUP
 
 ---
-Index: php/sapi/fpm/fpm/fpm_events.c
-===================================================================
---- php.orig/sapi/fpm/fpm/fpm_events.c
-+++ php/sapi/fpm/fpm/fpm_events.c
+---
+ sapi/fpm/fpm/fpm_events.c  |    5 +++++
+ sapi/fpm/fpm/fpm_signals.c |    3 +++
+ sapi/fpm/php-fpm.8.in      |    2 +-
+ 3 files changed, 9 insertions(+), 1 deletion(-)
+
+--- a/sapi/fpm/fpm/fpm_events.c
++++ b/sapi/fpm/fpm/fpm_events.c
 @@ -109,6 +109,11 @@ static void fpm_got_signal(struct fpm_ev
  				zlog(ZLOG_NOTICE, "Reloading in progress ...");
  				fpm_pctl(FPM_PCTL_STATE_RELOADING, FPM_PCTL_ACTION_SET);
@@ -19,10 +23,8 @@ Index: php/sapi/fpm/fpm/fpm_events.c
  		}
  
  		if (fpm_globals.is_child) {
-Index: php/sapi/fpm/fpm/fpm_signals.c
-===================================================================
---- php.orig/sapi/fpm/fpm/fpm_signals.c
-+++ php/sapi/fpm/fpm/fpm_signals.c
+--- a/sapi/fpm/fpm/fpm_signals.c
++++ b/sapi/fpm/fpm/fpm_signals.c
 @@ -160,6 +160,7 @@ static void sig_handler(int signo) /* {{
  		[SIGINT]  = 'I',
  		[SIGUSR1] = '1',
@@ -47,10 +49,8 @@ Index: php/sapi/fpm/fpm/fpm_signals.c
  	    0 > sigaction(SIGCHLD,  &act_dfl,  0) ||
  	    0 > sigaction(SIGQUIT,  &act,      0)) {
  
-Index: php/sapi/fpm/php-fpm.8.in
-===================================================================
---- php.orig/sapi/fpm/php-fpm.8.in
-+++ php/sapi/fpm/php-fpm.8.in
+--- a/sapi/fpm/php-fpm.8.in
++++ b/sapi/fpm/php-fpm.8.in
 @@ -151,7 +151,7 @@ If your installation has no appropriate
  .TP
  .B SIGUSR1 			\fPre-open log file

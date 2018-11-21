@@ -1,3 +1,7 @@
+---
+ ext/mssql/php_mssql.c |   32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+
 --- a/ext/mssql/php_mssql.c
 +++ b/ext/mssql/php_mssql.c
 @@ -178,6 +178,38 @@ const zend_function_entry mssql_function

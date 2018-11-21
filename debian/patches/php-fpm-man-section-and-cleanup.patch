@@ -5,6 +5,10 @@ Origin: vendor
 Forwarded: http://bugs.php.net/52476
 Last-Update: 2010-07-29
 
+---
+ sapi/fpm/php-fpm.8.in |   22 ++--------------------
+ 1 file changed, 2 insertions(+), 20 deletions(-)
+
 --- a/sapi/fpm/php-fpm.8.in
 +++ b/sapi/fpm/php-fpm.8.in
 @@ -126,22 +126,8 @@ The configuration file for the php-fpm d

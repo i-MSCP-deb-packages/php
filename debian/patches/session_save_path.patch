@@ -3,10 +3,14 @@ Date: Sat, 2 May 2015 10:26:54 +0200
 Subject: session_save_path
 
 ---
-Index: php/ext/session/session.c
-===================================================================
---- php.orig/ext/session/session.c
-+++ php/ext/session/session.c
+---
+ ext/session/session.c |    2 +-
+ php.ini-development   |    2 +-
+ php.ini-production    |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+--- a/ext/session/session.c
++++ b/ext/session/session.c
 @@ -789,7 +789,7 @@ static PHP_INI_MH(OnUpdateHashFunc) /* {
  PHP_INI_BEGIN()
  	STD_PHP_INI_BOOLEAN("session.bug_compat_42",    "1",         PHP_INI_ALL, OnUpdateBool,   bug_compat,         php_ps_globals,    ps_globals)
@@ -16,10 +20,8 @@ Index: php/ext/session/session.c
  	STD_PHP_INI_ENTRY("session.name",               "PHPSESSID", PHP_INI_ALL, OnUpdateString, session_name,       php_ps_globals,    ps_globals)
  	PHP_INI_ENTRY("session.save_handler",           "files",     PHP_INI_ALL, OnUpdateSaveHandler)
  	STD_PHP_INI_BOOLEAN("session.auto_start",       "0",         PHP_INI_ALL, OnUpdateBool,   auto_start,         php_ps_globals,    ps_globals)
-Index: php/php.ini-development
-===================================================================
---- php.orig/php.ini-development
-+++ php/php.ini-development
+--- a/php.ini-development
++++ b/php.ini-development
 @@ -1503,7 +1503,7 @@ session.save_handler = files
  ; where MODE is the octal representation of the mode. Note that this
  ; does not overwrite the process's umask.
@@ -29,10 +31,8 @@ Index: php/php.ini-development
  
  ; Whether to use cookies.
  ; http://php.net/session.use-cookies
-Index: php/php.ini-production
-===================================================================
---- php.orig/php.ini-production
-+++ php/php.ini-production
+--- a/php.ini-production
++++ b/php.ini-production
 @@ -1487,7 +1487,7 @@ session.save_handler = files
  ; where MODE is the octal representation of the mode. Note that this
  ; does not overwrite the process's umask.

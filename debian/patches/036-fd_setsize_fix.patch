@@ -3,6 +3,11 @@ Origin: vendor
 Forwarded: no
 Last-Update: 2010-01-18
 
+---
+ ext/sockets/sockets.c       |    1 +
+ ext/standard/streamsfuncs.c |    3 +++
+ 2 files changed, 4 insertions(+)
+
 --- a/ext/sockets/sockets.c
 +++ b/ext/sockets/sockets.c
 @@ -721,6 +721,7 @@ static int php_sock_array_to_fd_set(zval

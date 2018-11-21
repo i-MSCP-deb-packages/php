@@ -7,6 +7,10 @@ Bug-Debian: http://bugs.debian.org/286225
 Forwarded: no
 Last-Update: 2010-01-18
 
+---
+ sapi/apache2handler/sapi_apache2.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
 --- a/sapi/apache2handler/sapi_apache2.c
 +++ b/sapi/apache2handler/sapi_apache2.c
 @@ -469,6 +469,19 @@ static apr_status_t php_server_context_c

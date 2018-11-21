@@ -3,6 +3,11 @@ Origin: vendor
 Forwarded: http://bugs.php.net/50796
 Last-Update: 2010-01-18
 
+---
+ ext/soap/tests/server009.phpt                     |    1 +
+ ext/standard/tests/general_functions/phpinfo.phpt |    2 ++
+ 2 files changed, 3 insertions(+)
+
 --- a/ext/soap/tests/server009.phpt
 +++ b/ext/soap/tests/server009.phpt
 @@ -10,6 +10,7 @@ SOAP Server 9: setclass and setpersisten

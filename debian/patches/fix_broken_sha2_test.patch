@@ -1,3 +1,7 @@
+---
+ ext/standard/config.m4 |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
+
 --- a/ext/standard/config.m4
 +++ b/ext/standard/config.m4
 @@ -184,12 +184,12 @@ AC_TRY_RUN([

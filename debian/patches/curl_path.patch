@@ -1,7 +1,9 @@
-Index: php-5.3.29/ext/curl/config.m4
-===================================================================
---- php-5.3.29.orig/ext/curl/config.m4
-+++ php-5.3.29/ext/curl/config.m4
+---
+ ext/curl/config.m4 |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/ext/curl/config.m4
++++ b/ext/curl/config.m4
 @@ -10,12 +10,12 @@ PHP_ARG_WITH(curlwrappers, if we should
  [  --with-curlwrappers     EXPERIMENTAL: Use cURL for url streams], no, no)
  

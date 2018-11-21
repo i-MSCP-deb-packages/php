@@ -3,10 +3,12 @@ Origin: vendor
 Forwarded: not-needed
 Last-Update: 2018-11-18
 
-Index: php/acinclude.m4
-===================================================================
---- php.orig/acinclude.m4
-+++ php/acinclude.m4
+---
+ acinclude.m4 |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+--- a/acinclude.m4
++++ b/acinclude.m4
 @@ -2333,8 +2333,10 @@ AC_DEFUN([PHP_SETUP_OPENSSL],[
        AC_MSG_ERROR([OpenSSL version 0.9.6 or greater required.])
      fi

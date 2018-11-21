@@ -1,7 +1,9 @@
-Index: php/sapi/fpm/fpm/fpm_conf.c
-===================================================================
---- php.orig/sapi/fpm/fpm/fpm_conf.c
-+++ php/sapi/fpm/fpm/fpm_conf.c
+---
+ sapi/fpm/fpm/fpm_conf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/sapi/fpm/fpm/fpm_conf.c
++++ b/sapi/fpm/fpm/fpm_conf.c
 @@ -1618,7 +1618,7 @@ int fpm_conf_init_main(int test_conf, in
  		char *tmp;
  

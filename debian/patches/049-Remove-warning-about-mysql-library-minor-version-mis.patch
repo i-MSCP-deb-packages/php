@@ -4,10 +4,13 @@ Subject: Remove warning about mysql library minor version mismatch to help
  during transition periods
 
 ---
-Index: php/ext/mysql/php_mysql.c
-===================================================================
---- php.orig/ext/mysql/php_mysql.c
-+++ php/ext/mysql/php_mysql.c
+---
+ ext/mysql/php_mysql.c      |   14 +++++++-------
+ ext/mysqli/mysqli_nonapi.c |   14 +++++++-------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
+
+--- a/ext/mysql/php_mysql.c
++++ b/ext/mysql/php_mysql.c
 @@ -701,13 +701,13 @@ static void php_mysql_do_connect(INTERNA
  	zend_bool free_host=0, new_link=0;
  	long connect_timeout;
@@ -29,10 +32,8 @@ Index: php/ext/mysql/php_mysql.c
  
  	connect_timeout = MySG(connect_timeout);
  
-Index: php/ext/mysqli/mysqli_nonapi.c
-===================================================================
---- php.orig/ext/mysqli/mysqli_nonapi.c
-+++ php/ext/mysqli/mysqli_nonapi.c
+--- a/ext/mysqli/mysqli_nonapi.c
++++ b/ext/mysqli/mysqli_nonapi.c
 @@ -73,13 +73,13 @@ void mysqli_common_connect(INTERNAL_FUNC
  	zend_bool			self_alloced = 0;
  

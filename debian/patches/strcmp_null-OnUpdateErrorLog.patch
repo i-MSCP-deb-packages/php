@@ -1,3 +1,7 @@
+---
+ tests/func/null-new_val.phpt |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
 --- /dev/null
 +++ b/tests/func/null-new_val.phpt
 @@ -0,0 +1,10 @@

@@ -3,10 +3,12 @@ Date: Sat, 2 May 2015 10:26:54 +0200
 Subject: fpm-config
 
 ---
-Index: php/sapi/fpm/php-fpm.conf.in
-===================================================================
---- php.orig/sapi/fpm/php-fpm.conf.in
-+++ php/sapi/fpm/php-fpm.conf.in
+---
+ sapi/fpm/php-fpm.conf.in |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+--- a/sapi/fpm/php-fpm.conf.in
++++ b/sapi/fpm/php-fpm.conf.in
 @@ -12,7 +12,7 @@
  ; Relative path can also be used. They will be prefixed by:
  ;  - the global prefix if it's been set (-p arguement)

@@ -4,6 +4,11 @@ Description: Another integer overflow/underflow logic fix.
  the overflow/underflow conditions intelligently.
 Bug: http://bugs.php.net/bug.php?id=51008
 Bug-Debian: http://bugs.debian.org/570144
+---
+ Zend/tests/bug45877.phpt |   51 +++++++++++++++++++++++++++++++----------------
+ Zend/zend_hash.h         |   22 +++++++++++---------
+ 2 files changed, 46 insertions(+), 27 deletions(-)
+
 --- a/Zend/zend_hash.h
 +++ b/Zend/zend_hash.h
 @@ -306,9 +306,11 @@ END_EXTERN_C()

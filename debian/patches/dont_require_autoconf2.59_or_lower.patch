@@ -1,3 +1,7 @@
+---
+ build/buildcheck.sh |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
+
 --- a/build/buildcheck.sh
 +++ b/build/buildcheck.sh
 @@ -44,17 +44,17 @@ echo "           to build PHP from SVN."

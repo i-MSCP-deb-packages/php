@@ -6,6 +6,10 @@ Bug-Debian: http://bugs.debian.org/261311
 Forwarded: no
 Last-Update: 2010-01-18
 
+---
+ acinclude.m4 |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
 --- a/acinclude.m4
 +++ b/acinclude.m4
 @@ -1224,7 +1224,7 @@ $1

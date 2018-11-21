@@ -17,6 +17,11 @@ r3: fix a crash if /usr/share/zoneinfo doesn't exist (Raphael Geissert)
 r2: add filesystem trawl to set up name alias index
 r1: initial revision
 
+---
+ ext/date/lib/parse_tz.c |  551 +++++++++++++++++++++++++++++++++++++++++++++++-
+ ext/date/lib/timelib.m4 |   14 +
+ 2 files changed, 561 insertions(+), 4 deletions(-)
+
 --- a/ext/date/lib/parse_tz.c
 +++ b/ext/date/lib/parse_tz.c
 @@ -24,6 +24,16 @@

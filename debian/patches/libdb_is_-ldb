@@ -4,6 +4,10 @@ Origin: vendor
 Forwarded: no
 Last-Update: 2010-01-18
 
+---
+ ext/dba/config.m4 |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
 --- a/ext/dba/config.m4
 +++ b/ext/dba/config.m4
 @@ -327,7 +327,7 @@ if test "$PHP_DB4" != "no"; then
