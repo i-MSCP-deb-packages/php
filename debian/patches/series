@@ -38,11 +38,12 @@
 0038-php-5.6.0-oldpcre.patch
 0039-hack-phpdbg-to-explicitly-link-with-libedit.patch
 0040-Fix-ZEND_MM_ALIGNMENT-on-m64k.patch
-0041-Add-patch-to-remove-build-timestamps-from-generated-.patch
+0041-Add-patch-to-install-php7-module-directly-to-APXS_LI.patch
 0042-Remove-W3C-validation-icon-to-not-expose-the-reader-.patch
 0043-Don-t-put-INSTALL_ROOT-into-phar.phar-exec-stanza.patch
 0044-XMLRPC-EPI-library-has-to-be-linked-as-lxmlrpc-epi.patch
 0045-Really-expand-libdir-datadir-into-EXPANDED_LIBDIR-DA.patch
 0046-Fix-ext-date-lib-parse_tz-PATH_MAX-HURD-FTBFS.patch
 0047-Adjust-tidy-extension-for-tidy-html5.patch
-0049-Fix-check-for-CURL-include-in-M-A-directory.patch
+0048-Use-pkg-config-for-FreeType2-detection.patch
+0049-Use-SOURCE_DATE_EPOCH-as-PHP_BUILD_DATE-if-available.patch
