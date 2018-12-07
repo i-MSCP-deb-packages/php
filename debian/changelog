@@ -1,3 +1,9 @@
+php7.2 (7.2.13-1) unstable; urgency=medium
+
+  * New upstream version 7.2.13
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 07 Dec 2018 08:04:28 +0000
+
 php7.2 (7.2.12-1) unstable; urgency=medium
 
   * New upstream version 7.2.12
