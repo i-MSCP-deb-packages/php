@@ -1,3 +1,9 @@
+php7.0 (7.0.33-1) unstable; urgency=medium
+
+  * New upstream version 7.0.33
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 07 Dec 2018 08:25:08 +0000
+
 php7.0 (7.0.32-4) unstable; urgency=medium
 
   * Renamed 0041-Add-patch-to-remove-build-timestamps-from-generated-.patch
