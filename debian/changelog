@@ -1,3 +1,16 @@
+php7.0 (7.0.33-0+deb9u1) stretch-security; urgency=high
+
+  * New upstream version 7.0.33
+  * Fixed security bugs:
+   + [CVE-2018-19518]: imap_open() function command injection
+   + [CVE-2018-14851]: heap-buffer-overflow (READ of size 48) while
+                       reading exif data
+   + [CVE-2018-14883]: Int Overflow lead to Heap OverFlow in
+                       exif_thumbnail_extract of exif.c
+   + [CVE-2018-17082]: XSS due to the header Transfer-Encoding: chunked
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 07 Dec 2018 11:36:49 +0000
+
 php7.0 (7.0.30-0+deb9u1) stretch-security; urgency=high
 
   * New upstream version 7.0.30
