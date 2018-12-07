@@ -7,7 +7,7 @@ Subject: Use SOURCE_DATE_EPOCH as PHP_BUILD_DATE if available
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/configure.in b/configure.in
-index a412597..5a82991 100644
+index 08db7ac..a45fe71 100644
 --- a/configure.in
 +++ b/configure.in
 @@ -1292,7 +1292,7 @@ fi
