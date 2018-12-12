@@ -1,3 +1,9 @@
+php5.6 (5.6.39-1) experimental; urgency=medium
+
+  * New upstream version 5.6.39
+
+ -- Ondřej Surý <ondrej@debian.org>  Wed, 12 Dec 2018 05:59:14 +0000
+
 php5.6 (5.6.38-3) experimental; urgency=medium
 
   * Fix typo
