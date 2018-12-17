@@ -3,8 +3,9 @@ php7.3 (7.3.0-2) unstable; urgency=medium
   * Add upstream patch to fix OPcache optimization problem for
     ArrayAccess->offsetGet
   * Add upstream patch to fix infinite loop in preg_replace_callback
+  * Fix check for rl_completion_matches in readline extension
 
- -- Ondřej Surý <ondrej@debian.org>  Mon, 17 Dec 2018 09:20:56 +0000
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 17 Dec 2018 09:51:53 +0000
 
 php7.3 (7.3.0-1) unstable; urgency=medium
 
