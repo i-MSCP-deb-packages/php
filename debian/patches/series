@@ -46,3 +46,4 @@
 0046-Fix-ext-date-lib-parse_tz-PATH_MAX-HURD-FTBFS.patch
 0048-Use-pkg-config-for-FreeType2-detection.patch
 0048-Don-t-use-sed-found-by-configure-use-the-sed-command.patch
+0049-Fixed-bug-77275.patch
