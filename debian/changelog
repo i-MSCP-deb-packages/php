@@ -1,3 +1,9 @@
+php7.1 (7.1.26-1) unstable; urgency=medium
+
+  * New upstream version 7.1.26
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 11 Jan 2019 14:09:53 +0000
+
 php7.1 (7.1.25-1) unstable; urgency=medium
 
   * New upstream version 7.1.25
