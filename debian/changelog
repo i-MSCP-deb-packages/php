@@ -1,3 +1,10 @@
+php7.3 (7.3.1-2) unstable; urgency=high
+
+  * Add patch to use pkg-config instead of icu-config to detect icu
+    libraries (Closes: #916110)
+
+ -- Ondřej Surý <ondrej@debian.org>  Mon, 21 Jan 2019 09:09:55 +0000
+
 php7.3 (7.3.1-1) unstable; urgency=medium
 
   * New upstream version 7.3.1
