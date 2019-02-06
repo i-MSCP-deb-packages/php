@@ -1,3 +1,11 @@
+php7.1 (7.1.26-2) unstable; urgency=medium
+
+  * Add patch to use pkg-config instead of icu-config to detect icu
+    libraries.
+  * Fix rl_completion_matches compilation with newer libedit
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 15 Feb 2019 15:33:45 +0000
+
 php7.1 (7.1.26-1) unstable; urgency=medium
 
   * New upstream version 7.1.26
