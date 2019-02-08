@@ -1,11 +1,11 @@
-php7.2 (7.2.15-1~1.gbpc7aa4c) UNRELEASED; urgency=medium
-
-  ** SNAPSHOT build @c7aa4cd12f004c48ece7723e394cccab22a14474 **
+php7.2 (7.2.15-1) unstable; urgency=medium
 
   * New upstream version 7.2.15
-  * Add patch to use pkg-config instead of icu-config to detect icu libraries
+  * Add patch to use pkg-config instead of icu-config to detect icu
+    libraries
+  * Update systzdata patch to v16 (Courtesy of Remi Collet)
 
- -- Ondřej Surý <ondrej@debian.org>  Fri, 08 Feb 2019 09:36:54 +0000
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 08 Feb 2019 15:09:11 +0000
 
 php7.2 (7.2.14-1) unstable; urgency=medium
 
