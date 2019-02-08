@@ -9,10 +9,8 @@ because icu-config is deprecated.
  ext/intl/config.m4 | 16 ++++++----------
  2 files changed, 13 insertions(+), 59 deletions(-)
 
-diff --git a/acinclude.m4 b/acinclude.m4
-index 876f377..2a70e8d 100644
---- a/acinclude.m4
-+++ b/acinclude.m4
+--- php7.3.orig/acinclude.m4
++++ php7.3/acinclude.m4
 @@ -2168,58 +2168,16 @@ dnl
  dnl Common setup macro for ICU
  dnl
@@ -31,13 +29,9 @@ index 876f377..2a70e8d 100644
 -  else
 -    ICU_CONFIG="$PHP_ICU_DIR/bin/icu-config"
 -  fi
-+  PHP_EVAL_INCLINE($ICU_CFLAGS)
-+  PHP_EVAL_LIBLINE($ICU_LIBS, $1)
- 
+-
 -  AC_MSG_CHECKING([for location of ICU headers and libraries])
-+  ICU_CFLAGS="$ICU_CFLAGS -DU_NO_DEFAULT_INCLUDE_UTF_HEADERS=1"
-+  ICU_CXXFLAGS="$ICU_CXXFLAGS -DUNISTR_FROM_CHAR_EXPLICIT=explicit -DUNISTR_FROM_STRING_EXPLICIT=explicit"
- 
+-
 -  dnl Trust icu-config to know better what the install prefix is..
 -  icu_install_prefix=`$ICU_CONFIG --prefix 2> /dev/null`
 -  if test "$?" != "0" || test -z "$icu_install_prefix"; then
@@ -59,13 +53,17 @@ index 876f377..2a70e8d 100644
 -    if test "$icu_version" -lt "4000"; then
 -      AC_MSG_ERROR([ICU version 4.0 or later is required])
 -    fi
--
++  PHP_EVAL_INCLINE($ICU_CFLAGS)
++  PHP_EVAL_LIBLINE($ICU_LIBS, $1)
+ 
 -    ICU_VERSION=$icu_version
 -    ICU_INCS=`$ICU_CONFIG --cppflags-searchpath`
 -    ICU_LIBS=`$ICU_CONFIG --ldflags --ldflags-icuio`
 -    PHP_EVAL_INCLINE($ICU_INCS)
 -    PHP_EVAL_LIBLINE($ICU_LIBS, $1)
--
++  ICU_CFLAGS="$ICU_CFLAGS -DU_NO_DEFAULT_INCLUDE_UTF_HEADERS=1"
++  ICU_CXXFLAGS="$ICU_CXXFLAGS -DUNISTR_FROM_CHAR_EXPLICIT=explicit -DUNISTR_FROM_STRING_EXPLICIT=explicit"
+ 
 -    ICU_CXXFLAGS=`$ICU_CONFIG --cxxflags`
 -    if test "$icu_version" -ge "49000"; then
 -      ICU_CXXFLAGS="$ICU_CXXFLAGS -DUNISTR_FROM_CHAR_EXPLICIT=explicit -DUNISTR_FROM_STRING_EXPLICIT=explicit"
@@ -74,15 +72,13 @@ index 876f377..2a70e8d 100644
 -    if test "$icu_version" -ge "60000"; then
 -      ICU_CFLAGS="$ICU_CFLAGS -DU_HIDE_OBSOLETE_UTF_OLD_H=1"
 -    fi
-+  if test "$PKG_CONFIG icu-io --atleast-version=60"; then
++  if $PKG_CONFIG icu-io --atleast-version=60; then
 +    ICU_CFLAGS="$ICU_CFLAGS -DU_HIDE_OBSOLETE_UTF_OLD_H=1"
    fi
  ])
  
-diff --git a/ext/intl/config.m4 b/ext/intl/config.m4
-index 4b9f469..fdae88a 100644
---- a/ext/intl/config.m4
-+++ b/ext/intl/config.m4
+--- php7.3.orig/ext/intl/config.m4
++++ php7.3/ext/intl/config.m4
 @@ -9,15 +9,7 @@ if test "$PHP_INTL" != "no"; then
    PHP_SETUP_ICU(INTL_SHARED_LIBADD)
    PHP_SUBST(INTL_SHARED_LIBADD)
