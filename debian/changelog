@@ -1,3 +1,9 @@
+php7.3 (7.3.2-2) unstable; urgency=medium
+
+  * Fix the icu patch condition for icu >= 60
+
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 08 Feb 2019 10:49:26 +0000
+
 php7.3 (7.3.2-1) unstable; urgency=medium
 
   * New upstream version 7.3.2
