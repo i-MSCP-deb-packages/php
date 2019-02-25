@@ -39,16 +39,6 @@ if [ "$1" = "purge" ]; then
 		fi
 	    done
     done
-
-    for dir in \
-	/etc/php/@PHP_VERSION@/mods-available \
-	/etc/php/@PHP_VERSION@ \
-	/etc/php;
-    do
-	if [ -d $dir ]; then
-	    rmdir --ignore-fail-on-non-empty $dir
-	fi
-    done
 fi
 
 #DEBHELPER#

@@ -1,178 +1,50 @@
-php7.0 (7.0.33-1) unstable; urgency=medium
+php7.0 (7.0.33-0+deb9u2) stretch-security; urgency=medium
+
+  * CVE-2019-9020
+  * CVE-2019-9021
+  * CVE-2019-9022 (plus backport for CAA support)
+  * CVE-2019-9023
+  * CVE-2019-9024
+
+ -- Moritz Mühlenhoff <jmm@debian.org>  Tue, 26 Feb 2019 00:13:19 +0100
+
+php7.0 (7.0.33-0+deb9u1) stretch-security; urgency=high
 
   * New upstream version 7.0.33
+  * Fixed security bugs:
+   + [CVE-2018-19518]: imap_open() function command injection
+   + [CVE-2018-14851]: heap-buffer-overflow (READ of size 48) while
+                       reading exif data
+   + [CVE-2018-14883]: Int Overflow lead to Heap OverFlow in
+                       exif_thumbnail_extract of exif.c
+   + [CVE-2018-17082]: XSS due to the header Transfer-Encoding: chunked
 
- -- Ondřej Surý <ondrej@debian.org>  Fri, 07 Dec 2018 08:25:08 +0000
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 07 Dec 2018 11:36:49 +0000
 
-php7.0 (7.0.32-4) unstable; urgency=medium
-
-  * Renamed 0041-Add-patch-to-remove-build-timestamps-from-generated-.patch
-    to actual contents of the patch
-  * Make the build reproducible (Courtesy of Chris Lamb)
-
- -- Ondřej Surý <ondrej@debian.org>  Sun, 04 Nov 2018 04:44:01 +0000
-
-php7.0 (7.0.32-3) unstable; urgency=medium
-
-  * Add patch to use pkg-config for FreeType2 detection
-
- -- Ondřej Surý <ondrej@debian.org>  Thu, 25 Oct 2018 06:40:46 +0000
-
-php7.0 (7.0.32-2) unstable; urgency=medium
-
-  * Fix Vcs-* links
-  * Remove ancient mv_conffile (from php5)
-  * Downgrade dh-php from Recommends to Suggests (Closes: #910620)
-  * Disable the enabled modules in prerm, because in postrm the phpquery
-    script is not aware of already removed sapi (Closes: #911018)
-
- -- Ondřej Surý <ondrej@debian.org>  Mon, 15 Oct 2018 11:34:31 +0000
-
-php7.0 (7.0.32-1) unstable; urgency=medium
-
-  * New upstream version 7.0.32
-  * Rebase patches for PHP 7.0.32
-
- -- Ondřej Surý <ondrej@debian.org>  Mon, 01 Oct 2018 11:42:15 +0000
-
-php7.0 (7.0.31-1) unstable; urgency=medium
-
-  [ Ondřej Surý ]
-  * New upstream version 7.0.31
-  * Fix the Vcs-Browser link
-
- -- Lior Kaplan <kaplan@debian.org>  Sat, 04 Aug 2018 02:49:02 +0300
-
-php7.0 (7.0.30-2) unstable; urgency=medium
-
-  * Update Vcs-* links to salsa.d.o
-  * Update maintainer address to team+pkg-php@tracker.d.o
-
- -- Ondřej Surý <ondrej@debian.org>  Mon, 09 Jul 2018 12:30:28 +0000
-
-php7.0 (7.0.30-1) unstable; urgency=medium
+php7.0 (7.0.30-0+deb9u1) stretch-security; urgency=high
 
   * New upstream version 7.0.30
-  * Rebase patches for PHP 7.0.30
+  * Fixed security bugs:
+   + [CVE-2018-10549]: Heap Buffer Overflow (READ: 1786) in exif_iif_add_value
+   + [CVE-2018-10546]: stream filter convert.iconv leads to infinite loop on invalid sequence
+   + [CVE-2018-10548]: Malicious LDAP-Server Response causes Crash
+   + [CVE-2018-10547]: fix for CVE-2018-5712 may not be complete
+   + [CVE-2018-10545]: Dumpable FPM child processes allow bypassing opcache access controls
+   + [CVE-2018-7584]: stack-buffer-overflow while parsing HTTP response
+  * Regenerate patches for PHP 7.0.30
 
- -- Ondřej Surý <ondrej@debian.org>  Wed, 02 May 2018 12:06:38 +0000
+ -- Ondřej Surý <ondrej@debian.org>  Thu, 14 Jun 2018 13:50:25 +0000
 
-php7.0 (7.0.29-1) unstable; urgency=medium
+php7.0 (7.0.27-0+deb9u1) stretch-security; urgency=high
 
-  * New upstream version 7.0.29
-  * Rebase patches on top of new upstream release.
-
- -- Ondřej Surý <ondrej@debian.org>  Thu, 05 Apr 2018 08:31:53 +0000
-
-php7.0 (7.0.28-1) unstable; urgency=medium
-
-  * New upstream version 7.0.28
-  * Rebase patches on top of new upstream release.
-
- -- Ondřej Surý <ondrej@debian.org>  Tue, 06 Mar 2018 10:41:22 +0000
-
-php7.0 (7.0.27-3) unstable; urgency=medium
-
-  * Add explicit libpcre3 >= 2:8.35 dependency as dh_genshlibs is failing
-    to add versioned dependency for some reason.
-
- -- Ondřej Surý <ondrej@debian.org>  Tue, 06 Feb 2018 16:09:11 +0000
-
-php7.0 (7.0.27-2) unstable; urgency=medium
-
-  * Remove explicit libpcre3 dependency and let dh_genshlibs do its magic
-
- -- Ondřej Surý <ondrej@debian.org>  Tue, 06 Feb 2018 13:04:57 +0000
-
-php7.0 (7.0.27-1) unstable; urgency=medium
-
-  * Update the Vcs-* to salsa.d.o
-  * Remove defunct .gitlab-ci.yml
   * New upstream version 7.0.27
   * Rebase patches on top of new upstream release
-
- -- Ondřej Surý <ondrej@debian.org>  Fri, 05 Jan 2018 12:34:37 +0000
-
-php7.0 (7.0.26-2) unstable; urgency=medium
-
-  * Fix upstream segmentation fault in 7.1.12 and 7.0.26
-
- -- Ondřej Surý <ondrej@debian.org>  Thu, 07 Dec 2017 15:53:05 +0000
-
-php7.0 (7.0.26-1) unstable; urgency=medium
-
-  * New upstream version 7.0.26
-  * Rebase patches for new upstream version.
-
- -- Ondřej Surý <ondrej@debian.org>  Wed, 29 Nov 2017 09:48:46 +0000
-
-php7.0 (7.0.25-1) unstable; urgency=medium
-
-  * New upstream version 7.0.25
-  * Rebase patches for new upstream release.
-
- -- Ondřej Surý <ondrej@debian.org>  Fri, 27 Oct 2017 13:41:09 +0000
-
-php7.0 (7.0.24-1) unstable; urgency=medium
-
-  * New upstream version 7.0.24
-  * Refresh patches for PHP 7.0.24
-
- -- Ondřej Surý <ondrej@debian.org>  Thu, 28 Sep 2017 18:19:30 +0200
-
-php7.0 (7.0.23-1) unstable; urgency=medium
-
-  * New upstream version 7.0.23
-  * Rebase patches on top of PHP 7.0.23
-
- -- Ondřej Surý <ondrej@debian.org>  Thu, 31 Aug 2017 14:25:42 +0200
-
-php7.0 (7.0.22-3) unstable; urgency=medium
-
-  * Allow libgcrypt11-dev when it's not a transitional package
-  * Correct the --extend-diff-ignore to ignore custom .gitlab-ci.yml in the root
-  * Switch from curl-config to pkg-config for curl extension (Courtesy of Remi Collet)
-
- -- Ondřej Surý <ondrej@debian.org>  Wed, 23 Aug 2017 07:51:41 +0200
-
-php7.0 (7.0.22-2) unstable; urgency=medium
-
-  * Update Vcs-* links to https://gitlab.com/deb.sury.org/...
-  * Stop depending on obsolete automake1.11 (Closes: #865135)
-  * Switch build-depends to libgcrypt20-dev (Closes: #864128)
-
- -- Ondřej Surý <ondrej@debian.org>  Fri, 04 Aug 2017 11:54:47 +0200
-
-php7.0 (7.0.22-1) unstable; urgency=medium
-
-  * New upstream version 7.0.22
-  * Rebase patches for PHP 7.0.22
-
- -- Ondřej Surý <ondrej@debian.org>  Thu, 03 Aug 2017 15:42:13 +0200
-
-php7.0 (7.0.21-1) unstable; urgency=medium
-
-  * New upstream version 7.0.21
-  * Rebase patches on top of PHP 7.0.21
-
- -- Ondřej Surý <ondrej@debian.org>  Thu, 06 Jul 2017 11:01:45 +0200
-
-php7.0 (7.0.20-2) unstable; urgency=medium
-
-  * Add Ferenc Kovacs signing key to upstream GPG keyring
-  * Add upstream patch to fix broken support for HOST/PATH ini sections
-
- -- Ondřej Surý <ondrej@debian.org>  Wed, 14 Jun 2017 07:30:04 +0200
-
-php7.0 (7.0.20-1) unstable; urgency=medium
-
   * Kill extra TAB character in the ini file that was causing insserv
     troubles
   * Add signature support to d/watch
-  * New upstream version 7.0.20
-  * Refresh patches on top of PHP 7.0.20 release
+  * Add Ferenc Kovacs signing key to upstream GPG keyring
 
- -- Ondřej Surý <ondrej@debian.org>  Fri, 09 Jun 2017 10:04:20 +0200
+ -- Ondřej Surý <ondrej@debian.org>  Fri, 05 Jan 2018 13:51:52 +0000
 
 php7.0 (7.0.19-1) unstable; urgency=medium
 

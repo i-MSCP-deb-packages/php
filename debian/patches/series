@@ -47,3 +47,12 @@
 0047-Adjust-tidy-extension-for-tidy-html5.patch
 0048-Use-pkg-config-for-FreeType2-detection.patch
 0049-Use-SOURCE_DATE_EPOCH-as-PHP_BUILD_DATE-if-available.patch
+0050-CVE-2019-9020.patch
+0051-CVE-2019-9021.patch
+0052-CVE-2019-9022-caa.patch
+0053-CVE-2019-9022.patch
+0054-CVE-2019-9023-1.patch
+0055-CVE-2019-9023-2.patch
+0056-CVE-2019-9023-3.patch
+0057-CVE-2019-9023-4.patch
+0058-CVE-2019-9024.patch
